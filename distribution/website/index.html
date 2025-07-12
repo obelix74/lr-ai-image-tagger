@@ -237,6 +237,47 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
+
+        .video-demo {
+            background: #f8fafc;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .video-demo h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .video-demo p {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 45%; /* 16:9 aspect ratio */
+            height: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
         
         @media (max-width: 768px) {
             .hero h1 {
@@ -251,6 +292,19 @@
             .steps {
                 grid-template-columns: 1fr;
             }
+
+            .video-demo {
+                padding: 60px 0;
+            }
+
+            .video-demo h2 {
+                font-size: 2rem;
+            }
+
+            .video-container {
+                margin: 0 1rem;
+                max-width: calc(100% - 2rem);
+            }
         }
     </style>
 </head>
@@ -262,9 +316,9 @@
             </div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Demo</a></li>
                 <li><a href="#installation">Installation</a></li>
                 <li><a href="#download">Download</a></li>
-
             </ul>
         </nav>
     </header>
@@ -330,6 +384,22 @@
                     <h3>Secure & Private</h3>
                     <p>Your API keys are stored securely, and your images are processed safely without being stored by the AI service.</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="video-demo">
+        <div class="container">
+            <h2>See It In Action</h2>
+            <p>Watch how AI Image Tagger transforms your photo workflow with intelligent metadata generation</p>
+            <div class="video-container">
+                <iframe
+                    src="https://www.youtube.com/embed/km1yoIfScgs"
+                    title="AI Image Tagger Demo"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
             </div>
         </div>
     </section>
