@@ -19,7 +19,7 @@ require "Logger"
 
 --------------------------------------------------------------------------------
 
-logger:tracef( "RoboTagger v2.0: init for Lightroom Classic 2024" )
+logger:tracef( "RoboTagger v2.0: init for Lightroom Classic 2024 with Gemini AI" )
 
 local prefs = LrPrefs.prefsForPlugin()
 
@@ -41,28 +41,20 @@ if prefs.maxTasks == nil then
 	prefs.maxTasks = math.min(tasksMax, 4) -- Limit to 4 concurrent requests for better stability
 end
 
-prefs.maxLabels = 10
-prefs.maxLandmarks = 10
--- Increase thumbnail size for better accuracy with modern Vision API
+prefs.maxKeywords = 10
+-- Increase thumbnail size for better accuracy with modern AI
 prefs.thumbnailWidth = 1600
 prefs.thumbnailHeight = 1600
 
-if prefs.labelThreshold == nil then
-	prefs.labelThreshold = 80
-end
-if prefs.decorateLabelKeyword == nil then
-	prefs.decorateLabelKeyword = decorateKeywordAsIs
-	prefs.decorateLabelValue = nil
+if prefs.decorateKeyword == nil then
+	prefs.decorateKeyword = decorateKeywordAsIs
+	prefs.decorateKeywordValue = nil
 end
 
-if prefs.landmarkThreshold == nil then
-	prefs.landmarkThreshold = 80
-end
-if prefs.landmarkCopyLocation == nil then
-	prefs.landmarkCopyLocation = true
+if prefs.saveCaptionToIptc == nil then
+	prefs.saveCaptionToIptc = true
 end
 
-if prefs.decorateLandmarkKeyword == nil then
-	prefs.decorateLandmarkKeyword = decorateKeywordAsIs
-	prefs.decorateLandmarkValue = nil
+if prefs.saveDescriptionToIptc == nil then
+	prefs.saveDescriptionToIptc = true
 end

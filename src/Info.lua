@@ -1,8 +1,8 @@
 --[[----------------------------------------------------------------------------
 
- Automatically Tag Photos using Google Vision API
+ Automatically Tag Photos using Gemini AI API
  Copyright 2017-2024 Tapani Otala
- Updated for Lightroom Classic 2024
+ Updated for Lightroom Classic 2024 and Gemini AI
 
 --------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ return {
 
 	LrExportMenuItems = {
 		{
-			title = LOC( "$$$/RoboTagger/LibraryMenuItem=Tag Photos with Google Vision" ),
+			title = LOC( "$$$/RoboTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
 			file = "RoboTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},
@@ -41,7 +41,7 @@ return {
 
 	LrLibraryMenuItems = {
 		{
-			title = LOC( "$$$/RoboTagger/LibraryMenuItem=Tag Photos with Google Vision" ),
+			title = LOC( "$$$/RoboTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
 			file = "RoboTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},

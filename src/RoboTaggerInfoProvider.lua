@@ -26,7 +26,7 @@ local share = LrView.share
 
 local inspect = require "inspect"
 require "Logger"
-require "GoogleVisionAPI"
+require "GeminiAPI"
 
 --------------------------------------------------------------------------------
 
@@ -34,24 +34,19 @@ local prefs = LrPrefs.prefsForPlugin()
 
 -- shared properties for aligning prompts
 local propGeneralOptionsPromptWidth = "generalOptionsPromptWidth"
-local propLabelOptionsPromptWidth = "labelOptionsPromptWidth"
-local propLandmarkOptionsPromptWidth = "landmarkOptionsPromptWidth"
+local propKeywordOptionsPromptWidth = "keywordOptionsPromptWidth"
 local propCredentialsPromptWidth = "credentialsPromptWidth"
 
 -- properties for option controls
 local propGeneralMaxTasks = "generalMaxTasks"
 
-local propLabelThreshold = "labelThreshold"
-local propDecorateLabelKeyword = "decorateLabelKeyword"
-local propDecorateLabelValue = "decorateLabelValue"
+local propDecorateKeyword = "decorateKeyword"
+local propDecorateKeywordValue = "decorateKeywordValue"
 
-local propLandmarkThreshold = "landmarkThreshold"
-local propDecorateLandmarkKeyword = "decorateLandmarkKeyword"
-local propDecorateLandmarkValue = "decorateLandmarkValue"
-local propLandmarkCopyLocation = "landmarkCopyLocation"
+local propSaveCaptionToIptc = "saveCaptionToIptc"
+local propSaveDescriptionToIptc = "saveDescriptionToIptc"
 
-local propClientEmail = "clientEmail"
-local propServiceKey = "serviceKey"
+local propApiKey = "apiKey"
 local propVersions = "versions"
 
 -- canned strings
@@ -87,68 +82,53 @@ local function renderSampleKeyword( decoration, value )
 	return sampleKeyword
 end
 
-local function loadCredentials( propertyTable, fileName )
-	local creds = nil
-	
-	if fileName then
-		logger:tracef( "loading credentials from %s", inspect( fileName ) )
-		creds = GoogleVisionAPI.loadCredentialsFromFile( fileName )
+local function loadApiKey( propertyTable )
+	logger:tracef( "loading API key from keystore" )
+	local apiKey = GeminiAPI.getApiKey()
+	if apiKey then
+		propertyTable[ propApiKey ] = apiKey
 	else
-		logger:tracef( "loading credentials from keystore" )
-		creds = GoogleVisionAPI.getCredentials()
-	end
-	if creds then
-		propertyTable[ propClientEmail ] = creds.client_email
-		propertyTable[ propServiceKey ] = creds.private_key
-	else
-		propertyTable[ propClientEmail ] = nil
-		propertyTable[ propServiceKey ] = nil
+		propertyTable[ propApiKey ] = ""
 	end
 end
 
-local function storeCredentials( propertyTable )
-	GoogleVisionAPI.storeCredentials( {
-		client_email = propertyTable[ propClientEmail ],
-		private_key = propertyTable[ propServiceKey ],
-	} )
+local function storeApiKey( propertyTable )
+	local apiKey = propertyTable[ propApiKey ]
+	if apiKey and apiKey ~= "" then
+		GeminiAPI.storeApiKey( apiKey )
+	end
 end
 
-local function clearCredentials( propertyTable )
-	GoogleVisionAPI.clearCredentials()
-	loadCredentials( propertyTable, nil )
+local function clearApiKey( propertyTable )
+	GeminiAPI.clearApiKey()
+	propertyTable[ propApiKey ] = ""
 end
 
 local function startDialog( propertyTable )
 	logger:tracef( "RoboTaggerInfoProvider: startDialog" )
 
 	propertyTable[ propVersions ] = {
-		vision = {
-			version = loadingText,
-		},
-		openssl = {
+		gemini = {
 			version = loadingText,
 		},
 	}
 	LrTasks.startAsyncTask(
 		function()
-			logger:tracef( "getting Google Vision API versions" )
-			propertyTable[ propVersions ] = GoogleVisionAPI.getVersions()
-			logger:tracef( "got Google Vision API versions" )
+			logger:tracef( "getting Gemini API versions" )
+			propertyTable[ propVersions ] = GeminiAPI.getVersions()
+			logger:tracef( "got Gemini API versions" )
 		end
 	)
 
 	propertyTable[ propGeneralMaxTasks ] = prefs.maxTasks
 
-	propertyTable[ propLabelThreshold ] = prefs.labelThreshold
-	propertyTable[ propDecorateLabelKeyword ] = prefs.decorateLabelKeyword
-	propertyTable[ propDecorateLabelValue ] = prefs.decorateLabelValue
+	propertyTable[ propDecorateKeyword ] = prefs.decorateKeyword
+	propertyTable[ propDecorateKeywordValue ] = prefs.decorateKeywordValue
 
-	propertyTable[ propLandmarkThreshold ] = prefs.landmarkThreshold
-	propertyTable[ propDecorateLandmarkKeyword ] = prefs.decorateLandmarkKeyword
-	propertyTable[ propDecorateLandmarkValue ] = prefs.decorateLandmarkValue
-	propertyTable[ propLandmarkCopyLocation ] = prefs.landmarkCopyLocation
+	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
+	propertyTable[ propSaveDescriptionToIptc ] = prefs.saveDescriptionToIptc
 
-	loadCredentials( propertyTable, nil )
+	loadApiKey( propertyTable )
 end
 
 local function endDialog( propertyTable )
@@ -156,16 +136,13 @@ local function endDialog( propertyTable )
 
 	prefs.maxTasks = propertyTable[ propGeneralMaxTasks ]
 
-	prefs.labelThreshold = propertyTable[ propLabelThreshold ]
-	prefs.decorateLabelKeyword = propertyTable[ propDecorateLabelKeyword ]
-	prefs.decorateLabelValue = LrStringUtils.trimWhitespace( propertyTable[ propDecorateLabelValue ] or "" )
+	prefs.decorateKeyword = propertyTable[ propDecorateKeyword ]
+	prefs.decorateKeywordValue = LrStringUtils.trimWhitespace( propertyTable[ propDecorateKeywordValue ] or "" )
 
-	prefs.landmarkThreshold = propertyTable[ propLandmarkThreshold ]
-	prefs.decorateLandmarkKeyword = propertyTable[ propDecorateLandmarkKeyword ]
-	prefs.decorateLandmarkValue = LrStringUtils.trimWhitespace( propertyTable[ propDecorateLandmarkValue ] or "" )
-	prefs.landmarkCopyLocation = propertyTable[ propLandmarkCopyLocation ]
+	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
+	prefs.saveDescriptionToIptc = propertyTable[ propSaveDescriptionToIptc ]
 
-	storeCredentials( propertyTable )
+	storeApiKey( propertyTable )
 end
 
 local function sectionsForTopOfDialog( f, propertyTable )
@@ -211,53 +188,21 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				},
 			},
 		},
-		-- label options
+		-- keyword options
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/Labels/Title=Label Options" ),
+			title = LOC( "$$$/RoboTagger/Options/Keywords/Title=Keyword Options" ),
 			spacing = f:control_spacing(),
+
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Labels/Threshold=Score Threshold:" ),
-					width = share( propLabelOptionsPromptWidth ),
-					alignment = "right",
-				},
-				f:edit_field {
-					placeholder_string = LOC( "$$$/RoboTagger/Options/Labels/ThresholdPlaceHolder=<threshold>" ),
-					value = bind { key = propLabelThreshold },
-					immediate = true,
-					min = thresholdMin,
-					max = thresholdMax,
-					increment = thresholdStep,
-					precision = 0,
-					width_in_digits = 4,
-				},
-				f:static_text {
-					title = string.format( "%d%%", thresholdMin ),
-					alignment = "right",
-				},
-				f:slider {
-					fill_horizontal = 1,
-					value = bind { key = propLabelThreshold },
-					min = thresholdMin,
-					max = thresholdMax,
-					integral = thresholdStep,
-				},
-				f:static_text {
-					title = string.format( "%d%%", thresholdMax ),
-					alignment = "left",
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Labels/Keywords/Prompt=Create Keywords:" ),
-					width = share( propLabelOptionsPromptWidth ),
+					title = LOC( "$$$/RoboTagger/Options/Keywords/Prompt=Create Keywords:" ),
+					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
 				f:popup_menu {
-					value = bind { key = propDecorateLabelKeyword },
+					value = bind { key = propDecorateKeyword },
 					items = {
 						{ title = titleKeywordAsIs,   value = decorateKeywordAsIs   },
 						{ title = titleKeywordPrefix, value = decorateKeywordPrefix },
@@ -269,23 +214,23 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					place = "overlapping",
 					fill_horizontal = 0.5,
 					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLabelKeyword, decorateKeywordPrefix ),
+						visible = LrBinding.keyEquals( propDecorateKeyword, decorateKeywordPrefix ),
 						placeholder_string = placeholderKeywordPrefix,
-						value = bind { key = propDecorateLabelValue },
+						value = bind { key = propDecorateKeywordValue },
 						immediate = true,
 						width_in_chars = 10,
 					},
 					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLabelKeyword, decorateKeywordSuffix ),
+						visible = LrBinding.keyEquals( propDecorateKeyword, decorateKeywordSuffix ),
 						placeholder_string = placeholderKeywordSuffix,
-						value = bind { key = propDecorateLabelValue },
+						value = bind { key = propDecorateKeywordValue },
 						immediate = true,
 						width_in_chars = 10,
 					},
 					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLabelKeyword, decorateKeywordParent ),
+						visible = LrBinding.keyEquals( propDecorateKeyword, decorateKeywordParent ),
 						placeholder_string = placeholderKeywordParent,
-						value = bind { key = propDecorateLabelValue },
+						value = bind { key = propDecorateKeywordValue },
 						immediate = true,
 						width_in_chars = 10,
 					},
@@ -293,114 +238,15 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:row {
 					fill_horizontal = 1,
 					f:static_text {
-						title = LOC( "$$$/RoboTagger/Options/Labels/Keywords/Arrow=^U+25B6" )
+						title = LOC( "$$$/RoboTagger/Options/Keywords/Arrow=^U+25B6" )
 					},
 					f:static_text {
 						title = bind {
-							keys = { propDecorateLabelKeyword, propDecorateLabelValue },
+							keys = { propDecorateKeyword, propDecorateKeywordValue },
 							operation = function( binder, values, fromTable )
 								return renderSampleKeyword(
-									values[ propDecorateLabelKeyword ],
-									values[ propDecorateLabelValue ] )
-							end,
-						},
-						font = "Courier",
-						text_color = LrColor( 0, 0, 1 ),
-					},
-				},
-			},
-		},
-		-- landmark options
-		{
-			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/Landmarks/Title=Landmark Options" ),
-			spacing = f:control_spacing(),
-			f:row {
-				fill_horizontal = 1,
-				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Landmarks/Threshold=Score Threshold:" ),
-					width = share( propLandmarkOptionsPromptWidth ),
-					alignment = "right",
-				},
-				f:edit_field {
-					placeholder_string = LOC( "$$$/RoboTagger/Options/Landmarks/ThresholdPlaceHolder=<threshold>" ),
-					value = bind { key = propLandmarkThreshold },
-					immediate = true,
-					min = thresholdMin,
-					max = thresholdMax,
-					increment = thresholdStep,
-					precision = 0,
-					width_in_digits = 4,
-				},
-				f:static_text {
-					title = string.format( "%d%%", thresholdMin ),
-					alignment = "right",
-				},
-				f:slider {
-					fill_horizontal = 1,
-					value = bind { key = propLandmarkThreshold },
-					min = thresholdMin,
-					max = thresholdMax,
-					integral = thresholdStep,
-				},
-				f:static_text {
-					title = string.format( "%d%%", thresholdMax ),
-					alignment = "left",
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Landmarks/Keywords/Prompt=Create Keywords:" ),
-					width = share( propLandmarkOptionsPromptWidth ),
-					alignment = "right",
-				},
-				f:popup_menu {
-					value = bind { key = propDecorateLandmarkKeyword },
-					items = {
-						{ title = titleKeywordAsIs,   value = decorateKeywordAsIs   },
-						{ title = titleKeywordPrefix, value = decorateKeywordPrefix },
-						{ title = titleKeywordSuffix, value = decorateKeywordSuffix },
-						{ title = titleKeywordParent, value = decorateKeywordParent },
-					},
-				},
-				f:row {
-					place = "overlapping",
-					fill_horizontal = 0.5,
-					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLandmarkKeyword, decorateKeywordPrefix ),
-						placeholder_string = placeholderKeywordPrefix,
-						value = bind { key = propDecorateLandmarkValue },
-						immediate = true,
-						width_in_chars = 10,
-					},
-					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLandmarkKeyword, decorateKeywordSuffix ),
-						placeholder_string = placeholderKeywordSuffix,
-						value = bind { key = propDecorateLandmarkValue },
-						immediate = true,
-						width_in_chars = 10,
-					},
-					f:edit_field {
-						visible = LrBinding.keyEquals( propDecorateLandmarkKeyword, decorateKeywordParent ),
-						placeholder_string = placeholderKeywordParent,
-						value = bind { key = propDecorateLandmarkValue },
-						immediate = true,
-						width_in_chars = 10,
-					},
-				},
-				f:row {
-					fill_horizontal = 1,
-					f:static_text {
-						title = LOC( "$$$/RoboTagger/Options/Landmarks/Keywords/Arrow=^U+25B6" )
-					},
-					f:static_text {
-						title = bind {
-							keys = { propDecorateLandmarkKeyword, propDecorateLandmarkValue },
-							operation = function( binder, values, fromTable )
-								return renderSampleKeyword(
-									values[ propDecorateLandmarkKeyword ],
-									values[ propDecorateLandmarkValue ] )
+									values[ propDecorateKeyword ],
+									values[ propDecorateKeywordValue ] )
 							end,
 						},
 						font = "Courier",
@@ -411,78 +257,63 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/Landmarks/CopyLocation=Copy Top Landmark Location (GPS coordinates)" ),
-					value = bind { key = propLandmarkCopyLocation },
+					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveCaption=Save caption to IPTC metadata" ),
+					value = bind { key = propSaveCaptionToIptc },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveDescription=Save description to IPTC metadata" ),
+					value = bind { key = propSaveDescriptionToIptc },
 					fill_horizontal = 1,
 				},
 			},
 		},
-		-- credentials
+
+		-- API key
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Credentials/Title=Google Cloud Credentials" ),
+			title = LOC( "$$$/RoboTagger/ApiKey/Title=Gemini AI API Key" ),
 			synopsis = bind {
-				key = propClientEmail,
+				key = propApiKey,
 				object = propertyTable,
+				transform = function( value, fromTable )
+					if value and value ~= "" then
+						return "API key configured"
+					else
+						return "API key not configured"
+					end
+				end,
 			},
 			spacing = f:control_spacing(),
 			f:row {
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Credentials/ClientEmail=Client Email:" ),
-					width = share( propCredentialsPromptWidth ),
-					alignment = "right",
-				},
-				f:edit_field {
-					placeholder_string = LOC( "$$$/RoboTagger/Credentials/ClientEmailPlaceHolder=<client email>" ),
-					value = bind { key = propClientEmail },
-					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				f:static_text {
-					title = LOC( "$$$/RoboTagger/Credentials/ServiceKey=Service Key:" ),
+					title = LOC( "$$$/RoboTagger/ApiKey/Key=API Key:" ),
 					width = share( propCredentialsPromptWidth ),
 					alignment = "right",
 				},
 				f:password_field {
-					-- yikes! do not make a password_field more than one line high.
-					-- on Windows, that will turn into a regular edit_field, with content visible and copyable!
-					placeholder_string = LOC( "$$$/RoboTagger/Credentials/ServiceKeyPlaceHolder=<service key>" ),
-					value = bind { key = propServiceKey },
+					placeholder_string = LOC( "$$$/RoboTagger/ApiKey/KeyPlaceHolder=<API key>" ),
+					value = bind { key = propApiKey },
 					fill_horizontal = 1,
 					height_in_lines = 1,
 				},
 			},
 			f:row {
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/Credentials/Setup=Setup Instructions..." ),
+					title = LOC( "$$$/RoboTagger/ApiKey/Setup=Get API Key..." ),
 					place_horizontal = 1,
 					action = function( btn )
-						LrHttp.openUrlInBrowser( "https://cloud.google.com/vision/docs/common/auth#set_up_a_service_account" )
+						LrHttp.openUrlInBrowser( "https://ai.google.dev/gemini-api/docs/api-key" )
 					end,
 				},
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/Credentials/Load=Load Credentials..." ),
+					title = LOC( "$$$/RoboTagger/ApiKey/Clear=Clear" ),
 					place_horizontal = 1,
 					action = function( btn )
-						local fileName = LrDialogs.runOpenPanel( {
-							title = LOC( "$$$/RoboTagger/OpenCredentialsFileTitle=Load Credentials From" ),
-							canChooseFiles = true,
-							canChooseDirectories = false,
-							allowsMultipleSelection = false,
-							initialDirectory = LrPathUtils.child( LrPathUtils.getStandardFilePath( "home" ), ".ssh" ),
-						})
-
-						if fileName then
-							loadCredentials( propertyTable, fileName[1] )
-						end
-					end,
-				},
-				f:push_button {
-					title = LOC( "$$$/RoboTagger/Credentials/Clear=Clear" ),
-					place_horizontal = 1,
-					action = function( btn )
-						clearCredentials( propertyTable )
+						clearApiKey( propertyTable )
 					end,
 				},
 			},
@@ -495,33 +326,19 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				key = propVersions,
 				object = propertyTable,
 				transform = function( value, fromTable )
-					return value.vision.version
+					return value.gemini.version
 				end,
 			},
 			spacing = f:label_spacing(),
 			f:row {
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Versions/GoogleVision/Arrow=^U+25B6" )
+					title = LOC( "$$$/RoboTagger/Versions/Gemini/Arrow=^U+25B6" )
 				},
 				f:static_text {
 					title = bind {
 						key = propVersions,
 						transform = function( value, fromTable )
-							return value.vision.version
-						end,
-					},
-					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				f:static_text {
-					title = LOC( "$$$/RoboTagger/Versions/OpenSSL/Arrow=^U+25B6" )
-				},
-				f:static_text {
-					title = bind {
-						key = propVersions,
-						transform = function( value, fromTable )
-							return value.openssl.version
+							return value.gemini.version
 						end,
 					},
 					fill_horizontal = 1,
