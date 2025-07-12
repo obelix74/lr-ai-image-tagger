@@ -44,8 +44,9 @@ local propGeneralMaxTasks = "generalMaxTasks"
 local propDecorateKeyword = "decorateKeyword"
 local propDecorateKeywordValue = "decorateKeywordValue"
 
+local propSaveTitleToIptc = "saveTitleToIptc"
 local propSaveCaptionToIptc = "saveCaptionToIptc"
-local propSaveDescriptionToIptc = "saveDescriptionToIptc"
+local propSaveHeadlineToIptc = "saveHeadlineToIptc"
 local propSaveInstructionsToIptc = "saveInstructionsToIptc"
 local propSaveCopyrightToIptc = "saveCopyrightToIptc"
 local propSaveLocationToIptc = "saveLocationToIptc"
@@ -135,8 +136,9 @@ local function startDialog( propertyTable )
 	propertyTable[ propDecorateKeyword ] = prefs.decorateKeyword
 	propertyTable[ propDecorateKeywordValue ] = prefs.decorateKeywordValue
 
+	propertyTable[ propSaveTitleToIptc ] = prefs.saveTitleToIptc
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
-	propertyTable[ propSaveDescriptionToIptc ] = prefs.saveDescriptionToIptc
+	propertyTable[ propSaveHeadlineToIptc ] = prefs.saveHeadlineToIptc
 	propertyTable[ propSaveInstructionsToIptc ] = prefs.saveInstructionsToIptc
 	propertyTable[ propSaveCopyrightToIptc ] = prefs.saveCopyrightToIptc
 	propertyTable[ propSaveLocationToIptc ] = prefs.saveLocationToIptc
@@ -158,8 +160,9 @@ local function endDialog( propertyTable )
 	prefs.decorateKeyword = propertyTable[ propDecorateKeyword ]
 	prefs.decorateKeywordValue = LrStringUtils.trimWhitespace( propertyTable[ propDecorateKeywordValue ] or "" )
 
+	prefs.saveTitleToIptc = propertyTable[ propSaveTitleToIptc ]
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
-	prefs.saveDescriptionToIptc = propertyTable[ propSaveDescriptionToIptc ]
+	prefs.saveHeadlineToIptc = propertyTable[ propSaveHeadlineToIptc ]
 	prefs.saveInstructionsToIptc = propertyTable[ propSaveInstructionsToIptc ]
 	prefs.saveCopyrightToIptc = propertyTable[ propSaveCopyrightToIptc ]
 	prefs.saveLocationToIptc = propertyTable[ propSaveLocationToIptc ]
@@ -285,6 +288,14 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveTitle=Save title to IPTC metadata" ),
+					value = bind { key = propSaveTitleToIptc },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
 					title = LOC( "$$$/AiTagger/Options/IPTC/SaveCaption=Save caption to IPTC metadata" ),
 					value = bind { key = propSaveCaptionToIptc },
 					fill_horizontal = 1,
@@ -293,8 +304,8 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveDescription=Save description to IPTC metadata" ),
-					value = bind { key = propSaveDescriptionToIptc },
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveHeadline=Save headline to IPTC metadata" ),
+					value = bind { key = propSaveHeadlineToIptc },
 					fill_horizontal = 1,
 				},
 			},

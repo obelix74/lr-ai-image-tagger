@@ -51,12 +51,16 @@ if prefs.decorateKeyword == nil then
 	prefs.decorateKeywordValue = nil
 end
 
+if prefs.saveTitleToIptc == nil then
+	prefs.saveTitleToIptc = true
+end
+
 if prefs.saveCaptionToIptc == nil then
 	prefs.saveCaptionToIptc = true
 end
 
-if prefs.saveDescriptionToIptc == nil then
-	prefs.saveDescriptionToIptc = true
+if prefs.saveHeadlineToIptc == nil then
+	prefs.saveHeadlineToIptc = true
 end
 
 -- AI prompt customization

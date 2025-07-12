@@ -94,7 +94,7 @@ end
 --------------------------------------------------------------------------------
 
 local function getDefaultPrompt()
-	return "Please analyze this photograph and provide:\n1. A brief caption (1-2 sentences)\n2. A detailed description (2-3 sentences)\n3. A list of relevant keywords (comma-separated)\n4. Special instructions for photo editing or usage (if applicable)\n5. Copyright or attribution information (if visible)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"caption\": \"brief caption here\",\n  \"description\": \"detailed description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+	return "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Copyright or attribution information (if visible)\n7. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
 end
 
 local function getAnalysisPrompt()
@@ -160,8 +160,9 @@ function GeminiAPI.analyze( fileName, photo )
 							local analysisResult = JSON:decode( responseText )
 
 							if analysisResult then
+								results.title = analysisResult.title or ""
 								results.caption = analysisResult.caption or ""
-								results.description = analysisResult.description or ""
+								results.headline = analysisResult.headline or analysisResult.description or ""  -- Support both new and old field names
 								results.instructions = analysisResult.instructions or ""
 								results.copyright = analysisResult.copyright or ""
 								results.location = analysisResult.location or ""
@@ -178,24 +179,27 @@ function GeminiAPI.analyze( fileName, photo )
 									end
 								end
 							else
+								results.title = ""
 								results.caption = ""
-								results.description = ""
+								results.headline = ""
 								results.instructions = ""
 								results.copyright = ""
 								results.location = ""
 								results.keywords = {}
 							end
 						else
+							results.title = ""
 							results.caption = ""
-							results.description = ""
+							results.headline = ""
 							results.instructions = ""
 							results.copyright = ""
 							results.location = ""
 							results.keywords = {}
 						end
 					else
+						results.title = ""
 						results.caption = ""
-						results.description = ""
+						results.headline = ""
 						results.instructions = ""
 						results.copyright = ""
 						results.location = ""

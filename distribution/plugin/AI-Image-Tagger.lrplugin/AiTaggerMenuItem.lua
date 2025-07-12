@@ -45,8 +45,9 @@ local propStartTime = "startTime"
 local propElapsedTime = "elapsedTime"
 local propConsumedTime = "consumedTime"
 local propMaxKeywords = "maxKeywords"
+local propTitle = "title"
 local propCaption = "caption"
-local propDescription = "description"
+local propHeadline = "headline"
 local propInstructions = "instructions"
 local propCopyright = "copyright"
 local propLocation = "location"
@@ -71,14 +72,15 @@ local function savePhoto( propertyTable, index )
 		end
 
 		-- Save all metadata fields
+		photo.title = propertyTable[ propTitle ]
 		photo.caption = propertyTable[ propCaption ]
-		photo.description = propertyTable[ propDescription ]
+		photo.headline = propertyTable[ propHeadline ]
 		photo.instructions = propertyTable[ propInstructions ]
 		photo.copyright = propertyTable[ propCopyright ]
 		photo.location = propertyTable[ propLocation ]
 
-		logger:tracef( "saved metadata to photo data: caption='%s', description='%s', instructions='%s', copyright='%s', location='%s'",
-			photo.caption or "nil", photo.description or "nil", photo.instructions or "nil",
+		logger:tracef( "saved metadata to photo data: title='%s', caption='%s', headline='%s', instructions='%s', copyright='%s', location='%s'",
+			photo.title or "nil", photo.caption or "nil", photo.headline or "nil", photo.instructions or "nil",
 			photo.copyright or "nil", photo.location or "nil" )
 	end
 end
@@ -97,8 +99,9 @@ local function loadPhoto( propertyTable, index )
 	end
 
 	-- Load all metadata fields
+	propertyTable[ propTitle ] = photo.title or ""
 	propertyTable[ propCaption ] = photo.caption or ""
-	propertyTable[ propDescription ] = photo.description or ""
+	propertyTable[ propHeadline ] = photo.headline or ""
 	propertyTable[ propInstructions ] = photo.instructions or ""
 	propertyTable[ propCopyright ] = photo.copyright or ""
 	propertyTable[ propLocation ] = photo.location or ""
@@ -123,9 +126,9 @@ local function selectPhoto( propertyTable, newIndex )
 end
 
 -- apply the selected keywords and all metadata to the photo
-local function applyMetadataToPhoto( photo, keywords, caption, description, instructions, copyright, location )
-	logger:tracef( "applyMetadataToPhoto called with: caption='%s', description='%s', instructions='%s', copyright='%s', location='%s'",
-		caption or "nil", description or "nil", instructions or "nil", copyright or "nil", location or "nil" )
+local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, copyright, location )
+	logger:tracef( "applyMetadataToPhoto called with: title='%s', caption='%s', headline='%s', instructions='%s', copyright='%s', location='%s'",
+		title or "nil", caption or "nil", headline or "nil", instructions or "nil", copyright or "nil", location or "nil" )
 
 	-- Helper function to safely set metadata
 	local function safeSetMetadata( fieldName, value, description )
@@ -193,12 +196,16 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 			end
 
 			-- Apply IPTC metadata using correct Lightroom field names
-			logger:tracef( "IPTC preferences: caption=%s, description=%s, instructions=%s, copyright=%s, location=%s",
-				tostring(prefs.saveCaptionToIptc), tostring(prefs.saveDescriptionToIptc),
+			logger:tracef( "IPTC preferences: title=%s, caption=%s, headline=%s, instructions=%s, copyright=%s, location=%s",
+				tostring(prefs.saveTitleToIptc), tostring(prefs.saveCaptionToIptc), tostring(prefs.saveHeadlineToIptc),
 				tostring(prefs.saveInstructionsToIptc), tostring(prefs.saveCopyrightToIptc),
 				tostring(prefs.saveLocationToIptc) )
 
-
+			if prefs.saveTitleToIptc and title and title ~= "" then
+				safeSetMetadata( "title", title, "IPTC title" )
+			else
+				logger:tracef( "skipping IPTC title: enabled=%s, title='%s'", tostring(prefs.saveTitleToIptc), title or "nil" )
+			end
 
 			if prefs.saveCaptionToIptc and caption and caption ~= "" then
 				safeSetMetadata( "caption", caption, "IPTC caption" )
@@ -206,10 +213,10 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 				logger:tracef( "skipping IPTC caption: enabled=%s, caption='%s'", tostring(prefs.saveCaptionToIptc), caption or "nil" )
 			end
 
-			if prefs.saveDescriptionToIptc and description and description ~= "" then
-				safeSetMetadata( "headline", description, "IPTC headline/description" )
+			if prefs.saveHeadlineToIptc and headline and headline ~= "" then
+				safeSetMetadata( "headline", headline, "IPTC headline" )
 			else
-				logger:tracef( "skipping IPTC description: enabled=%s, description='%s'", tostring(prefs.saveDescriptionToIptc), description or "nil" )
+				logger:tracef( "skipping IPTC headline: enabled=%s, headline='%s'", tostring(prefs.saveHeadlineToIptc), headline or "nil" )
 			end
 
 			if prefs.saveInstructionsToIptc and instructions and instructions ~= "" then
@@ -249,14 +256,15 @@ local function exportResults( propertyTable )
 		local file = io.open( fileName, "w" )
 		if file then
 			-- Write CSV header
-			file:write( "Filename,Caption,Description,Keywords,Instructions,Copyright,Location,Analysis Time (sec)\n" )
+			file:write( "Filename,Title,Caption,Headline,Keywords,Instructions,Copyright,Location,Analysis Time (sec)\n" )
 
 			-- Write data for each photo
 			for _, photoData in ipairs( photos ) do
 				local photo = photoData.photo
 				local filename = photo:getFormattedMetadata( "fileName" ) or ""
-				local caption = (photoData.caption or ""):gsub( '"', '""' ) -- Escape quotes
-				local description = (photoData.description or ""):gsub( '"', '""' )
+				local title = (photoData.title or ""):gsub( '"', '""' ) -- Escape quotes
+				local caption = (photoData.caption or ""):gsub( '"', '""' )
+				local headline = (photoData.headline or ""):gsub( '"', '""' )
 				local instructions = (photoData.instructions or ""):gsub( '"', '""' )
 				local copyright = (photoData.copyright or ""):gsub( '"', '""' )
 				local location = (photoData.location or ""):gsub( '"', '""' )
@@ -273,8 +281,8 @@ local function exportResults( propertyTable )
 				end
 				local keywordStr = table.concat( keywords, "; " ):gsub( '"', '""' )
 
-				file:write( string.format( '"%s","%s","%s","%s","%s","%s","%s",%.3f\n',
-					filename, caption, description, keywordStr, instructions, copyright, location, elapsed ) )
+				file:write( string.format( '"%s","%s","%s","%s","%s","%s","%s","%s",%.3f\n',
+					filename, title, caption, headline, keywordStr, instructions, copyright, location, elapsed ) )
 			end
 
 			file:close()
@@ -455,6 +463,16 @@ local function showResponse( propertyTable )
 			f:column {
 				fill_horizontal = 0.6,
 				f:group_box {
+					title = LOC( "$$$/AiTagger/ResultsDialogTitleTitle=Title" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propTitle },
+						fill_horizontal = 1,
+						height_in_lines = 1,
+					},
+				},
+				f:spacer { height = 8 },
+				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
 					font = "<system/bold>",
 					f:edit_field {
@@ -465,10 +483,10 @@ local function showResponse( propertyTable )
 				},
 				f:spacer { height = 8 },
 				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogDescriptionTitle=Description" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogHeadlineTitle=Headline" ),
 					font = "<system/bold>",
 					f:edit_field {
-						value = bind { key = propDescription },
+						value = bind { key = propHeadline },
 						fill_horizontal = 1,
 						height_in_lines = 4,
 					},
@@ -558,7 +576,7 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							local photo = propertyTable[ propPhotos ][ propertyTable[ propCurrentPhotoIndex ] ]
-							applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description, photo.instructions, photo.copyright, photo.location )
+							applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.copyright, photo.location )
 						end
 					)
 				end,
@@ -572,7 +590,7 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-								applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description, photo.instructions, photo.copyright, photo.location )
+								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.copyright, photo.location )
 							end
 						end
 					)
@@ -624,8 +642,9 @@ local function AiTagger()
 				propertyTable[ propStartTime ] = LrDate.currentTime()
 				propertyTable[ propElapsedTime ] = 0 -- elapsed wall time
 				propertyTable[ propConsumedTime ] = 0 -- consumed CPU time
+				propertyTable[ propTitle ] = ""
 				propertyTable[ propCaption ] = ""
-				propertyTable[ propDescription ] = ""
+				propertyTable[ propHeadline ] = ""
 				propertyTable[ propInstructions ] = ""
 				propertyTable[ propCopyright ] = ""
 				propertyTable[ propLocation ] = ""
@@ -700,24 +719,27 @@ local function AiTagger()
 										local elapsed = LrDate.currentTime() - start
 										if result.status then
 											local keywordCount = result.keywords and #result.keywords or 0
+											local hasTitle = result.title and result.title ~= ""
 											local hasCaption = result.caption and result.caption ~= ""
-											local hasDescription = result.description and result.description ~= ""
+											local hasHeadline = result.headline and result.headline ~= ""
 											local hasInstructions = result.instructions and result.instructions ~= ""
 											local hasCopyright = result.copyright and result.copyright ~= ""
 											local hasLocation = result.location and result.location ~= ""
 
-											trace( "completed in %.03f sec, got %d keywords, caption: %s, description: %s, instructions: %s, copyright: %s, location: %s",
+											trace( "completed in %.03f sec, got %d keywords, title: %s, caption: %s, headline: %s, instructions: %s, copyright: %s, location: %s",
 												elapsed, keywordCount,
+												hasTitle and "yes" or "no",
 												hasCaption and "yes" or "no",
-												hasDescription and "yes" or "no",
+												hasHeadline and "yes" or "no",
 												hasInstructions and "yes" or "no",
 												hasCopyright and "yes" or "no",
 												hasLocation and "yes" or "no" )
 											propertyTable[ propPhotos ][ i ] = {
 												photo = photo,
 												keywords = result.keywords,
+												title = result.title,
 												caption = result.caption,
-												description = result.description,
+												headline = result.headline,
 												instructions = result.instructions,
 												copyright = result.copyright,
 												location = result.location,
