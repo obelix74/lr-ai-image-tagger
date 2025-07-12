@@ -63,6 +63,12 @@ end
 
 -- save photo from propertyTable[ propXXX ] to propertyTable.photos[ i ]
 local function savePhoto( propertyTable, index )
+	-- Skip saving if index is 0 (no photo selected) or out of range
+	if index <= 0 or index > #propertyTable[ propPhotos ] then
+		logger:tracef( "savePhoto: skipping invalid index %d (valid range: 1-%d)", index, #propertyTable[ propPhotos ] )
+		return
+	end
+
 	local photo = propertyTable[ propPhotos ][ index ]
 	if photo ~= nil then
 		logger:tracef( "saving keyword selections" )
@@ -87,8 +93,17 @@ end
 
 -- load photo from propertyTable.photos[ i ] to propertyTable[ propXXX ]
 local function loadPhoto( propertyTable, index )
+	-- Skip loading if index is invalid or out of range
+	if index <= 0 or index > #propertyTable[ propPhotos ] then
+		logger:errorf( "loadPhoto: invalid index %d (valid range: 1-%d)", index, #propertyTable[ propPhotos ] )
+		return
+	end
+
 	local photo = propertyTable[ propPhotos ][ index ]
-	assert( photo ~= nil )
+	if photo == nil then
+		logger:errorf( "loadPhoto: photo at index %d is nil", index )
+		return
+	end
 
 	local keywords = photo.keywords or { }
 	logger:tracef( "updating %d keywords", #keywords )
@@ -295,10 +310,11 @@ end
 
 local function showResponse( propertyTable )
 
-	-- Ensure the first photo is selected when dialog opens
-	if propertyTable[ propCurrentPhotoIndex ] == 0 and propertyTable[ propTotalPhotos ] > 0 then
+	-- Ensure the first photo is selected when dialog opens (only if photos have been analyzed)
+	if propertyTable[ propCurrentPhotoIndex ] == 0 and propertyTable[ propTotalPhotos ] > 0 and #propertyTable[ propPhotos ] > 0 then
 		propertyTable[ propCurrentPhotoIndex ] = 1
-		selectPhoto( propertyTable, 1 )
+		-- Load the first photo directly without calling selectPhoto to avoid savePhoto(0)
+		loadPhoto( propertyTable, 1 )
 	end
 
 	local f = LrView.osFactory()

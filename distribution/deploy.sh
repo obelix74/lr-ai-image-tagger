@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 # Configuration
-BUCKET_NAME="lr-ai-tagger"
+BUCKET_NAME="lr.tagimg.net"
 PROJECT_ID=""
 REGION="us-central1"
 
