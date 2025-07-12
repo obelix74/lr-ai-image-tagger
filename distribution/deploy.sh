@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 # Configuration
-BUCKET_NAME=""
+BUCKET_NAME="lr-ai-tagger"
 PROJECT_ID=""
 REGION="us-central1"
 
@@ -53,16 +53,23 @@ check_dependencies() {
 
 # Function to get configuration from user
 get_configuration() {
-    if [ -z "$BUCKET_NAME" ]; then
-        echo -n "Enter your Google Cloud Storage bucket name: "
-        read BUCKET_NAME
-    fi
-    
+    print_status "Using pre-configured bucket: $BUCKET_NAME"
+
     if [ -z "$PROJECT_ID" ]; then
-        echo -n "Enter your Google Cloud Project ID: "
-        read PROJECT_ID
+        if [ "$QUICK_MODE" = true ]; then
+            print_error "Project ID is required. Use: $0 --project YOUR_PROJECT_ID --quick"
+            exit 1
+        else
+            echo -n "Enter your Google Cloud Project ID: "
+            read PROJECT_ID
+        fi
     fi
-    
+
+    if [ -z "$PROJECT_ID" ]; then
+        print_error "Project ID is required for deployment."
+        exit 1
+    fi
+
     print_status "Configuration:"
     echo "  Bucket: $BUCKET_NAME"
     echo "  Project: $PROJECT_ID"
@@ -86,15 +93,27 @@ authenticate() {
 
 # Function to create and configure the bucket
 setup_bucket() {
-    print_status "Setting up Google Cloud Storage bucket..."
-    
+    print_status "Setting up Google Cloud Storage bucket: $BUCKET_NAME"
+
     # Check if bucket exists
     if gsutil ls -b "gs://$BUCKET_NAME" &> /dev/null; then
-        print_warning "Bucket $BUCKET_NAME already exists."
+        print_warning "Bucket $BUCKET_NAME already exists. Checking ownership..."
+
+        # Check if we have access to the bucket
+        if gsutil ls "gs://$BUCKET_NAME" &> /dev/null; then
+            print_success "Bucket access confirmed. Proceeding with deployment."
+        else
+            print_error "Cannot access bucket $BUCKET_NAME. Please check permissions or use a different bucket name."
+            exit 1
+        fi
     else
         print_status "Creating bucket $BUCKET_NAME..."
-        gsutil mb -p "$PROJECT_ID" -c STANDARD -l "$REGION" "gs://$BUCKET_NAME"
-        print_success "Bucket created successfully."
+        if gsutil mb -p "$PROJECT_ID" -c STANDARD -l "$REGION" "gs://$BUCKET_NAME"; then
+            print_success "Bucket created successfully."
+        else
+            print_error "Failed to create bucket. Please check your project ID and permissions."
+            exit 1
+        fi
     fi
     
     # Configure for website hosting
@@ -130,6 +149,25 @@ deploy_website() {
     print_success "Website files deployed successfully."
 }
 
+# Function to configure custom domain
+configure_custom_domain() {
+    print_status "Configuring custom domain: aitagger.tagimg.net"
+
+    # Add the custom domain to the bucket
+    print_status "Adding custom domain to bucket..."
+    gsutil web set -m index.html -e 404.html gs://$BUCKET_NAME
+
+    print_status "Custom domain configuration complete!"
+    echo
+    print_warning "Manual DNS setup required:"
+    echo "  1. In your DNS provider (tagimg.net), create a CNAME record:"
+    echo "     Name: aitagger"
+    echo "     Value: c.storage.googleapis.com"
+    echo "  2. Verify domain ownership in Google Search Console"
+    echo "  3. Wait for DNS propagation (up to 24 hours)"
+    echo
+}
+
 # Function to verify deployment
 verify_deployment() {
     print_status "Verifying deployment..."
@@ -156,18 +194,51 @@ verify_deployment() {
         exit 1
     fi
     
-    # Get the website URL
+    # Get the website URLs
     WEBSITE_URL="https://storage.googleapis.com/$BUCKET_NAME/index.html"
-    
+    CUSTOM_DOMAIN_URL="https://aitagger.tagimg.net"
+
     print_success "Deployment verification complete!"
     echo
     print_status "Your website is now live at:"
-    echo "  $WEBSITE_URL"
+    echo "  Primary URL: $WEBSITE_URL"
+    echo "  Custom Domain: $CUSTOM_DOMAIN_URL (if configured)"
     echo
-    print_status "You can also set up a custom domain by:"
-    echo "  1. Creating a CNAME record pointing to c.storage.googleapis.com"
-    echo "  2. Verifying domain ownership in Google Search Console"
-    echo "  3. Adding the domain to your bucket"
+    print_status "To set up the custom domain (aitagger.tagimg.net):"
+    echo "  1. Create a CNAME record: aitagger.tagimg.net → c.storage.googleapis.com"
+    echo "  2. Verify domain ownership in Google Search Console"
+    echo "  3. Add the domain to your bucket with: gsutil web set -m index.html -e 404.html gs://$BUCKET_NAME"
+    echo "  4. Test the custom domain: curl -I $CUSTOM_DOMAIN_URL"
+    echo
+}
+
+# Function to test the deployment
+test_deployment() {
+    print_status "Testing deployment..."
+
+    local website_url="https://storage.googleapis.com/$BUCKET_NAME/index.html"
+
+    # Test if the website is accessible
+    if command -v curl &> /dev/null; then
+        print_status "Testing website accessibility..."
+        if curl -s -o /dev/null -w "%{http_code}" "$website_url" | grep -q "200"; then
+            print_success "Website is accessible at: $website_url"
+        else
+            print_warning "Website may not be immediately accessible. DNS propagation can take time."
+        fi
+
+        # Test download link
+        local download_url="https://storage.googleapis.com/$BUCKET_NAME/ai-image-tagger-v2.0.zip"
+        if curl -s -o /dev/null -w "%{http_code}" "$download_url" | grep -q "200"; then
+            print_success "Plugin download is accessible at: $download_url"
+        else
+            print_warning "Plugin download may not be immediately accessible."
+        fi
+    else
+        print_warning "curl not found. Cannot test website accessibility automatically."
+        print_status "Please manually test: $website_url"
+    fi
+
     echo
 }
 
@@ -178,13 +249,20 @@ show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo
     echo "Options:"
-    echo "  -b, --bucket BUCKET_NAME    Google Cloud Storage bucket name"
-    echo "  -p, --project PROJECT_ID    Google Cloud Project ID"
+    echo "  -b, --bucket BUCKET_NAME    Google Cloud Storage bucket name (default: lr-ai-tagger)"
+    echo "  -p, --project PROJECT_ID    Google Cloud Project ID (required)"
     echo "  -r, --region REGION         Google Cloud region (default: us-central1)"
     echo "  -h, --help                  Show this help message"
+    echo "  --quick                     Quick setup with minimal prompts"
     echo
-    echo "Example:"
-    echo "  $0 --bucket my-aiimagetagger-site --project my-gcp-project"
+    echo "Examples:"
+    echo "  $0 --project my-gcp-project"
+    echo "  $0 --project my-gcp-project --quick"
+    echo "  $0 --project my-gcp-project --bucket custom-bucket-name"
+    echo
+    echo "Quick Setup:"
+    echo "  The script is pre-configured for the lr-ai-tagger bucket."
+    echo "  Just provide your Google Cloud Project ID to get started!"
     echo
 }
 
@@ -193,6 +271,7 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -b|--bucket)
             BUCKET_NAME="$2"
+            print_status "Using custom bucket: $BUCKET_NAME"
             shift 2
             ;;
         -p|--project)
@@ -206,6 +285,11 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             show_usage
             exit 0
+            ;;
+        --quick)
+            QUICK_MODE=true
+            print_status "Quick mode enabled - minimal prompts"
+            shift
             ;;
         *)
             print_error "Unknown option: $1"
@@ -227,15 +311,28 @@ main() {
     setup_bucket
     deploy_website
     verify_deployment
+    test_deployment
     
     echo
     print_success "🎉 Deployment completed successfully!"
     echo
+    # Ask if user wants to configure custom domain (skip in quick mode)
+    if [ "$QUICK_MODE" != true ]; then
+        echo
+        echo -n "Would you like to configure the custom domain (aitagger.tagimg.net)? [y/N]: "
+        read configure_domain
+        if [[ $configure_domain =~ ^[Yy]$ ]]; then
+            configure_custom_domain
+        fi
+    else
+        print_status "Quick mode: Skipping custom domain configuration"
+    fi
+
     print_status "Next steps:"
-    echo "  1. Test your website at the URL above"
-    echo "  2. Set up a custom domain (optional)"
-    echo "  3. Configure Google Analytics (optional)"
-    echo "  4. Monitor download statistics"
+    echo "  1. Test your website at the URLs above"
+    echo "  2. Configure Google Analytics (optional)"
+    echo "  3. Monitor download statistics"
+    echo "  4. Update DNS if you chose custom domain setup"
     echo
 }
 
