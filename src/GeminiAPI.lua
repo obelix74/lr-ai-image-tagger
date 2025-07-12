@@ -93,6 +93,19 @@ end
 
 --------------------------------------------------------------------------------
 
+local function getDefaultPrompt()
+	return "Please analyze this photograph and provide:\n1. A brief caption (1-2 sentences)\n2. A detailed description (2-3 sentences)\n3. A list of relevant keywords (comma-separated)\n4. Special instructions for photo editing or usage (if applicable)\n5. Copyright or attribution information (if visible)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"caption\": \"brief caption here\",\n  \"description\": \"detailed description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+end
+
+local function getAnalysisPrompt()
+	local prefs = LrPrefs.prefsForPlugin()
+	if prefs.useCustomPrompt and prefs.customPrompt and prefs.customPrompt ~= "" then
+		return prefs.customPrompt
+	else
+		return getDefaultPrompt()
+	end
+end
+
 function GeminiAPI.analyze( fileName, photo )
 	local attempts = 0
 	while attempts <= serviceMaxRetries do
@@ -102,14 +115,14 @@ function GeminiAPI.analyze( fileName, photo )
 				{ field = httpContentType, value = mimeTypeJson },
 				{ field = httpAccept, value = mimeTypeJson },
 			}
-			
+
 			-- Create the request body for Gemini API
 			local reqBody = JSON:encode {
 				contents = {
 					{
 						parts = {
 							{
-								text = "Please analyze this photograph and provide:\n1. A brief caption (1-2 sentences)\n2. A detailed description (2-3 sentences)\n3. A list of relevant keywords (comma-separated)\n\nPlease format your response as JSON with the following structure:\n{\n  \"caption\": \"brief caption here\",\n  \"description\": \"detailed description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\"\n}"
+								text = getAnalysisPrompt()
 							},
 							{
 								inline_data = {
@@ -121,7 +134,10 @@ function GeminiAPI.analyze( fileName, photo )
 					}
 				},
 				generationConfig = {
-					responseMimeType = "application/json"
+					responseMimeType = "application/json",
+					temperature = 0.4,
+					topP = 0.8,
+					maxOutputTokens = 1024
 				}
 			}
 			
@@ -142,11 +158,14 @@ function GeminiAPI.analyze( fileName, photo )
 						if candidate.content and candidate.content.parts and #candidate.content.parts > 0 then
 							local responseText = candidate.content.parts[1].text
 							local analysisResult = JSON:decode( responseText )
-							
+
 							if analysisResult then
 								results.caption = analysisResult.caption or ""
 								results.description = analysisResult.description or ""
-								
+								results.instructions = analysisResult.instructions or ""
+								results.copyright = analysisResult.copyright or ""
+								results.location = analysisResult.location or ""
+
 								-- Parse keywords into array
 								local keywordsStr = analysisResult.keywords or ""
 								results.keywords = {}
@@ -161,16 +180,25 @@ function GeminiAPI.analyze( fileName, photo )
 							else
 								results.caption = ""
 								results.description = ""
+								results.instructions = ""
+								results.copyright = ""
+								results.location = ""
 								results.keywords = {}
 							end
 						else
 							results.caption = ""
 							results.description = ""
+							results.instructions = ""
+							results.copyright = ""
+							results.location = ""
 							results.keywords = {}
 						end
 					else
 						results.caption = ""
 						results.description = ""
+						results.instructions = ""
+						results.copyright = ""
+						results.location = ""
 						results.keywords = {}
 					end
 					
@@ -196,4 +224,44 @@ function GeminiAPI.analyze( fileName, photo )
 	end
 	
 	return { status = false, message = "Maximum retries exceeded" }
+end
+
+-- Batch processing with rate limiting
+function GeminiAPI.analyzeBatch( photos, progressCallback )
+	local prefs = LrPrefs.prefsForPlugin()
+	local batchSize = prefs.batchSize or 5
+	local delay = prefs.delayBetweenRequests or 1000
+	local results = {}
+
+	for i = 1, #photos, batchSize do
+		local batch = {}
+		local batchEnd = math.min(i + batchSize - 1, #photos)
+
+		-- Process batch
+		for j = i, batchEnd do
+			table.insert(batch, photos[j])
+		end
+
+		-- Analyze each photo in the batch
+		for j, photoData in ipairs(batch) do
+			local result = GeminiAPI.analyze(photoData.fileName, photoData.jpegData)
+			table.insert(results, result)
+
+			if progressCallback then
+				progressCallback(i + j - 1, #photos)
+			end
+
+			-- Add delay between requests to avoid rate limiting
+			if j < #batch or batchEnd < #photos then
+				LrTasks.sleep(delay / 1000) -- Convert milliseconds to seconds
+			end
+		end
+	end
+
+	return results
+end
+
+-- Get default prompt for UI display
+function GeminiAPI.getDefaultPrompt()
+	return getDefaultPrompt()
 end

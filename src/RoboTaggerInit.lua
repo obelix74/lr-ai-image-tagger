@@ -58,3 +58,34 @@ end
 if prefs.saveDescriptionToIptc == nil then
 	prefs.saveDescriptionToIptc = true
 end
+
+-- AI prompt customization
+if prefs.customPrompt == nil then
+	prefs.customPrompt = ""
+end
+
+if prefs.useCustomPrompt == nil then
+	prefs.useCustomPrompt = false
+end
+
+-- Additional IPTC metadata options
+if prefs.saveInstructionsToIptc == nil then
+	prefs.saveInstructionsToIptc = false
+end
+
+if prefs.saveCopyrightToIptc == nil then
+	prefs.saveCopyrightToIptc = false
+end
+
+if prefs.saveLocationToIptc == nil then
+	prefs.saveLocationToIptc = false
+end
+
+-- Batch processing options
+if prefs.batchSize == nil then
+	prefs.batchSize = 5
+end
+
+if prefs.delayBetweenRequests == nil then
+	prefs.delayBetweenRequests = 1000 -- milliseconds
+end

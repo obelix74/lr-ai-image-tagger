@@ -45,6 +45,14 @@ local propDecorateKeywordValue = "decorateKeywordValue"
 
 local propSaveCaptionToIptc = "saveCaptionToIptc"
 local propSaveDescriptionToIptc = "saveDescriptionToIptc"
+local propSaveInstructionsToIptc = "saveInstructionsToIptc"
+local propSaveCopyrightToIptc = "saveCopyrightToIptc"
+local propSaveLocationToIptc = "saveLocationToIptc"
+
+local propUseCustomPrompt = "useCustomPrompt"
+local propCustomPrompt = "customPrompt"
+local propBatchSize = "batchSize"
+local propDelayBetweenRequests = "delayBetweenRequests"
 
 local propApiKey = "apiKey"
 local propVersions = "versions"
@@ -127,6 +135,14 @@ local function startDialog( propertyTable )
 
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
 	propertyTable[ propSaveDescriptionToIptc ] = prefs.saveDescriptionToIptc
+	propertyTable[ propSaveInstructionsToIptc ] = prefs.saveInstructionsToIptc
+	propertyTable[ propSaveCopyrightToIptc ] = prefs.saveCopyrightToIptc
+	propertyTable[ propSaveLocationToIptc ] = prefs.saveLocationToIptc
+
+	propertyTable[ propUseCustomPrompt ] = prefs.useCustomPrompt
+	propertyTable[ propCustomPrompt ] = prefs.customPrompt
+	propertyTable[ propBatchSize ] = prefs.batchSize
+	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
 
 	loadApiKey( propertyTable )
 end
@@ -141,6 +157,14 @@ local function endDialog( propertyTable )
 
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
 	prefs.saveDescriptionToIptc = propertyTable[ propSaveDescriptionToIptc ]
+	prefs.saveInstructionsToIptc = propertyTable[ propSaveInstructionsToIptc ]
+	prefs.saveCopyrightToIptc = propertyTable[ propSaveCopyrightToIptc ]
+	prefs.saveLocationToIptc = propertyTable[ propSaveLocationToIptc ]
+
+	prefs.useCustomPrompt = propertyTable[ propUseCustomPrompt ]
+	prefs.customPrompt = LrStringUtils.trimWhitespace( propertyTable[ propCustomPrompt ] or "" )
+	prefs.batchSize = propertyTable[ propBatchSize ]
+	prefs.delayBetweenRequests = propertyTable[ propDelayBetweenRequests ]
 
 	storeApiKey( propertyTable )
 end
@@ -268,6 +292,116 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveDescription=Save description to IPTC metadata" ),
 					value = bind { key = propSaveDescriptionToIptc },
 					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveInstructions=Save instructions to IPTC metadata" ),
+					value = bind { key = propSaveInstructionsToIptc },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveCopyright=Save copyright to IPTC metadata" ),
+					value = bind { key = propSaveCopyrightToIptc },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
+					value = bind { key = propSaveLocationToIptc },
+					fill_horizontal = 1,
+				},
+			},
+		},
+
+		-- AI prompt customization
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/RoboTagger/Options/AI/Title=AI Prompt Customization" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/RoboTagger/Options/AI/UseCustomPrompt=Use custom prompt" ),
+					value = bind { key = propUseCustomPrompt },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/RoboTagger/Options/AI/CustomPrompt=Custom Prompt:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					enabled = bind { key = propUseCustomPrompt },
+					placeholder_string = bind {
+						key = propUseCustomPrompt,
+						transform = function( value, fromTable )
+							if not value then
+								return GeminiAPI.getDefaultPrompt()
+							else
+								return LOC( "$$$/RoboTagger/Options/AI/CustomPromptPlaceholder=Enter your custom prompt here..." )
+							end
+						end,
+					},
+					value = bind { key = propCustomPrompt },
+					fill_horizontal = 1,
+					height_in_lines = 6,
+				},
+			},
+		},
+
+		-- batch processing options
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/RoboTagger/Options/Batch/Title=Batch Processing" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/RoboTagger/Options/Batch/BatchSize=Batch Size:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propBatchSize },
+					immediate = true,
+					min = 1,
+					max = 10,
+					increment = 1,
+					precision = 0,
+					width_in_digits = 2,
+				},
+				f:static_text {
+					title = LOC( "$$$/RoboTagger/Options/Batch/BatchSizeHelp=(1-10 photos per batch)" ),
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/RoboTagger/Options/Batch/Delay=Delay Between Requests:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propDelayBetweenRequests },
+					immediate = true,
+					min = 500,
+					max = 5000,
+					increment = 100,
+					precision = 0,
+					width_in_digits = 4,
+				},
+				f:static_text {
+					title = LOC( "$$$/RoboTagger/Options/Batch/DelayHelp=milliseconds (500-5000)" ),
 				},
 			},
 		},

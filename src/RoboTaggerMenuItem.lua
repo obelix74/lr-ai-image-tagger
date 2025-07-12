@@ -21,6 +21,8 @@ local LrProgressScope = import "LrProgressScope"
 local LrDialogs = import "LrDialogs"
 local LrBinding = import "LrBinding"
 local LrView = import "LrView"
+local LrPathUtils = import "LrPathUtils"
+local LrFileUtils = import "LrFileUtils"
 local bind = LrView.bind
 local share = LrView.share
 
@@ -44,6 +46,9 @@ local propConsumedTime = "consumedTime"
 local propMaxKeywords = "maxKeywords"
 local propCaption = "caption"
 local propDescription = "description"
+local propInstructions = "instructions"
+local propCopyright = "copyright"
+local propLocation = "location"
 
 local function propKeywordTitle( i )
 	return string.format( "keywordTitle%d", i )
@@ -64,9 +69,12 @@ local function savePhoto( propertyTable, index )
 			keyword.selected = propertyTable[ propKeywordSelected( i ) ]
 		end
 
-		-- Save caption and description
+		-- Save all metadata fields
 		photo.caption = propertyTable[ propCaption ]
 		photo.description = propertyTable[ propDescription ]
+		photo.instructions = propertyTable[ propInstructions ]
+		photo.copyright = propertyTable[ propCopyright ]
+		photo.location = propertyTable[ propLocation ]
 	end
 end
 
@@ -83,9 +91,12 @@ local function loadPhoto( propertyTable, index )
 		propertyTable[ propKeywordSelected( i ) ] = keyword.selected
 	end
 
-	-- Load caption and description
+	-- Load all metadata fields
 	propertyTable[ propCaption ] = photo.caption or ""
 	propertyTable[ propDescription ] = photo.description or ""
+	propertyTable[ propInstructions ] = photo.instructions or ""
+	propertyTable[ propCopyright ] = photo.copyright or ""
+	propertyTable[ propLocation ] = photo.location or ""
 end
 
 -- select photo (i.e. move from index X to Y)
@@ -101,8 +112,8 @@ local function selectPhoto( propertyTable, newIndex )
 	propertyTable[ propCurrentPhotoIndex ] = newIndex
 end
 
--- apply the selected keywords, caption, and description to the photo
-local function applyMetadataToPhoto( photo, keywords, caption, description )
+-- apply the selected keywords and all metadata to the photo
+local function applyMetadataToPhoto( photo, keywords, caption, description, instructions, copyright, location )
 	local catalog = photo.catalog
 	catalog:withWriteAccessDo(
 		LOC( "$$$/RoboTagger/ActionName=Apply Metadata " ),
@@ -147,8 +158,79 @@ local function applyMetadataToPhoto( photo, keywords, caption, description )
 			if prefs.saveDescriptionToIptc and description and description ~= "" then
 				photo:setRawMetadata( "headline", description )
 			end
+
+			if prefs.saveInstructionsToIptc and instructions and instructions ~= "" then
+				photo:setRawMetadata( "instructions", instructions )
+			end
+
+			if prefs.saveCopyrightToIptc and copyright and copyright ~= "" then
+				photo:setRawMetadata( "copyright", copyright )
+			end
+
+			if prefs.saveLocationToIptc and location and location ~= "" then
+				-- Try to set location in multiple IPTC fields
+				photo:setRawMetadata( "location", location )
+				photo:setRawMetadata( "city", location )
+				photo:setRawMetadata( "sublocation", location )
+			end
 		end
 	)
+end
+
+-- Export analysis results to CSV
+local function exportResults( propertyTable )
+	local photos = propertyTable[ propPhotos ]
+	if not photos or #photos == 0 then
+		LrDialogs.message( "No Results", "No analysis results to export.", "info" )
+		return
+	end
+
+	local fileName = LrDialogs.runSavePanel( {
+		title = "Export Analysis Results",
+		label = "Save as:",
+		requiredFileType = "csv",
+		initialDirectory = LrPathUtils.getStandardFilePath( "desktop" ),
+		initialFileName = "robotagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
+	} )
+
+	if fileName then
+		local file = io.open( fileName, "w" )
+		if file then
+			-- Write CSV header
+			file:write( "Filename,Caption,Description,Keywords,Instructions,Copyright,Location,Analysis Time (sec)\n" )
+
+			-- Write data for each photo
+			for _, photoData in ipairs( photos ) do
+				local photo = photoData.photo
+				local filename = photo:getFormattedMetadata( "fileName" ) or ""
+				local caption = (photoData.caption or ""):gsub( '"', '""' ) -- Escape quotes
+				local description = (photoData.description or ""):gsub( '"', '""' )
+				local instructions = (photoData.instructions or ""):gsub( '"', '""' )
+				local copyright = (photoData.copyright or ""):gsub( '"', '""' )
+				local location = (photoData.location or ""):gsub( '"', '""' )
+				local elapsed = photoData.elapsed or 0
+
+				-- Collect selected keywords
+				local keywords = {}
+				if photoData.keywords then
+					for _, keyword in ipairs( photoData.keywords ) do
+						if keyword.selected then
+							table.insert( keywords, keyword.description )
+						end
+					end
+				end
+				local keywordStr = table.concat( keywords, "; " ):gsub( '"', '""' )
+
+				file:write( string.format( '"%s","%s","%s","%s","%s","%s","%s",%.3f\n',
+					filename, caption, description, keywordStr, instructions, copyright, location, elapsed ) )
+			end
+
+			file:close()
+			LrDialogs.message( "Export Complete", "Analysis results exported to:\n" .. fileName, "info" )
+		else
+			LrDialogs.message( "Export Failed", "Could not create file:\n" .. fileName, "error" )
+		end
+	end
 end
 
 local function showResponse( propertyTable )
@@ -302,40 +384,99 @@ local function showResponse( propertyTable )
 				alignment = "center"
 			},
 		},
-		f:column {
-			f:group_box {
-				title = LOC( "$$$/RoboTagger/ResultsDialogCaptionTitle=Caption" ),
-				font = "<system/bold>",
-				f:edit_field {
-					value = bind { key = propCaption },
-					fill_horizontal = 1,
-					height_in_lines = 2,
+		f:row {
+			f:column {
+				fill_horizontal = 0.6,
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogCaptionTitle=Caption" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propCaption },
+						fill_horizontal = 1,
+						height_in_lines = 2,
+					},
 				},
-			},
-			f:spacer { height = 8 },
-			f:group_box {
-				title = LOC( "$$$/RoboTagger/ResultsDialogDescriptionTitle=Description" ),
-				font = "<system/bold>",
-				f:edit_field {
-					value = bind { key = propDescription },
-					fill_horizontal = 1,
-					height_in_lines = 4,
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogDescriptionTitle=Description" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propDescription },
+						fill_horizontal = 1,
+						height_in_lines = 4,
+					},
 				},
-			},
-			f:spacer { height = 8 },
-			f:group_box {
-				title = LOC( "$$$/RoboTagger/ResultsDialogKeywordsTitle=Keywords" ),
-				font = "<system/bold>",
-				f:row {
-					place = "overlapping",
-					f:column {
-						f:static_text {
-							visible = LrBinding.keyIsNil( propKeywordTitle( 1 ) ),
-							title = LOC( "$$$/RoboTagger/NoKeywords=None" ),
-							fill_horizontal = 1,
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogKeywordsTitle=Keywords" ),
+					font = "<system/bold>",
+					f:row {
+						place = "overlapping",
+						f:column {
+							f:static_text {
+								visible = LrBinding.keyIsNil( propKeywordTitle( 1 ) ),
+								title = LOC( "$$$/RoboTagger/NoKeywords=None" ),
+								fill_horizontal = 1,
+							},
+						},
+						f:column( keywords ),
+					},
+					f:row {
+						visible = LrBinding.keyIsNotNil( propKeywordTitle( 1 ) ),
+						f:push_button {
+							title = LOC( "$$$/RoboTagger/SelectAllKeywords=Select All" ),
+							action = function()
+								for i = 1, prefs.maxKeywords do
+									if propertyTable[ propKeywordTitle( i ) ] then
+										propertyTable[ propKeywordSelected( i ) ] = true
+									end
+								end
+							end,
+						},
+						f:push_button {
+							title = LOC( "$$$/RoboTagger/DeselectAllKeywords=Deselect All" ),
+							action = function()
+								for i = 1, prefs.maxKeywords do
+									if propertyTable[ propKeywordTitle( i ) ] then
+										propertyTable[ propKeywordSelected( i ) ] = false
+									end
+								end
+							end,
 						},
 					},
-					f:column( keywords ),
+				},
+			},
+			f:spacer { width = 16 },
+			f:column {
+				fill_horizontal = 0.4,
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogInstructionsTitle=Instructions" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propInstructions },
+						fill_horizontal = 1,
+						height_in_lines = 3,
+					},
+				},
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogCopyrightTitle=Copyright" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propCopyright },
+						fill_horizontal = 1,
+						height_in_lines = 2,
+					},
+				},
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/RoboTagger/ResultsDialogLocationTitle=Location" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propLocation },
+						fill_horizontal = 1,
+						height_in_lines = 2,
+					},
 				},
 			},
 		},
@@ -350,7 +491,7 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							local photo = propertyTable[ propPhotos ][ propertyTable[ propCurrentPhotoIndex ] ]
-							applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description )
+							applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description, photo.instructions, photo.copyright, photo.location )
 						end
 					)
 				end,
@@ -364,8 +505,21 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-								applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description )
+								applyMetadataToPhoto( photo.photo, photo.keywords, photo.caption, photo.description, photo.instructions, photo.copyright, photo.location )
 							end
+						end
+					)
+				end,
+			},
+			f:push_button {
+				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
+				title = LOC( "$$$/RoboTagger/ResultsDialogExport=Export Results" ),
+				place_horizontal = 1,
+				action = function()
+					LrTasks.startAsyncTask(
+						function()
+							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
+							exportResults( propertyTable )
 						end
 					)
 				end,
@@ -405,6 +559,9 @@ local function RoboTagger()
 				propertyTable[ propConsumedTime ] = 0 -- consumed CPU time
 				propertyTable[ propCaption ] = ""
 				propertyTable[ propDescription ] = ""
+				propertyTable[ propInstructions ] = ""
+				propertyTable[ propCopyright ] = ""
+				propertyTable[ propLocation ] = ""
 
 				local progressScope = LrProgressScope {
 					title = LOC( "$$$/RoboTagger/ProgressScopeTitle=Analyzing Photos" ),
@@ -457,12 +614,28 @@ local function RoboTagger()
 										local result = GeminiAPI.analyze( fileName, jpegData )
 										local elapsed = LrDate.currentTime() - start
 										if result.status then
-											trace( "completed in %.03f sec, got caption, description and %d keywords", elapsed, #result.keywords )
+											local keywordCount = result.keywords and #result.keywords or 0
+											local hasCaption = result.caption and result.caption ~= ""
+											local hasDescription = result.description and result.description ~= ""
+											local hasInstructions = result.instructions and result.instructions ~= ""
+											local hasCopyright = result.copyright and result.copyright ~= ""
+											local hasLocation = result.location and result.location ~= ""
+
+											trace( "completed in %.03f sec, got %d keywords, caption: %s, description: %s, instructions: %s, copyright: %s, location: %s",
+												elapsed, keywordCount,
+												hasCaption and "yes" or "no",
+												hasDescription and "yes" or "no",
+												hasInstructions and "yes" or "no",
+												hasCopyright and "yes" or "no",
+												hasLocation and "yes" or "no" )
 											propertyTable[ propPhotos ][ i ] = {
 												photo = photo,
 												keywords = result.keywords,
 												caption = result.caption,
 												description = result.description,
+												instructions = result.instructions,
+												copyright = result.copyright,
+												location = result.location,
 												elapsed = elapsed,
 											}
 											propertyTable[ propConsumedTime ] = propertyTable[ propConsumedTime ] + elapsed
