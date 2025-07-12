@@ -175,7 +175,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [Plugin Homepage](https://aitagger.anands.net)
+- [Plugin Homepage](https://aitagger.tagimg.net)
 - [GitHub Repository](https://github.com/obelix74/lr-ai-image-tagger)
 - [Google Gemini AI](https://ai.google.dev)
 - [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)
