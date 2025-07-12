@@ -168,7 +168,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Credits
 
-- **Author**: Anand Kumar Sankaran (2024)
+- **Created By**: Anand's Photography (2025)
 - **Powered by**: Google Gemini AI
 - **Built for**: Adobe Lightroom Classic
 

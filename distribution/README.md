@@ -156,7 +156,7 @@ When releasing new versions:
 ## 📄 License & Credits
 
 - **License:** MIT License
-- **Author:** Anand Kumar Sankaran (2024)
+- **Created By:** Anand's Photography (2025)
 - **Powered by:** Google Gemini AI
 - **Built for:** Adobe Lightroom Classic
 
