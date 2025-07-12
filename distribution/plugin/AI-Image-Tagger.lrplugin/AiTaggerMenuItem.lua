@@ -106,15 +106,20 @@ end
 
 -- select photo (i.e. move from index X to Y)
 local function selectPhoto( propertyTable, newIndex )
-	logger:tracef( "selecting photo %d of %d", newIndex, #propertyTable[ propPhotos ] )
+	logger:tracef( "selecting photo %d of %d (total photos in array: %d)", newIndex, propertyTable[ propTotalPhotos ] or 0, #propertyTable[ propPhotos ] )
 
 	local oldIndex = propertyTable[ propCurrentPhotoIndex ]
 	if oldIndex ~= newIndex then
 		savePhoto( propertyTable, oldIndex )
 	end
 
-	loadPhoto( propertyTable, newIndex )
-	propertyTable[ propCurrentPhotoIndex ] = newIndex
+	if newIndex > 0 and newIndex <= #propertyTable[ propPhotos ] then
+		loadPhoto( propertyTable, newIndex )
+		propertyTable[ propCurrentPhotoIndex ] = newIndex
+		logger:tracef( "selectPhoto completed: new currentIndex=%d", propertyTable[ propCurrentPhotoIndex ] )
+	else
+		logger:errorf( "selectPhoto failed: index %d out of range (1-%d)", newIndex, #propertyTable[ propPhotos ] )
+	end
 end
 
 -- apply the selected keywords and all metadata to the photo
@@ -282,6 +287,12 @@ end
 
 local function showResponse( propertyTable )
 
+	-- Ensure the first photo is selected when dialog opens
+	if propertyTable[ propCurrentPhotoIndex ] == 0 and propertyTable[ propTotalPhotos ] > 0 then
+		propertyTable[ propCurrentPhotoIndex ] = 1
+		selectPhoto( propertyTable, 1 )
+	end
+
 	local f = LrView.osFactory()
 
 	-- create keywords array
@@ -339,12 +350,16 @@ local function showResponse( propertyTable )
 					enabled = bind {
 						key = propCurrentPhotoIndex,
 						transform = function( value, fromTable )
-							return value > 1
+							local hasPrev = (value or 0) > 1
+							logger:tracef( "previous button enabled check: currentIndex=%d, hasPrev=%s", value or 0, tostring(hasPrev) )
+							return hasPrev
 						end,
 					},
 					action = function( btn )
-						logger:tracef( "previous photo" )
-						selectPhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ] - 1 )
+						local currentIndex = propertyTable[ propCurrentPhotoIndex ]
+						local newIndex = currentIndex - 1
+						logger:tracef( "previous photo: current=%d, new=%d, total=%d", currentIndex, newIndex, #propertyTable[ propPhotos ] )
+						selectPhoto( propertyTable, newIndex )
 					end,
 				},
 				f:catalog_photo {
@@ -373,14 +388,19 @@ local function showResponse( propertyTable )
 					enabled = bind {
 						keys = { propCurrentPhotoIndex, propPhotos },
 						operation = function( binder, values, fromTable )
-							local i = values [ propCurrentPhotoIndex ]
-							return values[ propPhotos ][ i + 1 ] ~= nil
+							local i = values[ propCurrentPhotoIndex ] or 0
+							local photos = values[ propPhotos ] or {}
+							local hasNext = photos[ i + 1 ] ~= nil
+							logger:tracef( "next button enabled check: currentIndex=%d, totalPhotos=%d, hasNext=%s",
+								i, #photos, tostring(hasNext) )
+							return hasNext
 						end,
 					},
 					action = function( btn )
-						local i = propertyTable [ propCurrentPhotoIndex ]
-						logger:tracef( "next photo: %d", i + 1 )
-						selectPhoto( propertyTable, i + 1 )
+						local currentIndex = propertyTable[ propCurrentPhotoIndex ]
+						local newIndex = currentIndex + 1
+						logger:tracef( "next photo: current=%d, new=%d, total=%d", currentIndex, newIndex, #propertyTable[ propPhotos ] )
+						selectPhoto( propertyTable, newIndex )
 					end,
 				},
 			},
