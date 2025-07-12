@@ -310,8 +310,12 @@ end
 
 local function showResponse( propertyTable )
 
+	logger:tracef( "showResponse called: totalPhotos=%d, photosArrayLength=%d, currentIndex=%d",
+		propertyTable[ propTotalPhotos ] or 0, #propertyTable[ propPhotos ], propertyTable[ propCurrentPhotoIndex ] or 0 )
+
 	-- Ensure the first photo is selected when dialog opens (only if photos have been analyzed)
 	if propertyTable[ propCurrentPhotoIndex ] == 0 and propertyTable[ propTotalPhotos ] > 0 and #propertyTable[ propPhotos ] > 0 then
+		logger:tracef( "showResponse: selecting first photo" )
 		propertyTable[ propCurrentPhotoIndex ] = 1
 		-- Load the first photo directly without calling selectPhoto to avoid savePhoto(0)
 		loadPhoto( propertyTable, 1 )
@@ -415,8 +419,13 @@ local function showResponse( propertyTable )
 							local i = values[ propCurrentPhotoIndex ] or 0
 							local photos = values[ propPhotos ] or {}
 							local hasNext = photos[ i + 1 ] ~= nil
-							logger:tracef( "next button enabled check: currentIndex=%d, totalPhotos=%d, hasNext=%s",
-								i, #photos, tostring(hasNext) )
+							logger:tracef( "next button enabled check: currentIndex=%d, totalPhotos=%d, hasNext=%s, photosArrayLength=%d",
+								i, #photos, tostring(hasNext), #photos )
+							-- Additional debugging
+							if #photos > 0 then
+								logger:tracef( "photos array contents: photo1=%s, photo2=%s",
+									photos[1] and "exists" or "nil", photos[2] and "exists" or "nil" )
+							end
 							return hasNext
 						end,
 					},
@@ -683,6 +692,12 @@ local function AiTagger()
 							LrTasks.sleep( 0.5 )
 						end
 
+						-- Ensure first photo is selected before showing dialog
+						if #propertyTable[ propPhotos ] > 0 and propertyTable[ propCurrentPhotoIndex ] == 0 then
+							propertyTable[ propCurrentPhotoIndex ] = 1
+							loadPhoto( propertyTable, 1 )
+						end
+
 						showResponse( propertyTable )
 						inDialog = false
 						progressScope:done()
@@ -763,7 +778,10 @@ local function AiTagger()
 											}
 											propertyTable[ propConsumedTime ] = propertyTable[ propConsumedTime ] + elapsed
 											propertyTable[ propElapsedTime ] = LrDate.currentTime() - propertyTable[ propStartTime ]
-											propertyTable[ propPhotos ] = propertyTable[ propPhotos ] -- dummy assignment to trigger bindings
+
+											-- Force binding update by creating new array reference
+											local currentPhotos = propertyTable[ propPhotos ]
+											propertyTable[ propPhotos ] = currentPhotos
 
 											-- Update progress to show completion
 											if not (progressScope:isCanceled() or progressScope:isDone()) then

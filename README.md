@@ -36,7 +36,7 @@
 ## 🔧 Installation
 
 ### Step 1: Download the Plugin
-1. Download the latest release from the [plugin website](https://aitagger.tagimg.net)
+1. Download the latest release from the [plugin website](https://lr.tagimg.net)
 2. Extract the ZIP file to a folder on your computer
 
 ### Step 2: Install in Lightroom
@@ -174,7 +174,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [Plugin Homepage](https://aitagger.tagimg.net)
+- [Plugin Homepage](https://lr.tagimg.net)
 
 - [Google Gemini AI](https://ai.google.dev)
 - [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)

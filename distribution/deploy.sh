@@ -151,7 +151,7 @@ deploy_website() {
 
 # Function to configure custom domain
 configure_custom_domain() {
-    print_status "Configuring custom domain: aitagger.tagimg.net"
+    print_status "Configuring custom domain: lr.tagimg.net"
 
     # Add the custom domain to the bucket
     print_status "Adding custom domain to bucket..."
@@ -196,7 +196,7 @@ verify_deployment() {
     
     # Get the website URLs
     WEBSITE_URL="https://storage.googleapis.com/$BUCKET_NAME/index.html"
-    CUSTOM_DOMAIN_URL="https://aitagger.tagimg.net"
+    CUSTOM_DOMAIN_URL="https://lr.tagimg.net"
 
     print_success "Deployment verification complete!"
     echo
@@ -204,8 +204,8 @@ verify_deployment() {
     echo "  Primary URL: $WEBSITE_URL"
     echo "  Custom Domain: $CUSTOM_DOMAIN_URL (if configured)"
     echo
-    print_status "To set up the custom domain (aitagger.tagimg.net):"
-    echo "  1. Create a CNAME record: aitagger.tagimg.net → c.storage.googleapis.com"
+    print_status "To set up the custom domain (lr.tagimg.net):"
+    echo "  1. Create a CNAME record: lr.tagimg.net → c.storage.googleapis.com"
     echo "  2. Verify domain ownership in Google Search Console"
     echo "  3. Add the domain to your bucket with: gsutil web set -m index.html -e 404.html gs://$BUCKET_NAME"
     echo "  4. Test the custom domain: curl -I $CUSTOM_DOMAIN_URL"
@@ -319,7 +319,7 @@ main() {
     # Ask if user wants to configure custom domain (skip in quick mode)
     if [ "$QUICK_MODE" != true ]; then
         echo
-        echo -n "Would you like to configure the custom domain (aitagger.tagimg.net)? [y/N]: "
+        echo -n "Would you like to configure the custom domain (lr.tagimg.net)? [y/N]: "
         read configure_domain
         if [[ $configure_domain =~ ^[Yy]$ ]]; then
             configure_custom_domain
