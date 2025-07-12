@@ -76,6 +76,10 @@ local function savePhoto( propertyTable, index )
 		photo.instructions = propertyTable[ propInstructions ]
 		photo.copyright = propertyTable[ propCopyright ]
 		photo.location = propertyTable[ propLocation ]
+
+		logger:tracef( "saved metadata to photo data: caption='%s', description='%s', instructions='%s', copyright='%s', location='%s'",
+			photo.caption or "nil", photo.description or "nil", photo.instructions or "nil",
+			photo.copyright or "nil", photo.location or "nil" )
 	end
 end
 
@@ -115,6 +119,9 @@ end
 
 -- apply the selected keywords and all metadata to the photo
 local function applyMetadataToPhoto( photo, keywords, caption, description, instructions, copyright, location )
+	logger:tracef( "applyMetadataToPhoto called with: caption='%s', description='%s', instructions='%s', copyright='%s', location='%s'",
+		caption or "nil", description or "nil", instructions or "nil", copyright or "nil", location or "nil" )
+
 	local catalog = photo.catalog
 	catalog:withWriteAccessDo(
 		LOC( "$$$/AiTagger/ActionName=Apply Metadata " ),
@@ -151,28 +158,49 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 				end
 			end
 
-			-- Apply IPTC metadata
+			-- Apply IPTC metadata using correct Lightroom field names
+			logger:tracef( "IPTC preferences: caption=%s, description=%s, instructions=%s, copyright=%s, location=%s",
+				tostring(prefs.saveCaptionToIptc), tostring(prefs.saveDescriptionToIptc),
+				tostring(prefs.saveInstructionsToIptc), tostring(prefs.saveCopyrightToIptc),
+				tostring(prefs.saveLocationToIptc) )
+
+			-- Helper function to safely set metadata
+			local function safeSetMetadata( fieldName, value, description )
+				local success, error = pcall( function()
+					photo:setRawMetadata( fieldName, value )
+				end )
+				if success then
+					logger:tracef( "successfully set %s: %s", description, value )
+				else
+					logger:errorf( "failed to set %s (%s): %s", description, fieldName, tostring(error) )
+				end
+				return success
+			end
+
 			if prefs.saveCaptionToIptc and caption and caption ~= "" then
-				photo:setRawMetadata( "caption", caption )
+				safeSetMetadata( "caption", caption, "IPTC caption" )
+			else
+				logger:tracef( "skipping IPTC caption: enabled=%s, caption='%s'", tostring(prefs.saveCaptionToIptc), caption or "nil" )
 			end
 
 			if prefs.saveDescriptionToIptc and description and description ~= "" then
-				photo:setRawMetadata( "headline", description )
+				safeSetMetadata( "headline", description, "IPTC headline/description" )
+			else
+				logger:tracef( "skipping IPTC description: enabled=%s, description='%s'", tostring(prefs.saveDescriptionToIptc), description or "nil" )
 			end
 
 			if prefs.saveInstructionsToIptc and instructions and instructions ~= "" then
-				photo:setRawMetadata( "instructions", instructions )
+				safeSetMetadata( "instructions", instructions, "IPTC instructions" )
 			end
 
 			if prefs.saveCopyrightToIptc and copyright and copyright ~= "" then
-				photo:setRawMetadata( "copyright", copyright )
+				safeSetMetadata( "copyright", copyright, "IPTC copyright" )
 			end
 
 			if prefs.saveLocationToIptc and location and location ~= "" then
-				-- Try to set location in multiple IPTC fields
-				photo:setRawMetadata( "location", location )
-				photo:setRawMetadata( "city", location )
-				photo:setRawMetadata( "sublocation", location )
+				-- Try different location fields that are known to work in Lightroom
+				safeSetMetadata( "location", location, "IPTC location" )
+				safeSetMetadata( "city", location, "IPTC city" )
 			end
 		end
 	)
