@@ -21,7 +21,7 @@ return {
 	LrToolkitIdentifier = "com.anands.lightroom.aitagger",
 
 	LrPluginName = LOC( "$$$/AiTagger/PluginName=AI Image Tagger" ),
-	LrPluginInfoUrl = "https://github.com/obelix74/lr-robotagger",
+	LrPluginInfoUrl = "https://github.com/obelix74/lr-ai-image-tagger",
 	LrPluginInfoProvider = "AiTaggerInfoProvider.lua",
 
 	LrInitPlugin = "AiTaggerInit.lua",
