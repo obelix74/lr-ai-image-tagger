@@ -91,6 +91,7 @@
 
 #### Export Results
 - Click **Export Results** to save analysis data as CSV
+- Files saved as `aiimagetagger_results_YYYYMMDD_HHMMSS.csv`
 - Includes all metadata fields and processing times
 - Perfect for workflow documentation and analysis
 

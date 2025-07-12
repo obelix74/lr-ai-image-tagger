@@ -38,7 +38,7 @@ local serviceModel = "gemini-1.5-flash"
 local serviceMaxRetries = 2
 
 local tempPath = LrPathUtils.getStandardFilePath( "temp" )
-local tempBaseName = "aitagger.tmp"
+local tempBaseName = "aiimagetagger.tmp"
 
 --------------------------------------------------------------------------------
 

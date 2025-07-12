@@ -184,7 +184,7 @@ show_usage() {
     echo "  -h, --help                  Show this help message"
     echo
     echo "Example:"
-    echo "  $0 --bucket my-aitagger-site --project my-gcp-project"
+    echo "  $0 --bucket my-aiimagetagger-site --project my-gcp-project"
     echo
 }
 

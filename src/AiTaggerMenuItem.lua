@@ -191,7 +191,7 @@ local function exportResults( propertyTable )
 		label = "Save as:",
 		requiredFileType = "csv",
 		initialDirectory = LrPathUtils.getStandardFilePath( "desktop" ),
-		initialFileName = "aitagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
+		initialFileName = "aiimagetagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
 	} )
 
 	if fileName then

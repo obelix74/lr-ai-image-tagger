@@ -98,7 +98,7 @@ az storage blob upload-batch -d '$web' -s website/ --account-name yourstorageacc
 ### Branding
 To customize the branding:
 1. Update the logo and colors in CSS files
-2. Modify the `LrToolkitIdentifier` in `Info.lua`
+2. Modify the `LrToolkitIdentifier` in `Info.lua` (currently: `com.anands.lightroom.aiimagetagger`)
 3. Update contact information and links
 4. Replace download URLs with your hosting location
 
