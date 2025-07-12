@@ -615,6 +615,14 @@ local function AiTagger()
 				local inDialog = true
 				LrTasks.startAsyncTask(
 					function()
+						-- Set final completion message
+						if not progressScope:isCanceled() then
+							progressScope:setCaption( LOC( "$$$/AiTagger/ProgressFinished=Analysis complete! Opening results..." ) )
+							progressScope:setPortionComplete( 1, 1 )
+							-- Brief pause to let user see completion message
+							LrTasks.sleep( 0.5 )
+						end
+
 						showResponse( propertyTable )
 						inDialog = false
 						progressScope:done()
@@ -625,6 +633,10 @@ local function AiTagger()
 				local runningTasks = 0
 				local thumbnailRequests = { }
 				logger:tracef( "begin analyzing %d photos", #photos )
+
+				-- Set initial progress message
+				progressScope:setCaption( LOC( "$$$/AiTagger/ProgressStarting=Starting AI analysis of ^1 photos...", #photos ) )
+				progressScope:setPortionComplete( 0, #photos )
 				for i, photo in ipairs( photos ) do
 					if progressScope:isCanceled() or progressScope:isDone() then
 						break
@@ -632,8 +644,8 @@ local function AiTagger()
 
 					-- Update the progress bar
 					local fileName = photo:getFormattedMetadata( "fileName" )
-					progressScope:setCaption( LOC( "$$$/AiTagger/ProgressCaption=^1 (^2 of ^3)", fileName, i, #photos ) )
-					progressScope:setPortionComplete( i, #photos )
+					progressScope:setCaption( LOC( "$$$/AiTagger/ProgressCaption=Preparing ^1 (^2 of ^3)", fileName, i, #photos ) )
+					progressScope:setPortionComplete( (i-1), #photos )
 
 					local function trace( msg, ... )
 						logger:tracef( "[%d | %d | %s] %s", #photos, i, fileName, string.format( msg, ... ) )
@@ -652,6 +664,12 @@ local function AiTagger()
 								function()
 									if jpegData then
 										trace( "analyzing thumbnail (%s bytes)", LrStringUtils.numberToStringWithSeparators( #jpegData, 0 ) )
+
+										-- Update progress to show AI analysis in progress
+										if not (progressScope:isCanceled() or progressScope:isDone()) then
+											progressScope:setCaption( LOC( "$$$/AiTagger/ProgressAnalyzing=Analyzing with AI: ^1 (^2 of ^3)", fileName, i, #photos ) )
+										end
+
 										local start = LrDate.currentTime()
 										local result = GeminiAPI.analyze( fileName, jpegData )
 										local elapsed = LrDate.currentTime() - start
@@ -683,7 +701,18 @@ local function AiTagger()
 											propertyTable[ propConsumedTime ] = propertyTable[ propConsumedTime ] + elapsed
 											propertyTable[ propElapsedTime ] = LrDate.currentTime() - propertyTable[ propStartTime ]
 											propertyTable[ propPhotos ] = propertyTable[ propPhotos ] -- dummy assignment to trigger bindings
+
+											-- Update progress to show completion
+											if not (progressScope:isCanceled() or progressScope:isDone()) then
+												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressComplete=Completed: ^1 (^2 of ^3)", fileName, i, #photos ) )
+												progressScope:setPortionComplete( i, #photos )
+											end
 										else
+											-- Update progress to show error
+											if not (progressScope:isCanceled() or progressScope:isDone()) then
+												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressError=Error analyzing ^1 (^2 of ^3)", fileName, i, #photos ) )
+											end
+
 											local action = LrDialogs.confirm( LOC( "$$$/AiTagger/FailedAnalysis=Failed to analyze photo ^1", fileName ), result.message )
 											if action == "cancel" then
 												progressScope:cancel()
