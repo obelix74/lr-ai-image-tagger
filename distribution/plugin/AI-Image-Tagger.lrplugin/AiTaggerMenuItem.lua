@@ -313,14 +313,6 @@ local function showResponse( propertyTable )
 	logger:tracef( "showResponse called: totalPhotos=%d, photosArrayLength=%d, currentIndex=%d",
 		propertyTable[ propTotalPhotos ] or 0, #propertyTable[ propPhotos ], propertyTable[ propCurrentPhotoIndex ] or 0 )
 
-	-- Ensure the first photo is selected when dialog opens (only if photos have been analyzed)
-	if propertyTable[ propCurrentPhotoIndex ] == 0 and propertyTable[ propTotalPhotos ] > 0 and #propertyTable[ propPhotos ] > 0 then
-		logger:tracef( "showResponse: selecting first photo" )
-		propertyTable[ propCurrentPhotoIndex ] = 1
-		-- Load the first photo directly without calling selectPhoto to avoid savePhoto(0)
-		loadPhoto( propertyTable, 1 )
-	end
-
 	local f = LrView.osFactory()
 
 	-- create keywords array
@@ -680,29 +672,8 @@ local function AiTagger()
 				}
 				progressScope:setCancelable( true )
 
-				-- show the progress dialog, as an async task
+				-- show the progress dialog, as an async task (will be triggered after analysis completes)
 				local inDialog = true
-				LrTasks.startAsyncTask(
-					function()
-						-- Set final completion message
-						if not progressScope:isCanceled() then
-							progressScope:setCaption( LOC( "$$$/AiTagger/ProgressFinished=Analysis complete! Opening results..." ) )
-							progressScope:setPortionComplete( 1, 1 )
-							-- Brief pause to let user see completion message
-							LrTasks.sleep( 0.5 )
-						end
-
-						-- Ensure first photo is selected before showing dialog
-						if #propertyTable[ propPhotos ] > 0 and propertyTable[ propCurrentPhotoIndex ] == 0 then
-							propertyTable[ propCurrentPhotoIndex ] = 1
-							loadPhoto( propertyTable, 1 )
-						end
-
-						showResponse( propertyTable )
-						inDialog = false
-						progressScope:done()
-					end
-				)
 
 				-- Enumerate through all selected photos in the catalog
 				local runningTasks = 0
@@ -824,6 +795,28 @@ local function AiTagger()
 				progressScope:done()
 
 				logger:tracef( "done analyzing %d photos in %.02f sec (%.02f sec elapsed)", #photos, propertyTable[ propConsumedTime ], propertyTable[ propElapsedTime ] )
+
+				-- Now that analysis is complete, show the results dialog
+				if not progressScope:isCanceled() then
+					-- Set final completion message
+					progressScope:setCaption( LOC( "$$$/AiTagger/ProgressFinished=Analysis complete! Opening results..." ) )
+					progressScope:setPortionComplete( 1, 1 )
+					-- Brief pause to let user see completion message
+					LrTasks.sleep( 0.5 )
+
+					-- Ensure first photo is selected before showing dialog
+					if #propertyTable[ propPhotos ] > 0 and propertyTable[ propCurrentPhotoIndex ] == 0 then
+						logger:tracef( "setting initial photo selection: totalPhotos=%d, photosArrayLength=%d",
+							propertyTable[ propTotalPhotos ], #propertyTable[ propPhotos ] )
+						propertyTable[ propCurrentPhotoIndex ] = 1
+						loadPhoto( propertyTable, 1 )
+					end
+
+					showResponse( propertyTable )
+				end
+
+				inDialog = false
+				progressScope:done()
 
 				while inDialog do
 					LrTasks.sleep( 1 )

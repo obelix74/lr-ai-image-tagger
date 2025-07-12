@@ -13,5 +13,5 @@ Logger.lua
 local LrLogger = import "LrLogger"
 
 -- Create the logger and enable the print function.
-logger = LrLogger( "com.tjotala.lightroom.robotagger" )
+logger = LrLogger( "lr.tagimg.net" )
 logger:enable( "logfile" )
