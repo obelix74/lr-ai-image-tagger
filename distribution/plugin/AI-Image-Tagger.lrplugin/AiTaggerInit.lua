@@ -81,6 +81,10 @@ if prefs.saveLocationToIptc == nil then
 	prefs.saveLocationToIptc = false
 end
 
+if prefs.saveKeywordsToIptc == nil then
+	prefs.saveKeywordsToIptc = true
+end
+
 -- Batch processing options
 if prefs.batchSize == nil then
 	prefs.batchSize = 5

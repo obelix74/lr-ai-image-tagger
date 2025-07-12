@@ -146,16 +146,29 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 				return catalog:createKeyword( name, nil, true, parent, true )
 			end
 
-			-- Apply keywords
+			-- Apply keywords to Lightroom Keywords
+			local selectedKeywords = {}
 			for _, keyword in ipairs( keywords ) do
 				if keyword.selected then
+					-- Add to Lightroom Keywords
 					local keywordObj = createDecoratedKeyword( keyword.description, prefs.decorateKeyword, prefs.decorateKeywordValue )
 					if keywordObj then
 						photo:addKeyword( keywordObj )
 					else
 						logger:errorf( "failed to add keyword %s", keyword.description )
 					end
+
+					-- Collect for IPTC Keywords (use original description, not decorated)
+					table.insert( selectedKeywords, keyword.description )
 				end
+			end
+
+			-- Save keywords to IPTC Keywords field as well
+			if prefs.saveKeywordsToIptc and #selectedKeywords > 0 then
+				local keywordString = table.concat( selectedKeywords, "; " )
+				safeSetMetadata( "keywords", keywordString, "IPTC keywords" )
+			else
+				logger:tracef( "skipping IPTC keywords: enabled=%s, count=%d", tostring(prefs.saveKeywordsToIptc), #selectedKeywords )
 			end
 
 			-- Apply IPTC metadata using correct Lightroom field names

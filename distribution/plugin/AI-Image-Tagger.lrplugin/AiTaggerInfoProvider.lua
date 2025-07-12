@@ -49,6 +49,7 @@ local propSaveDescriptionToIptc = "saveDescriptionToIptc"
 local propSaveInstructionsToIptc = "saveInstructionsToIptc"
 local propSaveCopyrightToIptc = "saveCopyrightToIptc"
 local propSaveLocationToIptc = "saveLocationToIptc"
+local propSaveKeywordsToIptc = "saveKeywordsToIptc"
 
 local propUseCustomPrompt = "useCustomPrompt"
 local propCustomPrompt = "customPrompt"
@@ -139,6 +140,7 @@ local function startDialog( propertyTable )
 	propertyTable[ propSaveInstructionsToIptc ] = prefs.saveInstructionsToIptc
 	propertyTable[ propSaveCopyrightToIptc ] = prefs.saveCopyrightToIptc
 	propertyTable[ propSaveLocationToIptc ] = prefs.saveLocationToIptc
+	propertyTable[ propSaveKeywordsToIptc ] = prefs.saveKeywordsToIptc
 
 	propertyTable[ propUseCustomPrompt ] = prefs.useCustomPrompt
 	propertyTable[ propCustomPrompt ] = prefs.customPrompt
@@ -161,6 +163,7 @@ local function endDialog( propertyTable )
 	prefs.saveInstructionsToIptc = propertyTable[ propSaveInstructionsToIptc ]
 	prefs.saveCopyrightToIptc = propertyTable[ propSaveCopyrightToIptc ]
 	prefs.saveLocationToIptc = propertyTable[ propSaveLocationToIptc ]
+	prefs.saveKeywordsToIptc = propertyTable[ propSaveKeywordsToIptc ]
 
 	prefs.useCustomPrompt = propertyTable[ propUseCustomPrompt ]
 	prefs.customPrompt = LrStringUtils.trimWhitespace( propertyTable[ propCustomPrompt ] or "" )
@@ -316,6 +319,14 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:checkbox {
 					title = LOC( "$$$/AiTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
 					value = bind { key = propSaveLocationToIptc },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveKeywords=Save keywords to IPTC metadata" ),
+					value = bind { key = propSaveKeywordsToIptc },
 					fill_horizontal = 1,
 				},
 			},
