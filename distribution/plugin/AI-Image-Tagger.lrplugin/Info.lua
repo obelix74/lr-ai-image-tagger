@@ -1,7 +1,7 @@
 --[[----------------------------------------------------------------------------
 
  AI Image Tagger - Automatically Tag Photos using Gemini AI API
- Copyright 2017-2024 Tapani Otala, Enhanced by Anand Kumar Sankaran
+ Copyright 2024 Anand Kumar Sankaran
  Updated for Lightroom Classic 2024 and Gemini AI
 
 --------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ return {
 	LrToolkitIdentifier = "com.anands.lightroom.aiimagetagger",
 
 	LrPluginName = LOC( "$$$/AiTagger/PluginName=AI Image Tagger" ),
-	LrPluginInfoUrl = "https://github.com/obelix74/lr-ai-image-tagger",
+	LrPluginInfoUrl = "https://aitagger.tagimg.net",
 	LrPluginInfoProvider = "AiTaggerInfoProvider.lua",
 
 	LrInitPlugin = "AiTaggerInit.lua",

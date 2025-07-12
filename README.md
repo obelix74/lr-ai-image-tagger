@@ -36,7 +36,7 @@
 ## 🔧 Installation
 
 ### Step 1: Download the Plugin
-1. Download the latest release from the [releases page](https://github.com/obelix74/lr-ai-image-tagger/releases)
+1. Download the latest release from the [plugin website](https://aitagger.tagimg.net)
 2. Extract the ZIP file to a folder on your computer
 
 ### Step 2: Install in Lightroom
@@ -144,9 +144,7 @@
 - Check the Lightroom log for detailed error messages
 
 ### Getting Help
-- Check the [FAQ section](https://github.com/obelix74/lr-ai-image-tagger/wiki/FAQ)
-- Report issues on [GitHub Issues](https://github.com/obelix74/lr-ai-image-tagger/issues)
-- Join our [community discussions](https://github.com/obelix74/lr-ai-image-tagger/discussions)
+- Contact support: [lists@anands.net](mailto:lists@anands.net)
 
 ## 📊 API Usage & Costs
 
@@ -170,15 +168,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Credits
 
-- **Original Author**: Tapani Otala (2017-2024)
-- **Enhanced by**: Anand Kumar Sankaran (2024)
+- **Author**: Anand Kumar Sankaran (2024)
 - **Powered by**: Google Gemini AI
 - **Built for**: Adobe Lightroom Classic
 
 ## 🔗 Links
 
 - [Plugin Homepage](https://aitagger.tagimg.net)
-- [GitHub Repository](https://github.com/obelix74/lr-ai-image-tagger)
+
 - [Google Gemini AI](https://ai.google.dev)
 - [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)
 

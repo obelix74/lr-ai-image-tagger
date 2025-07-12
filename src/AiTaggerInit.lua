@@ -1,7 +1,7 @@
 --[[----------------------------------------------------------------------------
 
  AI Image Tagger
- Copyright 2017-2024 Tapani Otala, Enhanced by Anand Kumar Sankaran
+ Copyright 2024 Anand Kumar Sankaran
  Updated for Lightroom Classic 2024
 
 --------------------------------------------------------------------------------

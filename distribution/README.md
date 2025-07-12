@@ -59,10 +59,7 @@ aws s3 website s3://your-bucket-name --index-document index.html
 az storage blob upload-batch -d '$web' -s website/ --account-name yourstorageaccount
 ```
 
-#### GitHub Pages
-1. Create a new repository
-2. Upload the `website/` contents to the repository
-3. Enable GitHub Pages in repository settings
+
 
 ## 🔗 Website Features
 
@@ -154,20 +151,12 @@ When releasing new versions:
 ## 🤝 Support
 
 ### User Support Channels
-- **GitHub Issues:** Technical problems and bug reports
 - **Email Support:** lists@anands.net
-- **Documentation:** Comprehensive guides and FAQ
-
-### Developer Resources
-- **Source Code:** Available on GitHub
-- **API Documentation:** Gemini AI integration details
-- **Contributing Guide:** How to contribute improvements
 
 ## 📄 License & Credits
 
 - **License:** MIT License
-- **Original Author:** Tapani Otala (2017-2024)
-- **Enhanced by:** Anand Kumar Sankaran (2024)
+- **Author:** Anand Kumar Sankaran (2024)
 - **Powered by:** Google Gemini AI
 - **Built for:** Adobe Lightroom Classic
 
