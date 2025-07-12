@@ -178,8 +178,11 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 
 			-- Save keywords to IPTC Keywords field as well
 			if prefs.saveKeywordsToIptc and #selectedKeywords > 0 then
-				local keywordString = table.concat( selectedKeywords, "; " )
-				safeSetMetadata( "keywords", keywordString, "IPTC keywords" )
+				-- Note: Lightroom doesn't expose a direct IPTC keywords field via setRawMetadata
+				-- Keywords are automatically included in IPTC when exporting if they're in Lightroom Keywords
+				-- This is a limitation of the Lightroom SDK
+				logger:tracef( "IPTC keywords: Lightroom automatically includes keywords in IPTC on export. Selected keywords: %s",
+					table.concat( selectedKeywords, ", " ) )
 			else
 				logger:tracef( "skipping IPTC keywords: enabled=%s, count=%d", tostring(prefs.saveKeywordsToIptc), #selectedKeywords )
 			end

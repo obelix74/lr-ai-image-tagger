@@ -82,7 +82,7 @@ if prefs.saveLocationToIptc == nil then
 end
 
 if prefs.saveKeywordsToIptc == nil then
-	prefs.saveKeywordsToIptc = true
+	prefs.saveKeywordsToIptc = false  -- Disabled by default due to Lightroom SDK limitations
 end
 
 -- Batch processing options

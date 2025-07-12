@@ -325,9 +325,10 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveKeywords=Save keywords to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveKeywords=Save keywords to IPTC metadata (Note: Keywords auto-included in IPTC on export)" ),
 					value = bind { key = propSaveKeywordsToIptc },
 					fill_horizontal = 1,
+					enabled = false,  -- Disabled due to Lightroom SDK limitations
 				},
 			},
 		},

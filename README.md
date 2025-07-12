@@ -16,7 +16,7 @@
 
 ### **Professional Metadata Management**
 - **Complete IPTC Support**: Save all metadata to industry-standard IPTC fields
-- **Dual Keyword Storage**: Keywords saved to both Lightroom Keywords and IPTC Keywords
+- **Smart Keyword Storage**: Keywords saved to Lightroom Keywords (automatically included in IPTC on export)
 - **Configurable Options**: Choose which metadata fields to save
 - **Batch Processing**: Analyze multiple photos efficiently with rate limiting
 - **Export Functionality**: Export analysis results to CSV for external processing
@@ -101,7 +101,7 @@
 ### IPTC Metadata Settings
 - ✅ **Save caption to IPTC metadata**
 - ✅ **Save description to IPTC metadata**
-- ✅ **Save keywords to IPTC metadata**
+- ⬜ **Save keywords to IPTC metadata** (Note: Keywords automatically included in IPTC on export)
 - ⬜ **Save instructions to IPTC metadata**
 - ⬜ **Save copyright to IPTC metadata**
 - ⬜ **Save location to IPTC metadata**
