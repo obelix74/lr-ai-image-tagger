@@ -1,93 +1,184 @@
-# RoboTagger v2.0
+# AI Image Tagger for Adobe Lightroom Classic
 
-## Adobe Lightroom Classic Plug-In (Updated for 2024)
+**Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI.**
 
-This plug-in will take all the selected photos and upload their thumbnails to Google Vision API for analysis. It will then allow you to attach the selected labels and landmarks as keywords to the photo in your Lightroom catalog.
+![AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.0-green)
 
-**Version 2.0 Updates:**
-- Compatible with Lightroom Classic 2024 (SDK 13.0+)
-- Updated Google OAuth2 authentication endpoints
-- Improved error handling and user experience
-- Enhanced thumbnail quality for better AI analysis
-- Better concurrent request management
+## 🚀 Features
 
-## Installation
+### **AI-Powered Analysis**
+- **Smart Captions**: Generate concise, descriptive captions (1-2 sentences)
+- **Detailed Descriptions**: Create comprehensive descriptions (2-3 sentences)
+- **Intelligent Keywords**: Extract relevant keywords automatically
+- **Usage Instructions**: Get AI suggestions for photo editing and usage
+- **Copyright Detection**: Identify visible copyright or attribution information
+- **Location Recognition**: Detect identifiable landmarks and locations
 
-1. Download the `dist/robotagger.zip` distribution package
-2. Unzip it to a convenient location; it will show up as folder named `robotagger.lrplugin`
-3. Launch Lightroom
-4. Select `File`, then `Plug-in Manager...`
-5. Click on the `Add` button under the plug-in list on the left
-6. Navigate to the location where you unzipped the plug-in
-7. Click on the folder named `robotagger.lrplugin` and click on `Add Plug-in`
+### **Professional Metadata Management**
+- **Complete IPTC Support**: Save all metadata to industry-standard IPTC fields
+- **Configurable Options**: Choose which metadata fields to save
+- **Batch Processing**: Analyze multiple photos efficiently with rate limiting
+- **Export Functionality**: Export analysis results to CSV for external processing
 
-Be sure to read the following sections for critical dependencies.
+### **Advanced Customization**
+- **Custom Prompts**: Create your own AI analysis prompts
+- **Batch Configuration**: Adjust batch size and processing delays
+- **Keyword Management**: Select/deselect keywords with bulk actions
+- **Professional UI**: Two-column layout optimized for workflow efficiency
 
-## Usage
+## 📋 Requirements
 
-1. Launch Lightroom
-2. Select one or more photos (no videos) in any of the catalog views
-3. Select `File` then `Plug-in Extras...` and finally `Tag Photos with Google Vision`
-4. A dialog opens to show the results as they arrive, with actions you can take
+- **Adobe Lightroom Classic 2024** (or newer)
+- **Google Gemini AI API Key** (free tier available)
+- **Internet Connection** for AI analysis
 
-Note that it may take several seconds for each photo to be analyzed, so the plug-in issues several requests in parallel. The counter will show how many results are available.
+## 🔧 Installation
 
-![results](media/progress.png)
+### Step 1: Download the Plugin
+1. Download the latest release from the [releases page](https://github.com/obelix74/lr-aitagger/releases)
+2. Extract the ZIP file to a folder on your computer
 
-![results](media/results.png)
+### Step 2: Install in Lightroom
+1. Open Adobe Lightroom Classic
+2. Go to **File > Plug-in Manager**
+3. Click **Add** button
+4. Navigate to the extracted plugin folder and select it
+5. Click **Done**
 
-## Dependencies
+### Step 3: Get Gemini AI API Key
+1. Visit [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
+2. Sign in with your Google account
+3. Click **Get API Key**
+4. Create a new API key or use an existing one
+5. Copy the API key (keep it secure!)
 
-### Google Cloud Platform account
+### Step 4: Configure the Plugin
+1. In Lightroom, go to **File > Plug-in Manager**
+2. Select **AI Image Tagger** from the list
+3. Paste your Gemini AI API key in the **API Key** field
+4. Configure your preferred settings:
+   - Choose which IPTC metadata fields to save
+   - Set batch processing options
+   - Customize AI prompts (optional)
+5. Click **Done**
 
-You will need a Google Cloud Platform service account configured to support Google Vision API requests in order to use this plug-in. Instructions can be found [here](https://cloud.google.com/vision/docs/setup) and [here](https://cloud.google.com/docs/authentication/getting-started). You **do not** need to create a storage bucket because this plug-in will not store your photos in the cloud.
+## 🎯 Usage
 
-**Important:** Make sure to enable the Cloud Vision API in your Google Cloud Console and ensure your service account has the necessary permissions.
+### Basic Usage
+1. Select one or more photos in Lightroom's Library module
+2. Go to **Library > Plug-in Extras > Tag Photos with AI**
+3. Wait for AI analysis to complete
+4. Review and edit the generated metadata:
+   - **Caption**: Brief description
+   - **Description**: Detailed description
+   - **Keywords**: Select relevant keywords
+   - **Instructions**: Usage suggestions
+   - **Copyright**: Attribution info
+   - **Location**: Identified landmarks
+5. Click **Apply** for current photo or **Apply All** for all photos
 
-Once you have set up your service account, you need to download the private key (JSON), and import it into the plug-in:
+### Advanced Features
 
-1. Launch Lightroom
-2. Select `File`, then `Plug-in Manager...`
-3. Select the plug-in from the list on the left
-4. Click on the `Load Credentials...` button in the `Google Cloud Credentials` section
-5. Select the JSON file and click on `Choose`
-6. Click on the `Save` button to save the credentials in Lightroom's secure password store
+#### Custom Prompts
+- Enable **Use custom prompt** in plugin settings
+- Write your own AI analysis instructions
+- Tailor the AI output to your specific needs
 
-```
-IMPORTANT: DO NOT DELETE YOUR PRIVATE KEY!
-```
+#### Batch Processing
+- Configure **Batch Size** (1-10 photos per batch)
+- Set **Delay Between Requests** to avoid rate limiting
+- Monitor progress in the analysis dialog
 
-Google only retains your public key.
-This plug-in will store your private key and show it obscured in the UI, but as security measure it **will not** let you copy it back out.
+#### Export Results
+- Click **Export Results** to save analysis data as CSV
+- Includes all metadata fields and processing times
+- Perfect for workflow documentation and analysis
 
-![configuration](media/configuration.png)
+## ⚙️ Configuration Options
 
-### OpenSSL
+### IPTC Metadata Settings
+- ✅ **Save caption to IPTC metadata**
+- ✅ **Save description to IPTC metadata**
+- ⬜ **Save instructions to IPTC metadata**
+- ⬜ **Save copyright to IPTC metadata**
+- ⬜ **Save location to IPTC metadata**
 
-Google Vision API requires its [JSON Web Token](https://developers.google.com/identity/protocols/oauth2/service-account) requests to be signed with the [`RSASSA-PKCS1-V1_5-SIGN`](https://www.ietf.org/rfc/rfc3447.txt) algorithm. There were no implementations of that readily available in Lua, and I did not feel like writing one. I simply launch OpenSSL to sign the token request with the private key extracted from the JSON file mentioned above.
+### AI Prompt Customization
+- **Use custom prompt**: Enable/disable custom AI instructions
+- **Custom Prompt**: Write your own analysis instructions
 
-You will need [OpenSSL](https://www.openssl.org/) installed on your system and available along the PATH. To test that everything is working, check the `Versions` section in the Plug-In Manager. It should show the OpenSSL version number, such as `OpenSSL 3.0.x` or newer.
+### Batch Processing
+- **Batch Size**: 1-10 photos (default: 5)
+- **Delay Between Requests**: 500-5000ms (default: 1000ms)
 
-**Note:** The plugin now uses the updated OAuth2 token endpoint (`oauth2.googleapis.com/token`) for better compatibility and security.
+### Keyword Management
+- **Create Keywords**: Choose decoration style (as-is, prefix, suffix, parent)
+- **Keyword Value**: Custom text for decoration
 
-## Developers
+## 🔒 Privacy & Security
 
-Adobe Lightroom plug-ins are written in a subset of the [Lua](https://www.lua.org/) language, version 5.1. More information is available [here](https://developer.adobe.com/lightroom/).
+- **API Key Security**: Keys are stored securely in Lightroom's password storage
+- **Data Processing**: Images are sent to Google's Gemini AI service for analysis
+- **No Storage**: Your images are not stored by the AI service
+- **Local Processing**: All metadata management happens locally in Lightroom
 
-Lightroom will run Lua code either directly as source code, or as a compiled bytecode. The repo contains a compiled distribution package. You can re-build that distribution image with [`rake`](http://rake.rubyforge.org/), even though that is not necessary. Make sure you're running Lua version 5.1, because Lightroom will reject code compiled with newer versions. On Mac OS X, you can install it with [`brew`](https://brew.sh/):
+## 🆘 Troubleshooting
 
-	$ brew install lua@5.1
+### Common Issues
 
-If you have other versions of Lua installed, you may need to switch to the correct version:
+**"API key not configured"**
+- Ensure you've entered a valid Gemini AI API key in plugin settings
+- Check that the API key has proper permissions
 
-	$ brew switch lua@5.1
+**"Network error"**
+- Verify your internet connection
+- Check if your firewall allows Lightroom to access the internet
+- Try increasing the delay between requests
 
-The `Rakefile` assumes Lua v5.1 is available as `luac5.1`.
+**"Analysis failed"**
+- Some images may not be suitable for AI analysis
+- Try with different image formats (JPEG works best)
+- Check the Lightroom log for detailed error messages
 
-### Version 2.0 Changes
+### Getting Help
+- Check the [FAQ section](https://github.com/obelix74/lr-aitagger/wiki/FAQ)
+- Report issues on [GitHub Issues](https://github.com/obelix74/lr-aitagger/issues)
+- Join our [community discussions](https://github.com/obelix74/lr-aitagger/discussions)
 
-- **SDK Version**: Updated to 13.0 (compatible with Lightroom Classic 2024)
-- **OAuth2 Endpoint**: Updated from deprecated `/oauth2/v4/token` to `/oauth2/token`
-- **Error Handling**: Improved authentication and network error handling
-- **Performance**: Better concurrent request management and larger thumbnails
-- **Compatibility**: Maintains backward compatibility with older Lightroom versions (minimum SDK 10.0)
+## 📊 API Usage & Costs
+
+### Gemini AI Free Tier
+- **15 requests per minute**
+- **1,500 requests per day**
+- **1 million tokens per month**
+
+### Cost Optimization Tips
+- Use batch processing with appropriate delays
+- Process images during off-peak hours
+- Consider upgrading to paid tier for heavy usage
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Credits
+
+- **Original Author**: Tapani Otala (2017-2024)
+- **Enhanced by**: Anand Kumar Sankaran (2024)
+- **Powered by**: Google Gemini AI
+- **Built for**: Adobe Lightroom Classic
+
+## 🔗 Links
+
+- [Plugin Homepage](https://aitagger.anands.net)
+- [GitHub Repository](https://github.com/obelix74/lr-aitagger)
+- [Google Gemini AI](https://ai.google.dev)
+- [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)
+
+---
+
+**Made with ❤️ for photographers and content creators worldwide**

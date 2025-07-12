@@ -1,11 +1,12 @@
 --[[----------------------------------------------------------------------------
 
- RoboTagger
- Copyright 2017 Tapani Otala
+ AI Image Tagger
+ Copyright 2017-2024 Tapani Otala, Enhanced by Anand Kumar Sankaran
+ Updated for Lightroom Classic 2024 and Gemini AI
 
 --------------------------------------------------------------------------------
 
-RoboTaggerMenuItem.lua
+AiTaggerMenuItem.lua
 
 ------------------------------------------------------------------------------]]
 
@@ -116,7 +117,7 @@ end
 local function applyMetadataToPhoto( photo, keywords, caption, description, instructions, copyright, location )
 	local catalog = photo.catalog
 	catalog:withWriteAccessDo(
-		LOC( "$$$/RoboTagger/ActionName=Apply Metadata " ),
+		LOC( "$$$/AiTagger/ActionName=Apply Metadata " ),
 		function()
 			local function createDecoratedKeyword( name, decoration, value )
 				local parent = nil
@@ -190,7 +191,7 @@ local function exportResults( propertyTable )
 		label = "Save as:",
 		requiredFileType = "csv",
 		initialDirectory = LrPathUtils.getStandardFilePath( "desktop" ),
-		initialFileName = "robotagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
+		initialFileName = "aitagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
 	} )
 
 	if fileName then
@@ -286,7 +287,7 @@ local function showResponse( propertyTable )
 			place_horizontal = 0.5,
 			f:row {
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/PrevPhoto=^U+25C0" ),
+					title = LOC( "$$$/AiTagger/PrevPhoto=^U+25C0" ),
 					fill_horizontal = 0.25,
 					place_vertical = 0.5,
 					enabled = bind {
@@ -320,7 +321,7 @@ local function showResponse( propertyTable )
 					background_color = LrColor(), -- alpha = 0
 				},
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/NextPhoto=^U+25B6" ),
+					title = LOC( "$$$/AiTagger/NextPhoto=^U+25B6" ),
 					fill_horizontal = 0.25,
 					place_vertical = 0.5,
 					enabled = bind {
@@ -342,7 +343,7 @@ local function showResponse( propertyTable )
 				title = bind {
 					keys = { propCurrentPhotoIndex, propCurrentPhotoName, propPhotos },
 					operation = function( binder, values, fromTable )
-						return LOC( "$$$/RoboTagger/PhotoXofY=Photo ^1 of ^2: ^3 (^4 sec)",
+						return LOC( "$$$/AiTagger/PhotoXofY=Photo ^1 of ^2: ^3 (^4 sec)",
 							LrStringUtils.numberToStringWithSeparators( values[ propCurrentPhotoIndex ], 0 ),
 							LrStringUtils.numberToStringWithSeparators( #values[ propPhotos ], 0 ),
 							values[ propCurrentPhotoName ],
@@ -364,16 +365,16 @@ local function showResponse( propertyTable )
 							if #value > 0 then
 								-- use elapsedTime rather than consumedTime to factor in parallelization
 								local remTime = math.ceil( elapsedTime / numPhotos * remPhotos )
-								return LOC( "$$$/RoboTagger/PhotosRemaining=^1 photos to analyze, estimated completion in ^2 sec (^3 sec elapsed)",
+								return LOC( "$$$/AiTagger/PhotosRemaining=^1 photos to analyze, estimated completion in ^2 sec (^3 sec elapsed)",
 									LrStringUtils.numberToStringWithSeparators( remPhotos, 0 ),
 									LrStringUtils.numberToStringWithSeparators( remTime, 0 ),
 									LrStringUtils.numberToStringWithSeparators( elapsedTime, 2 ) )
 							else
-								return LOC( "$$$/RoboTagger/PhotosRemaining=^1 photos to analyze",
+								return LOC( "$$$/AiTagger/PhotosRemaining=^1 photos to analyze",
 									LrStringUtils.numberToStringWithSeparators( remPhotos, 0 ) )
 							end
 						else
-							return LOC( "$$$/RoboTagger/PhotosRemaining=^1 photos analyzed in ^2 sec (^3 sec elapsed)",
+							return LOC( "$$$/AiTagger/PhotosRemaining=^1 photos analyzed in ^2 sec (^3 sec elapsed)",
 								LrStringUtils.numberToStringWithSeparators( numPhotos, 0 ),
 								LrStringUtils.numberToStringWithSeparators( consumedTime, 2 ),
 								LrStringUtils.numberToStringWithSeparators( elapsedTime, 2 ) )
@@ -388,7 +389,7 @@ local function showResponse( propertyTable )
 			f:column {
 				fill_horizontal = 0.6,
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogCaptionTitle=Caption" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
 					font = "<system/bold>",
 					f:edit_field {
 						value = bind { key = propCaption },
@@ -398,7 +399,7 @@ local function showResponse( propertyTable )
 				},
 				f:spacer { height = 8 },
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogDescriptionTitle=Description" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogDescriptionTitle=Description" ),
 					font = "<system/bold>",
 					f:edit_field {
 						value = bind { key = propDescription },
@@ -408,14 +409,14 @@ local function showResponse( propertyTable )
 				},
 				f:spacer { height = 8 },
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogKeywordsTitle=Keywords" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogKeywordsTitle=Keywords" ),
 					font = "<system/bold>",
 					f:row {
 						place = "overlapping",
 						f:column {
 							f:static_text {
 								visible = LrBinding.keyIsNil( propKeywordTitle( 1 ) ),
-								title = LOC( "$$$/RoboTagger/NoKeywords=None" ),
+								title = LOC( "$$$/AiTagger/NoKeywords=None" ),
 								fill_horizontal = 1,
 							},
 						},
@@ -424,7 +425,7 @@ local function showResponse( propertyTable )
 					f:row {
 						visible = LrBinding.keyIsNotNil( propKeywordTitle( 1 ) ),
 						f:push_button {
-							title = LOC( "$$$/RoboTagger/SelectAllKeywords=Select All" ),
+							title = LOC( "$$$/AiTagger/SelectAllKeywords=Select All" ),
 							action = function()
 								for i = 1, prefs.maxKeywords do
 									if propertyTable[ propKeywordTitle( i ) ] then
@@ -434,7 +435,7 @@ local function showResponse( propertyTable )
 							end,
 						},
 						f:push_button {
-							title = LOC( "$$$/RoboTagger/DeselectAllKeywords=Deselect All" ),
+							title = LOC( "$$$/AiTagger/DeselectAllKeywords=Deselect All" ),
 							action = function()
 								for i = 1, prefs.maxKeywords do
 									if propertyTable[ propKeywordTitle( i ) ] then
@@ -450,7 +451,7 @@ local function showResponse( propertyTable )
 			f:column {
 				fill_horizontal = 0.4,
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogInstructionsTitle=Instructions" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogInstructionsTitle=Instructions" ),
 					font = "<system/bold>",
 					f:edit_field {
 						value = bind { key = propInstructions },
@@ -460,7 +461,7 @@ local function showResponse( propertyTable )
 				},
 				f:spacer { height = 8 },
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogCopyrightTitle=Copyright" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogCopyrightTitle=Copyright" ),
 					font = "<system/bold>",
 					f:edit_field {
 						value = bind { key = propCopyright },
@@ -470,7 +471,7 @@ local function showResponse( propertyTable )
 				},
 				f:spacer { height = 8 },
 				f:group_box {
-					title = LOC( "$$$/RoboTagger/ResultsDialogLocationTitle=Location" ),
+					title = LOC( "$$$/AiTagger/ResultsDialogLocationTitle=Location" ),
 					font = "<system/bold>",
 					f:edit_field {
 						value = bind { key = propLocation },
@@ -484,7 +485,7 @@ local function showResponse( propertyTable )
 			fill_horizontal = 1,
 			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
-				title = LOC( "$$$/RoboTagger/ResultsDialogApply=Apply" ),
+				title = LOC( "$$$/AiTagger/ResultsDialogApply=Apply" ),
 				place_horizontal = 1,
 				action = function()
 					LrTasks.startAsyncTask(
@@ -498,7 +499,7 @@ local function showResponse( propertyTable )
 			},
 			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
-				title = LOC( "$$$/RoboTagger/ResultsDialogApplyAll=Apply All" ),
+				title = LOC( "$$$/AiTagger/ResultsDialogApplyAll=Apply All" ),
 				place_horizontal = 1,
 				action = function()
 					LrTasks.startAsyncTask(
@@ -513,7 +514,7 @@ local function showResponse( propertyTable )
 			},
 			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
-				title = LOC( "$$$/RoboTagger/ResultsDialogExport=Export Results" ),
+				title = LOC( "$$$/AiTagger/ResultsDialogExport=Export Results" ),
 				place_horizontal = 1,
 				action = function()
 					LrTasks.startAsyncTask(
@@ -527,18 +528,18 @@ local function showResponse( propertyTable )
 		},
 	}
 	local results = LrDialogs.presentModalDialog {
-		title = LOC( "$$$/RoboTagger/ResultsDialogTitle=RoboTagger: Gemini AI Results" ),
+		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
 		resizable = false,
 		contents = contents,
-		actionVerb = LOC( "$$$/RoboTagger/ResultsDialogOk=Done" ),
+		actionVerb = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
 		cancelVerb = "< exclude >", -- magic value to hide the Cancel button
 	}
 end
 
-local function RoboTagger()
+local function AiTagger()
 	LrFunctionContext.postAsyncTaskWithContext( "analyzing photos",
 		function( context )
-			logger:tracef( "RoboTaggerMenuItem v2.0: enter" )
+			logger:tracef( "AiTaggerMenuItem v2.0: enter" )
 			LrDialogs.attachErrorDialogToFunctionContext( context )
 			local catalog = LrApplication.activeCatalog()
 
@@ -546,7 +547,7 @@ local function RoboTagger()
 			if not GeminiAPI.hasApiKey() then
 				logger:errorf( "Gemini API key not configured" )
 				local errorMsg = "Gemini API key not configured.\n\nPlease check:\n• Gemini API key is properly configured in plugin settings\n• API key has necessary permissions"
-				LrDialogs.message( LOC( "$$$/RoboTagger/AuthFailed=Gemini API key not configured" ), errorMsg, "critical" )
+				LrDialogs.message( LOC( "$$$/AiTagger/AuthFailed=Gemini API key not configured" ), errorMsg, "critical" )
 			else
 				local propertyTable = LrBinding.makePropertyTable( context )
 				local photos = catalog:getTargetPhotos()
@@ -564,7 +565,7 @@ local function RoboTagger()
 				propertyTable[ propLocation ] = ""
 
 				local progressScope = LrProgressScope {
-					title = LOC( "$$$/RoboTagger/ProgressScopeTitle=Analyzing Photos" ),
+					title = LOC( "$$$/AiTagger/ProgressScopeTitle=Analyzing Photos" ),
 					functionContext = context
 				}
 				progressScope:setCancelable( true )
@@ -590,7 +591,7 @@ local function RoboTagger()
 
 					-- Update the progress bar
 					local fileName = photo:getFormattedMetadata( "fileName" )
-					progressScope:setCaption( LOC( "$$$/RoboTagger/ProgressCaption=^1 (^2 of ^3)", fileName, i, #photos ) )
+					progressScope:setCaption( LOC( "$$$/AiTagger/ProgressCaption=^1 (^2 of ^3)", fileName, i, #photos ) )
 					progressScope:setPortionComplete( i, #photos )
 
 					local function trace( msg, ... )
@@ -642,13 +643,13 @@ local function RoboTagger()
 											propertyTable[ propElapsedTime ] = LrDate.currentTime() - propertyTable[ propStartTime ]
 											propertyTable[ propPhotos ] = propertyTable[ propPhotos ] -- dummy assignment to trigger bindings
 										else
-											local action = LrDialogs.confirm( LOC( "$$$/RoboTagger/FailedAnalysis=Failed to analyze photo ^1", fileName ), result.message )
+											local action = LrDialogs.confirm( LOC( "$$$/AiTagger/FailedAnalysis=Failed to analyze photo ^1", fileName ), result.message )
 											if action == "cancel" then
 												progressScope:cancel()
 											end
 										end
 									else
-										local action = LrDialogs.confirm( LOC( "$$$/RoboTagger/FailedThumbnail=Failed to generate thumbnail for ^1", fileName ), errorMsg )
+										local action = LrDialogs.confirm( LOC( "$$$/AiTagger/FailedThumbnail=Failed to generate thumbnail for ^1", fileName ), errorMsg )
 										if action == "cancel" then
 											progressScope:cancel()
 										end
@@ -678,11 +679,11 @@ local function RoboTagger()
 				end
 			end
 
-			logger:tracef( "RoboTaggerMenuItem: exit" )
+			logger:tracef( "AiTaggerMenuItem: exit" )
 		end
 	)
 end
 
 --------------------------------------------------------------------------------
 -- Begin the search
-RoboTagger()
+AiTagger()

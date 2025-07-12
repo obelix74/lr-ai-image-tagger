@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Guide - AI Image Tagger</title>
+    <meta name="description" content="Complete installation guide for AI Image Tagger Lightroom plugin with step-by-step instructions and troubleshooting.">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .main-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin: 2rem 0 1rem 0;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: #333;
+            margin: 1.5rem 0 0.5rem 0;
+            font-size: 1.3rem;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .step-title {
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #0d47a1;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        ol, ul {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 1rem 0;
+            transition: all 0.3s;
+        }
+        
+        .download-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin: 0.5rem 0;
+        }
+        
+        .toc a {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .step {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i> AI Image Tagger
+                </div>
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <h1><i class="fas fa-download"></i> Installation Guide</h1>
+            <p>Complete step-by-step guide to install and configure AI Image Tagger for Adobe Lightroom Classic.</p>
+
+            <div class="toc">
+                <h3><i class="fas fa-list"></i> Table of Contents</h3>
+                <ul>
+                    <li><a href="#requirements">System Requirements</a></li>
+                    <li><a href="#download">Download Plugin</a></li>
+                    <li><a href="#api-key">Get Gemini AI API Key</a></li>
+                    <li><a href="#install">Install in Lightroom</a></li>
+                    <li><a href="#configure">Configure Plugin</a></li>
+                    <li><a href="#usage">First Use</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </div>
+
+            <h2 id="requirements"><i class="fas fa-check-circle"></i> System Requirements</h2>
+            <div class="info">
+                <strong>Before you begin, ensure you have:</strong>
+                <ul>
+                    <li><strong>Adobe Lightroom Classic 2024</strong> or newer</li>
+                    <li><strong>Internet connection</strong> for AI analysis</li>
+                    <li><strong>Google account</strong> for API key (free)</li>
+                    <li><strong>Windows 10/11</strong> or <strong>macOS 10.15+</strong></li>
+                </ul>
+            </div>
+
+            <h2 id="download"><i class="fas fa-download"></i> Step 1: Download Plugin</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Download the Latest Version</span>
+                <p>Download the AI Image Tagger plugin from our secure download link:</p>
+                <a href="ai-image-tagger-v2.0.zip" class="download-button">
+                    <i class="fas fa-download"></i> Download AI Image Tagger v2.0
+                </a>
+                <p><strong>File size:</strong> ~50KB | <strong>Version:</strong> 2.0 | <strong>Updated:</strong> December 2024</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Extract the Plugin</span>
+                <ol>
+                    <li>Locate the downloaded ZIP file (usually in your Downloads folder)</li>
+                    <li>Right-click the ZIP file and select "Extract All" (Windows) or double-click (macOS)</li>
+                    <li>Choose a location to extract (e.g., Desktop or Documents)</li>
+                    <li>You should see a folder named "AI Image Tagger" containing the plugin files</li>
+                </ol>
+            </div>
+
+            <h2 id="api-key"><i class="fas fa-key"></i> Step 2: Get Gemini AI API Key</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Visit Google AI Studio</span>
+                <p>Go to <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank">https://ai.google.dev/gemini-api/docs/api-key</a></p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Sign In with Google</span>
+                <p>Use your existing Google account or create a new one. No credit card required for the free tier.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">Create API Key</span>
+                <ol>
+                    <li>Click the <strong>"Get API Key"</strong> button</li>
+                    <li>Select <strong>"Create API key in new project"</strong> (recommended for first-time users)</li>
+                    <li>Your API key will be generated instantly</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">Copy and Secure Your API Key</span>
+                <div class="warning">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong>
+                    <ul>
+                        <li>Copy the API key immediately (it looks like: AIzaSyA...)</li>
+                        <li>Store it securely - treat it like a password</li>
+                        <li>Never share it publicly or commit it to version control</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info">
+                <strong><i class="fas fa-gift"></i> Free Tier Limits:</strong>
+                <ul>
+                    <li><strong>15 requests per minute</strong> - Perfect for normal photo editing workflows</li>
+                    <li><strong>1,500 requests per day</strong> - Analyze hundreds of photos daily</li>
+                    <li><strong>1 million tokens per month</strong> - More than enough for most users</li>
+                </ul>
+                <p>These limits are generous for most photography workflows. If you need more, paid tiers are available.</p>
+            </div>
+
+            <h2 id="install"><i class="fas fa-plug"></i> Step 3: Install in Lightroom</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Open Lightroom Classic</span>
+                <p>Launch Adobe Lightroom Classic on your computer.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Access Plug-in Manager</span>
+                <p>Go to <strong>File > Plug-in Manager</strong> in the menu bar.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">Add the Plugin</span>
+                <ol>
+                    <li>Click the <strong>"Add"</strong> button in the Plug-in Manager</li>
+                    <li>Navigate to the extracted "AI Image Tagger" folder</li>
+                    <li>Select the folder and click <strong>"Select Folder"</strong> (Windows) or <strong>"Choose"</strong> (macOS)</li>
+                    <li>The plugin should appear in the list as "AI Image Tagger"</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">Verify Installation</span>
+                <div class="success">
+                    <strong><i class="fas fa-check"></i> Success!</strong> You should see "AI Image Tagger" in the plugin list with a status of "Installed and running".
+                </div>
+            </div>
+
+            <h2 id="configure"><i class="fas fa-cog"></i> Step 4: Configure Plugin</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Select the Plugin</span>
+                <p>In the Plug-in Manager, click on <strong>"AI Image Tagger"</strong> to select it.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Enter API Key</span>
+                <ol>
+                    <li>Find the <strong>"Gemini AI API Key"</strong> section</li>
+                    <li>Paste your API key in the <strong>"API Key"</strong> field</li>
+                    <li>The synopsis should change to "API key configured"</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">Configure Settings (Optional)</span>
+                <p>Customize these settings based on your workflow:</p>
+                <ul>
+                    <li><strong>IPTC Metadata:</strong> Choose which fields to save automatically</li>
+                    <li><strong>Keyword Options:</strong> Set how keywords are created and organized</li>
+                    <li><strong>Batch Processing:</strong> Adjust batch size and delays for your internet speed</li>
+                    <li><strong>AI Prompt:</strong> Use default or create custom analysis prompts</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">Save Configuration</span>
+                <p>Click <strong>"Done"</strong> to save your settings and close the Plug-in Manager.</p>
+            </div>
+
+            <h2 id="usage"><i class="fas fa-magic"></i> Step 5: First Use</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Select Photos</span>
+                <p>In Lightroom's Library module, select one or more photos you want to analyze.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">Start AI Analysis</span>
+                <p>Go to <strong>Library > Plug-in Extras > Tag Photos with AI</strong></p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">Review Results</span>
+                <p>The AI analysis dialog will show:</p>
+                <ul>
+                    <li><strong>Caption:</strong> Brief description of the photo</li>
+                    <li><strong>Description:</strong> Detailed description</li>
+                    <li><strong>Keywords:</strong> Relevant tags (select/deselect as needed)</li>
+                    <li><strong>Instructions:</strong> Usage suggestions</li>
+                    <li><strong>Copyright:</strong> Attribution information (if detected)</li>
+                    <li><strong>Location:</strong> Identified landmarks</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">Apply Metadata</span>
+                <p>Click <strong>"Apply"</strong> for the current photo or <strong>"Apply All"</strong> for all analyzed photos.</p>
+            </div>
+
+            <h2 id="troubleshooting"><i class="fas fa-tools"></i> Troubleshooting</h2>
+
+            <h3>Common Issues and Solutions</h3>
+
+            <div class="warning">
+                <strong>Problem:</strong> "API key not configured" error<br>
+                <strong>Solution:</strong>
+                <ul>
+                    <li>Verify you've entered the correct API key in plugin settings</li>
+                    <li>Ensure there are no extra spaces before or after the key</li>
+                    <li>Try generating a new API key if the current one doesn't work</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>Problem:</strong> "Network error" during analysis<br>
+                <strong>Solution:</strong>
+                <ul>
+                    <li>Check your internet connection</li>
+                    <li>Verify firewall isn't blocking Lightroom</li>
+                    <li>Increase delay between requests in plugin settings</li>
+                    <li>Try analyzing fewer photos at once</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>Problem:</strong> Plugin doesn't appear in menu<br>
+                <strong>Solution:</strong>
+                <ul>
+                    <li>Restart Lightroom Classic</li>
+                    <li>Check that plugin status is "Installed and running"</li>
+                    <li>Try removing and re-adding the plugin</li>
+                    <li>Ensure you selected the correct plugin folder</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>Problem:</strong> Analysis takes too long or times out<br>
+                <strong>Solution:</strong>
+                <ul>
+                    <li>Reduce batch size in plugin settings</li>
+                    <li>Increase delay between requests</li>
+                    <li>Analyze photos during off-peak hours</li>
+                    <li>Check if you've exceeded API rate limits</li>
+                </ul>
+            </div>
+
+            <h3>Getting Additional Help</h3>
+            <div class="info">
+                <strong>Need more help?</strong>
+                <ul>
+                    <li><strong>GitHub Issues:</strong> <a href="https://github.com/obelix74/lr-aitagger/issues">Report bugs and request features</a></li>
+                    <li><strong>Email Support:</strong> <a href="mailto:lists@anands.net">lists@anands.net</a></li>
+                    <li><strong>Documentation:</strong> <a href="https://github.com/obelix74/lr-aitagger/wiki">Visit our wiki</a></li>
+                </ul>
+            </div>
+
+            <div class="success">
+                <strong><i class="fas fa-check-circle"></i> Congratulations!</strong> You've successfully installed and configured AI Image Tagger. Start analyzing your photos and enjoy the power of AI-assisted metadata generation!
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 AI Image Tagger. Originally created by Tapani Otala, enhanced by Anand Kumar Sankaran.</p>
+            <p>Powered by Google Gemini AI • Built for Adobe Lightroom Classic</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

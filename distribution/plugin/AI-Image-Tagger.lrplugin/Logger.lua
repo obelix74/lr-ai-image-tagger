@@ -1,18 +1,17 @@
 --[[----------------------------------------------------------------------------
 
  RoboTagger
- Copyright 2017-2024 Tapani Otala
- Updated for Lightroom Classic 2024
+ Copyright 2017 Tapani Otala
 
 --------------------------------------------------------------------------------
 
-RoboTaggerShutdown.lua
+Logger.lua
 
 ------------------------------------------------------------------------------]]
 
+-- Access the Lightroom SDK namespaces.
+local LrLogger = import "LrLogger"
 
-require "Logger"
-
---------------------------------------------------------------------------------
-
-logger:tracef( "RoboTagger v2.0: shutdown" )
+-- Create the logger and enable the print function.
+logger = LrLogger( "com.tjotala.lightroom.robotagger" )
+logger:enable( "logfile" )

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Tagger - Lightroom Plugin</title>
+    <meta name="description" content="Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI in Adobe Lightroom Classic.">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+        
+        .features {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid #e9ecef;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .installation {
+            background: #f8f9fa;
+            padding: 80px 0;
+        }
+        
+        .installation h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .step {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .api-key-section {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .api-key-content {
+            background: #f8f9fa;
+            padding: 3rem;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        .download-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 20px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .features-grid,
+            .steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <i class="fas fa-robot"></i> AI Image Tagger
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="https://github.com/obelix74/lr-aitagger">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1><i class="fas fa-magic"></i> AI Image Tagger</h1>
+            <p>Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI in Adobe Lightroom Classic.</p>
+            <a href="#download" class="cta-button">
+                <i class="fas fa-download"></i> Download Now - Free
+            </a>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Powerful AI Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Smart AI Analysis</h3>
+                    <p>Generate intelligent captions, detailed descriptions, and relevant keywords using Google's advanced Gemini AI technology.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h3>Complete IPTC Support</h3>
+                    <p>Save all metadata to industry-standard IPTC fields including captions, descriptions, keywords, copyright, and location data.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Batch Processing</h3>
+                    <p>Efficiently analyze multiple photos with configurable batch sizes and intelligent rate limiting to optimize performance.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h3>Custom Prompts</h3>
+                    <p>Create your own AI analysis prompts to tailor the output to your specific photography style and requirements.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <h3>Export Results</h3>
+                    <p>Export analysis results to CSV format for external processing, workflow documentation, and further analysis.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your API keys are stored securely, and your images are processed safely without being stored by the AI service.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="installation" class="installation">
+        <div class="container">
+            <h2>Easy Installation</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3><i class="fas fa-download"></i> Download Plugin</h3>
+                    <p>Download the latest version of AI Image Tagger from our secure download link below.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3><i class="fas fa-key"></i> Get API Key</h3>
+                    <p>Visit Google AI Studio to create your free Gemini AI API key. No credit card required for the free tier.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3><i class="fas fa-plug"></i> Install in Lightroom</h3>
+                    <p>Add the plugin to Lightroom Classic through File > Plug-in Manager and configure your API key.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3><i class="fas fa-magic"></i> Start Tagging</h3>
+                    <p>Select photos and use Library > Plug-in Extras > Tag Photos with AI to begin automatic tagging.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="api-key-section">
+        <div class="container">
+            <div class="api-key-content">
+                <h2><i class="fas fa-key"></i> Getting Your Gemini AI API Key</h2>
+                <p>Follow these simple steps to get your free Gemini AI API key:</p>
+
+                <ol style="margin: 2rem 0; padding-left: 2rem;">
+                    <li><strong>Visit Google AI Studio:</strong> Go to <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" style="color: #667eea;">https://ai.google.dev/gemini-api/docs/api-key</a></li>
+                    <li><strong>Sign In:</strong> Use your Google account to sign in</li>
+                    <li><strong>Create API Key:</strong> Click "Get API Key" and create a new key</li>
+                    <li><strong>Copy Key:</strong> Copy the generated API key (keep it secure!)</li>
+                    <li><strong>Configure Plugin:</strong> Paste the key in the AI Image Tagger plugin settings</li>
+                </ol>
+
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <strong><i class="fas fa-info-circle"></i> Free Tier Limits:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                        <li>15 requests per minute</li>
+                        <li>1,500 requests per day</li>
+                        <li>1 million tokens per month</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="download-section">
+        <div class="container">
+            <h2><i class="fas fa-download"></i> Download AI Image Tagger</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">Get the latest version of AI Image Tagger for Adobe Lightroom Classic</p>
+
+            <a href="ai-image-tagger-v2.0.zip" class="download-button">
+                <i class="fas fa-download"></i> Download v2.0 (Latest)
+            </a>
+
+            <div style="margin-top: 2rem; opacity: 0.9;">
+                <p><strong>System Requirements:</strong></p>
+                <p>Adobe Lightroom Classic 2024 or newer • Internet connection • Google Gemini AI API key (free)</p>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <a href="https://github.com/obelix74/lr-aitagger" style="color: white; text-decoration: none;">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 AI Image Tagger. Originally created by Tapani Otala, enhanced by Anand Kumar Sankaran.</p>
+            <p>Powered by Google Gemini AI • Built for Adobe Lightroom Classic</p>
+            <div style="margin-top: 1rem;">
+                <a href="https://github.com/obelix74/lr-aitagger" style="color: white; margin: 0 1rem;">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="mailto:lists@anands.net" style="color: white; margin: 0 1rem;">
+                    <i class="fas fa-envelope"></i> Support
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>

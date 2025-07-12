@@ -1,11 +1,12 @@
 --[[----------------------------------------------------------------------------
 
- RoboTagger
- Copyright 2017 Tapani Otala
+ AI Image Tagger
+ Copyright 2017-2024 Tapani Otala, Enhanced by Anand Kumar Sankaran
+ Updated for Lightroom Classic 2024 and Gemini AI
 
 --------------------------------------------------------------------------------
 
-RoboTaggerInfoProvider.lua
+AiTaggerInfoProvider.lua
 
 ------------------------------------------------------------------------------]]
 
@@ -58,17 +59,17 @@ local propApiKey = "apiKey"
 local propVersions = "versions"
 
 -- canned strings
-local loadingText = LOC( "$$$/RoboTagger/Options/Loading=loading..." )
-local sampleKeyword = LOC( "$$$/RoboTagger/Options/DecorateKeywords/SampleKeyword=sample keyword" )
+local loadingText = LOC( "$$$/AiTagger/Options/Loading=loading..." )
+local sampleKeyword = LOC( "$$$/AiTagger/Options/DecorateKeywords/SampleKeyword=sample keyword" )
 
-local titleKeywordAsIs   = LOC( "$$$/RoboTagger/Options/DecorateKeywords/Title/None=as-is" )
-local titleKeywordPrefix = LOC( "$$$/RoboTagger/Options/DecorateKeywords/Title/Prefix=with Prefix" )
-local titleKeywordSuffix = LOC( "$$$/RoboTagger/Options/DecorateKeywords/Title/Suffix=with Suffix" )
-local titleKeywordParent = LOC( "$$$/RoboTagger/Options/DecorateKeywords/Title/Parent=under Parent" )
+local titleKeywordAsIs   = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/None=as-is" )
+local titleKeywordPrefix = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/Prefix=with Prefix" )
+local titleKeywordSuffix = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/Suffix=with Suffix" )
+local titleKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/Parent=under Parent" )
 
-local placeholderKeywordPrefix = LOC( "$$$/RoboTagger/Options/DecorateKeywords/PlaceHolder/Prefix=<prefix>" )
-local placeholderKeywordSuffix = LOC( "$$$/RoboTagger/Options/DecorateKeywords/PlaceHolder/Suffix=<suffix>" )
-local placeholderKeywordParent = LOC( "$$$/RoboTagger/Options/DecorateKeywords/PlaceHolder/Parent=<parent>" )
+local placeholderKeywordPrefix = LOC( "$$$/AiTagger/Options/DecorateKeywords/PlaceHolder/Prefix=<prefix>" )
+local placeholderKeywordSuffix = LOC( "$$$/AiTagger/Options/DecorateKeywords/PlaceHolder/Suffix=<suffix>" )
+local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/PlaceHolder/Parent=<parent>" )
 
 --------------------------------------------------------------------------------
 
@@ -113,7 +114,7 @@ local function clearApiKey( propertyTable )
 end
 
 local function startDialog( propertyTable )
-	logger:tracef( "RoboTaggerInfoProvider: startDialog" )
+	logger:tracef( "AiTaggerInfoProvider: startDialog" )
 
 	propertyTable[ propVersions ] = {
 		gemini = {
@@ -148,7 +149,7 @@ local function startDialog( propertyTable )
 end
 
 local function endDialog( propertyTable )
-	logger:tracef( "RoboTaggerInfoProvider: endDialog" )
+	logger:tracef( "AiTaggerInfoProvider: endDialog" )
 
 	prefs.maxTasks = propertyTable[ propGeneralMaxTasks ]
 
@@ -170,23 +171,23 @@ local function endDialog( propertyTable )
 end
 
 local function sectionsForTopOfDialog( f, propertyTable )
-	logger:tracef( "RoboTaggerInfoProvider: sectionsForTopOfDialog" )
+	logger:tracef( "AiTaggerInfoProvider: sectionsForTopOfDialog" )
 
 	return {
 		-- general options
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/General/Title=General Options" ),
+			title = LOC( "$$$/AiTagger/Options/General/Title=General Options" ),
 			spacing = f:control_spacing(),
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/General/MaxTasks=Max Parallel Requests:" ),
+					title = LOC( "$$$/AiTagger/Options/General/MaxTasks=Max Parallel Requests:" ),
 					width = share( propGeneralOptionsPromptWidth ),
 					alignment = "right",
 				},
 				f:edit_field {
-					placeholder_string = LOC( "$$$/RoboTagger/Options/General/MaxTasks=<max requests>" ),
+					placeholder_string = LOC( "$$$/AiTagger/Options/General/MaxTasks=<max requests>" ),
 					value = bind { key = propGeneralMaxTasks },
 					immediate = true,
 					min = tasksMin,
@@ -215,13 +216,13 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- keyword options
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/Keywords/Title=Keyword Options" ),
+			title = LOC( "$$$/AiTagger/Options/Keywords/Title=Keyword Options" ),
 			spacing = f:control_spacing(),
 
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Keywords/Prompt=Create Keywords:" ),
+					title = LOC( "$$$/AiTagger/Options/Keywords/Prompt=Create Keywords:" ),
 					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
@@ -262,7 +263,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:row {
 					fill_horizontal = 1,
 					f:static_text {
-						title = LOC( "$$$/RoboTagger/Options/Keywords/Arrow=^U+25B6" )
+						title = LOC( "$$$/AiTagger/Options/Keywords/Arrow=^U+25B6" )
 					},
 					f:static_text {
 						title = bind {
@@ -281,7 +282,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveCaption=Save caption to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveCaption=Save caption to IPTC metadata" ),
 					value = bind { key = propSaveCaptionToIptc },
 					fill_horizontal = 1,
 				},
@@ -289,7 +290,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveDescription=Save description to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveDescription=Save description to IPTC metadata" ),
 					value = bind { key = propSaveDescriptionToIptc },
 					fill_horizontal = 1,
 				},
@@ -297,7 +298,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveInstructions=Save instructions to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveInstructions=Save instructions to IPTC metadata" ),
 					value = bind { key = propSaveInstructionsToIptc },
 					fill_horizontal = 1,
 				},
@@ -305,7 +306,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveCopyright=Save copyright to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveCopyright=Save copyright to IPTC metadata" ),
 					value = bind { key = propSaveCopyrightToIptc },
 					fill_horizontal = 1,
 				},
@@ -313,7 +314,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
+					title = LOC( "$$$/AiTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
 					value = bind { key = propSaveLocationToIptc },
 					fill_horizontal = 1,
 				},
@@ -323,12 +324,12 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- AI prompt customization
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/AI/Title=AI Prompt Customization" ),
+			title = LOC( "$$$/AiTagger/Options/AI/Title=AI Prompt Customization" ),
 			spacing = f:control_spacing(),
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/RoboTagger/Options/AI/UseCustomPrompt=Use custom prompt" ),
+					title = LOC( "$$$/AiTagger/Options/AI/UseCustomPrompt=Use custom prompt" ),
 					value = bind { key = propUseCustomPrompt },
 					fill_horizontal = 1,
 				},
@@ -336,7 +337,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/AI/CustomPrompt=Custom Prompt:" ),
+					title = LOC( "$$$/AiTagger/Options/AI/CustomPrompt=Custom Prompt:" ),
 					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
@@ -348,7 +349,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 							if not value then
 								return GeminiAPI.getDefaultPrompt()
 							else
-								return LOC( "$$$/RoboTagger/Options/AI/CustomPromptPlaceholder=Enter your custom prompt here..." )
+								return LOC( "$$$/AiTagger/Options/AI/CustomPromptPlaceholder=Enter your custom prompt here..." )
 							end
 						end,
 					},
@@ -362,12 +363,12 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- batch processing options
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Options/Batch/Title=Batch Processing" ),
+			title = LOC( "$$$/AiTagger/Options/Batch/Title=Batch Processing" ),
 			spacing = f:control_spacing(),
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Batch/BatchSize=Batch Size:" ),
+					title = LOC( "$$$/AiTagger/Options/Batch/BatchSize=Batch Size:" ),
 					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
@@ -381,13 +382,13 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					width_in_digits = 2,
 				},
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Batch/BatchSizeHelp=(1-10 photos per batch)" ),
+					title = LOC( "$$$/AiTagger/Options/Batch/BatchSizeHelp=(1-10 photos per batch)" ),
 				},
 			},
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Batch/Delay=Delay Between Requests:" ),
+					title = LOC( "$$$/AiTagger/Options/Batch/Delay=Delay Between Requests:" ),
 					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
@@ -401,7 +402,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					width_in_digits = 4,
 				},
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Options/Batch/DelayHelp=milliseconds (500-5000)" ),
+					title = LOC( "$$$/AiTagger/Options/Batch/DelayHelp=milliseconds (500-5000)" ),
 				},
 			},
 		},
@@ -409,7 +410,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- API key
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/ApiKey/Title=Gemini AI API Key" ),
+			title = LOC( "$$$/AiTagger/ApiKey/Title=Gemini AI API Key" ),
 			synopsis = bind {
 				key = propApiKey,
 				object = propertyTable,
@@ -424,12 +425,12 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			spacing = f:control_spacing(),
 			f:row {
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/ApiKey/Key=API Key:" ),
+					title = LOC( "$$$/AiTagger/ApiKey/Key=API Key:" ),
 					width = share( propCredentialsPromptWidth ),
 					alignment = "right",
 				},
 				f:password_field {
-					placeholder_string = LOC( "$$$/RoboTagger/ApiKey/KeyPlaceHolder=<API key>" ),
+					placeholder_string = LOC( "$$$/AiTagger/ApiKey/KeyPlaceHolder=<API key>" ),
 					value = bind { key = propApiKey },
 					fill_horizontal = 1,
 					height_in_lines = 1,
@@ -437,14 +438,14 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			},
 			f:row {
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/ApiKey/Setup=Get API Key..." ),
+					title = LOC( "$$$/AiTagger/ApiKey/Setup=Get API Key..." ),
 					place_horizontal = 1,
 					action = function( btn )
 						LrHttp.openUrlInBrowser( "https://ai.google.dev/gemini-api/docs/api-key" )
 					end,
 				},
 				f:push_button {
-					title = LOC( "$$$/RoboTagger/ApiKey/Clear=Clear" ),
+					title = LOC( "$$$/AiTagger/ApiKey/Clear=Clear" ),
 					place_horizontal = 1,
 					action = function( btn )
 						clearApiKey( propertyTable )
@@ -455,7 +456,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- versions
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/RoboTagger/Versions/Title=Versions" ),
+			title = LOC( "$$$/AiTagger/Versions/Title=Versions" ),
 			synopsis = bind {
 				key = propVersions,
 				object = propertyTable,
@@ -466,7 +467,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			spacing = f:label_spacing(),
 			f:row {
 				f:static_text {
-					title = LOC( "$$$/RoboTagger/Versions/Gemini/Arrow=^U+25B6" )
+					title = LOC( "$$$/AiTagger/Versions/Gemini/Arrow=^U+25B6" )
 				},
 				f:static_text {
 					title = bind {

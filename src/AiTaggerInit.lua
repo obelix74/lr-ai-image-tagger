@@ -1,12 +1,12 @@
 --[[----------------------------------------------------------------------------
 
- RoboTagger
- Copyright 2017-2024 Tapani Otala
+ AI Image Tagger
+ Copyright 2017-2024 Tapani Otala, Enhanced by Anand Kumar Sankaran
  Updated for Lightroom Classic 2024
 
 --------------------------------------------------------------------------------
 
-RoboTaggerInit.lua
+AiTaggerInit.lua
 
 ------------------------------------------------------------------------------]]
 
@@ -19,7 +19,7 @@ require "Logger"
 
 --------------------------------------------------------------------------------
 
-logger:tracef( "RoboTagger v2.0: init for Lightroom Classic 2024 with Gemini AI" )
+logger:tracef( "AI Image Tagger v2.0: init for Lightroom Classic 2024 with Gemini AI" )
 
 local prefs = LrPrefs.prefsForPlugin()
 
