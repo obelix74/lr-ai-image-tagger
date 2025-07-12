@@ -122,6 +122,19 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 	logger:tracef( "applyMetadataToPhoto called with: caption='%s', description='%s', instructions='%s', copyright='%s', location='%s'",
 		caption or "nil", description or "nil", instructions or "nil", copyright or "nil", location or "nil" )
 
+	-- Helper function to safely set metadata
+	local function safeSetMetadata( fieldName, value, description )
+		local success, error = pcall( function()
+			photo:setRawMetadata( fieldName, value )
+		end )
+		if success then
+			logger:tracef( "successfully set %s: %s", description, value )
+		else
+			logger:errorf( "failed to set %s (%s): %s", description, fieldName, tostring(error) )
+		end
+		return success
+	end
+
 	local catalog = photo.catalog
 	catalog:withWriteAccessDo(
 		LOC( "$$$/AiTagger/ActionName=Apply Metadata " ),
@@ -177,18 +190,7 @@ local function applyMetadataToPhoto( photo, keywords, caption, description, inst
 				tostring(prefs.saveInstructionsToIptc), tostring(prefs.saveCopyrightToIptc),
 				tostring(prefs.saveLocationToIptc) )
 
-			-- Helper function to safely set metadata
-			local function safeSetMetadata( fieldName, value, description )
-				local success, error = pcall( function()
-					photo:setRawMetadata( fieldName, value )
-				end )
-				if success then
-					logger:tracef( "successfully set %s: %s", description, value )
-				else
-					logger:errorf( "failed to set %s (%s): %s", description, fieldName, tostring(error) )
-				end
-				return success
-			end
+
 
 			if prefs.saveCaptionToIptc and caption and caption ~= "" then
 				safeSetMetadata( "caption", caption, "IPTC caption" )
