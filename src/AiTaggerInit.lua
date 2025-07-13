@@ -19,7 +19,7 @@ require "Logger"
 
 --------------------------------------------------------------------------------
 
-logger:tracef( "AI Image Tagger v2.0: init for Lightroom Classic 2024 with Gemini AI" )
+logger:tracef( "AI Image Tagger v2.1.0: init for Lightroom Classic 2024 with Gemini AI" )
 
 local prefs = LrPrefs.prefsForPlugin()
 

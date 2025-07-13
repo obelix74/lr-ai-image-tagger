@@ -359,6 +359,7 @@ local function showResponse( propertyTable )
 		spacing = f:dialog_spacing(),
 		fill_horizontal = 1,
 		place_horizontal = 0.5,
+		width = 900,
 		f:column {
 			fill_horizontal = 1,
 			place_horizontal = 0.5,
@@ -478,7 +479,7 @@ local function showResponse( propertyTable )
 		},
 		f:row {
 			f:column {
-				fill_horizontal = 0.6,
+				fill_horizontal = 0.65,
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogTitleTitle=Title" ),
 					font = "<system/bold>",
@@ -486,6 +487,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propTitle },
 						fill_horizontal = 1,
 						height_in_lines = 1,
+						width = 500,
 					},
 				},
 				f:spacer { height = 8 },
@@ -496,6 +498,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propCaption },
 						fill_horizontal = 1,
 						height_in_lines = 2,
+						width = 500,
 					},
 				},
 				f:spacer { height = 8 },
@@ -506,6 +509,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propHeadline },
 						fill_horizontal = 1,
 						height_in_lines = 4,
+						width = 500,
 					},
 				},
 				f:spacer { height = 8 },
@@ -548,9 +552,9 @@ local function showResponse( propertyTable )
 					},
 				},
 			},
-			f:spacer { width = 16 },
+			f:spacer { width = 8 },
 			f:column {
-				fill_horizontal = 0.4,
+				fill_horizontal = 0.35,
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogInstructionsTitle=Instructions" ),
 					font = "<system/bold>",
@@ -558,6 +562,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propInstructions },
 						fill_horizontal = 1,
 						height_in_lines = 3,
+						width = 350,
 					},
 				},
 				f:spacer { height = 8 },
@@ -568,6 +573,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propCopyright },
 						fill_horizontal = 1,
 						height_in_lines = 2,
+						width = 350,
 					},
 				},
 				f:spacer { height = 8 },
@@ -578,6 +584,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propLocation },
 						fill_horizontal = 1,
 						height_in_lines = 2,
+						width = 350,
 					},
 				},
 			},
@@ -630,7 +637,7 @@ local function showResponse( propertyTable )
 	}
 	local results = LrDialogs.presentModalDialog {
 		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
-		resizable = false,
+		resizable = true,
 		contents = contents,
 		actionVerb = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
 		cancelVerb = "< exclude >", -- magic value to hide the Cancel button

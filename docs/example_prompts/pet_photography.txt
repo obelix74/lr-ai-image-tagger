@@ -1,0 +1,35 @@
+Pet Photography Analysis Prompt
+
+Please analyze this pet photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including animal type, behavior, setting, and photographic elements
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable settings are present)
+
+Focus on:
+- Animal identification (species, breed if discernible, general characteristics)
+- Behavior and expression (playing, sleeping, alert, happy, curious)
+- Setting and environment (indoor, outdoor, studio, natural habitat)
+- Interaction context (with people, other pets, toys, environment)
+- Photography style (portrait, action, lifestyle, studio)
+- Lighting and composition quality
+- Emotional connection and personality capture
+- Age indicators (puppy, kitten, adult, senior)
+- Health and condition appearance
+- Seasonal or temporal context
+
+Note: Focus on general characteristics and behavior rather than specific identification.
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "pet type, breed, behavior, setting, photography style, emotion, interaction",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "setting type if identifiable"
+}

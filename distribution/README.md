@@ -9,10 +9,10 @@ distribution/
 ├── website/                    # Public-facing website
 │   ├── index.html             # Main landing page
 │   ├── installation.html     # Detailed installation guide
-│   └── ai-image-tagger-v2.0.zip  # Plugin download
+│   └── ai-image-tagger-v2.1.0.zip  # Plugin download
 ├── plugin/                    # Plugin files
 │   ├── AI-Image-Tagger.lrplugin/  # Lightroom plugin directory
-│   └── ai-image-tagger-v2.0.zip   # Zipped plugin for distribution
+│   └── ai-image-tagger-v2.1.0.zip   # Zipped plugin for distribution
 └── README.md                  # This file
 ```
 
@@ -85,7 +85,7 @@ az storage blob upload-batch -d '$web' -s website/ --account-name yourstorageacc
 - **Zipped Distribution:** Ready-to-download package
 
 ### Version Information
-- **Version:** 2.0
+- **Version:** 2.1.0
 - **Compatibility:** Adobe Lightroom Classic 2024+
 - **Size:** ~50KB compressed
 - **Dependencies:** Internet connection, Gemini AI API key
@@ -95,7 +95,7 @@ az storage blob upload-batch -d '$web' -s website/ --account-name yourstorageacc
 ### Branding
 To customize the branding:
 1. Update the logo and colors in CSS files
-2. Modify the `LrToolkitIdentifier` in `Info.lua` (currently: `com.anands.lightroom.aiimagetagger`)
+2. Modify the `LrToolkitIdentifier` in `Info.lua` (currently: `net.tagimg.aiimagetagger`)
 3. Update contact information and links
 4. Replace download URLs with your hosting location
 

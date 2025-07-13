@@ -1,0 +1,31 @@
+Concert Photography Analysis Prompt
+
+Please analyze this concert/music photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including musical elements, performance aspects, and venue context
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable venues are present)
+
+Focus on:
+- Musical performance elements (instruments, stage setup, performance style)
+- Lighting and stage effects (spotlights, colored lighting, smoke, lasers)
+- Crowd and audience interaction
+- Venue characteristics (indoor, outdoor, festival, club, arena)
+- Energy and mood of the performance
+- Technical photography aspects (low light, motion, composition)
+- Musical genre indicators
+- Equipment and stage production
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "concert, music, performance, venue, lighting, crowd, genre, energy",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "venue name if identifiable"
+}

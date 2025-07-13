@@ -18,7 +18,7 @@ return {
 	LrSdkVersion = 13.0,
 	LrSdkMinimumVersion = 10.0, -- minimum SDK version required by this plug-in
 
-	LrToolkitIdentifier = "com.anands.lightroom.aiimagetagger",
+	LrToolkitIdentifier = "net.tagimg.aiimagetagger",
 
 	LrPluginName = LOC( "$$$/AiTagger/PluginName=AI Image Tagger" ),
 	LrPluginInfoUrl = "https://lr.tagimg.net",
@@ -47,6 +47,6 @@ return {
 		},
 	},
 
-	VERSION = { major = 2, minor = 1, revision = 0, build = 1, },
+	VERSION = { major = 2, minor = 3, revision = 0, build = 1, },
 
 }

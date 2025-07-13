@@ -1,0 +1,33 @@
+Real Estate Photography Analysis Prompt
+
+Please analyze this real estate photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including property features, room types, and selling points
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable areas or neighborhoods are present)
+
+Focus on:
+- Room identification and function (kitchen, bedroom, living room, bathroom, etc.)
+- Property features (hardwood floors, granite counters, crown molding, etc.)
+- Architectural style and design elements
+- Natural lighting and window features
+- Space and layout characteristics
+- Condition and maintenance level
+- Luxury or premium features
+- Outdoor spaces (patios, gardens, pools, views)
+- Market appeal and selling points
+- Photography technique (wide angle, staging, lighting)
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "real estate, room type, features, property style, condition, luxury, space",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "neighborhood or area if identifiable"
+}

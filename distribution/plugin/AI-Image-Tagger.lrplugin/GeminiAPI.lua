@@ -20,6 +20,7 @@ local LrFileUtils = import "LrFileUtils"
 
 local JSON = require "JSON"
 require "Logger"
+local PromptPresets = require "PromptPresets"
 
 --------------------------------------------------------------------------------
 -- Gemini AI API
