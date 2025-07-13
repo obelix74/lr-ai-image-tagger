@@ -1,7 +1,7 @@
 --[[----------------------------------------------------------------------------
 
  AI Image Tagger - Automatically Tag Photos using Gemini AI API
- Copyright 2024 Anand Kumar Sankaran
+ Copyright 2025 Anand's Photography
  Updated for Lightroom Classic 2024 and Gemini AI
 
 --------------------------------------------------------------------------------

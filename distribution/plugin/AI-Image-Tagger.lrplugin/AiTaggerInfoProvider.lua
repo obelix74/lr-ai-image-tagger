@@ -145,9 +145,32 @@ local function startDialog( propertyTable )
 	propertyTable[ propSaveKeywordsToIptc ] = prefs.saveKeywordsToIptc
 
 	propertyTable[ propUseCustomPrompt ] = prefs.useCustomPrompt
-	propertyTable[ propCustomPrompt ] = prefs.customPrompt
+	propertyTable[ propCustomPrompt ] = prefs.customPrompt or ""
+	propertyTable[ "selectedPreset" ] = ""
 	propertyTable[ propBatchSize ] = prefs.batchSize
 	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
+
+	-- Add observer for preset selection
+	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
+		if newValue and newValue ~= "" then
+			logger:tracef("Preset observer triggered: %s", newValue)
+			local preset = GeminiAPI.getPreset(newValue)
+			if preset then
+				logger:tracef("Loading preset prompt, length: %d characters", #preset.prompt)
+				-- Direct property assignment
+				propertyTable[propCustomPrompt] = preset.prompt
+				-- Force UI refresh
+				local currentValue = propertyTable[propUseCustomPrompt]
+				propertyTable[propUseCustomPrompt] = not currentValue
+				propertyTable[propUseCustomPrompt] = currentValue
+				logger:tracef("Property table updated with preset content")
+				-- Reset dropdown selection
+				propertyTable["selectedPreset"] = ""
+			else
+				logger:errorf("Failed to get preset: %s", newValue)
+			end
+		end
+	end )
 
 	loadApiKey( propertyTable )
 end
@@ -360,25 +383,72 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/AI/PromptPresets=Preset Prompts:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					enabled = bind { key = propUseCustomPrompt },
+					items = (function()
+						local items = {{ title = "Select a preset...", value = "" }}
+						local presets = GeminiAPI.getPromptPresets()
+						for _, preset in ipairs(presets) do
+							table.insert(items, { title = preset.name .. " - " .. preset.description, value = preset.name })
+						end
+						return items
+					end)(),
+					value = bind { key = "selectedPreset" },
+				},
+				f:spacer { width = 8 },
+				f:push_button {
+					enabled = bind { key = propUseCustomPrompt },
+					title = LOC( "$$$/AiTagger/Options/AI/BrowseFile=Browse File..." ),
+					action = function()
+						local fileName = LrDialogs.runOpenPanel({
+							title = "Select Prompt File",
+							prompt = "Choose a text file containing your custom prompt:",
+							canChooseFiles = true,
+							canChooseDirectories = false,
+							allowsMultipleSelection = false,
+							fileTypes = { "txt", "text" },
+							initialDirectory = LrPathUtils.getStandardFilePath( "documents" ),
+						})
+
+						if fileName and fileName[1] then
+							logger:tracef("Loading prompt from file: %s", fileName[1])
+							local content, error = GeminiAPI.loadPromptFromFile(fileName[1])
+							if content then
+								logger:tracef("File loaded successfully, length: %d characters", #content)
+								-- Direct property assignment
+								propertyTable[propCustomPrompt] = content
+								-- Force UI refresh
+								local currentValue = propertyTable[propUseCustomPrompt]
+								propertyTable[propUseCustomPrompt] = not currentValue
+								propertyTable[propUseCustomPrompt] = currentValue
+								logger:tracef("Property table updated with file content")
+							else
+								logger:errorf("Failed to load file: %s", error or "unknown error")
+								LrDialogs.message("Error Loading File", error or "Could not load prompt from file.", "error")
+							end
+						end
+					end,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
 					title = LOC( "$$$/AiTagger/Options/AI/CustomPrompt=Custom Prompt:" ),
 					width = share( propKeywordOptionsPromptWidth ),
 					alignment = "right",
 				},
 				f:edit_field {
 					enabled = bind { key = propUseCustomPrompt },
-					placeholder_string = bind {
-						key = propUseCustomPrompt,
-						transform = function( value, fromTable )
-							if not value then
-								return GeminiAPI.getDefaultPrompt()
-							else
-								return LOC( "$$$/AiTagger/Options/AI/CustomPromptPlaceholder=Enter your custom prompt here..." )
-							end
-						end,
-					},
+					placeholder_string = LOC( "$$$/AiTagger/Options/AI/CustomPromptPlaceholder=Enter your custom prompt here or select a preset above..." ),
 					value = bind { key = propCustomPrompt },
 					fill_horizontal = 1,
-					height_in_lines = 6,
+					height_in_lines = 8,
+					scrollable = true,
+					wrap = true,
 				},
 			},
 		},

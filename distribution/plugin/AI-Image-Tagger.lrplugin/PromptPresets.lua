@@ -12,26 +12,31 @@ local PromptPresets = {}
 --------------------------------------------------------------------------------
 
 -- Sports Photography Prompt
-local sportsPrompt = [[{
-"keywords": "a list of relevant keywords including the jersey number for players wearing only white jerseys (comma separated). Use provided player numbers (3, 10, 11, 16, 23, 57) and names (Walter Payton, Michael Jordan, Isiah Pacheco, LeBron James, Bubba Gump, Stephan Curry) as context for identification and include associated name as a keyword from jersey number if found. Remove any keyword duplicates.",
-"instructions": "Ensure the output strictly adheres to the provided JSON structure with all requested fields."
-}
-
-Please analyze this sports photograph and provide:
+local sportsPrompt = [[Please analyze this sports photograph and provide:
 1. A short title (2-5 words)
 2. A brief caption (1-2 sentences)
 3. A detailed headline/description (2-3 sentences)
-4. A list of relevant keywords including jersey numbers and player names when identifiable
+4. A list of relevant keywords including sport type, action, players, equipment, and venue details
 5. Special instructions for photo editing or usage
 6. Copyright or attribution information (if visible)
 7. Location information (if identifiable venues are present)
+
+Focus on:
+- Sport identification (football, basketball, soccer, baseball, tennis, etc.)
+- Action and movement (running, jumping, throwing, catching, scoring)
+- Player details (jersey numbers if visible, team colors, positions)
+- Equipment and gear (balls, bats, rackets, protective gear)
+- Venue characteristics (stadium, field, court, arena, outdoor/indoor)
+- Game situation (offense, defense, celebration, timeout)
+- Crowd and atmosphere
+- Lighting conditions and photography technique
 
 Please format your response as JSON with the following structure:
 {
   "title": "short descriptive title",
   "caption": "brief caption here",
   "headline": "detailed headline/description here",
-  "keywords": "keyword1, keyword2, keyword3, jersey number, player name",
+  "keywords": "sport name, action, player details, equipment, venue, team colors, jersey numbers",
   "instructions": "editing suggestions or usage notes",
   "copyright": "copyright or attribution info if visible",
   "location": "venue name if identifiable"
@@ -246,13 +251,167 @@ Please format your response as JSON with the following structure:
   "location": "city or area name if identifiable"
 }]]
 
+-- Automotive Photography Prompt
+local automotivePrompt = [[Please analyze this automotive photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including vehicle type, brand, model, features, and automotive context
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable venues or settings are present)
+
+Focus on:
+- Vehicle identification (make, model, year if discernible)
+- Automotive features (design elements, modifications, condition)
+- Photography context (show, race, street, studio, lifestyle)
+- Technical aspects (lighting, angles, composition)
+- Setting and environment (track, street, garage, showroom)
+- Automotive culture and community elements
+- Performance and aesthetic details
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "vehicle type, brand, automotive, photography style, setting, features",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "venue or location if identifiable"
+}]]
+
+-- Food Photography Prompt
+local foodPrompt = [[Please analyze this food photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including cuisine type, ingredients, presentation style, and culinary context
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable restaurants or venues are present)
+
+Focus on:
+- Food identification (dish type, cuisine style, ingredients)
+- Presentation and plating style
+- Photography technique (overhead, close-up, styled, natural)
+- Lighting quality (natural, artificial, mood lighting)
+- Setting context (restaurant, home, studio, outdoor)
+- Cultural and culinary significance
+- Appetite appeal and visual composition
+- Garnishes and accompaniments
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "cuisine type, dish name, ingredients, presentation, photography style, setting",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "restaurant or venue name if identifiable"
+}]]
+
+-- Fashion Photography Prompt
+local fashionPrompt = [[Please analyze this fashion photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including fashion elements, style, mood, and photographic technique
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable settings are present)
+
+Focus on:
+- Fashion elements (clothing, accessories, styling)
+- Photography style (editorial, commercial, street fashion, portrait)
+- Mood and aesthetic (elegant, edgy, casual, formal, avant-garde)
+- Lighting and composition techniques
+- Color palette and styling choices
+- Setting and background context
+- Fashion trends and style periods
+- Model pose and expression (without identifying individuals)
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "fashion style, clothing type, mood, photography technique, aesthetic, setting",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "location type if identifiable"
+}]]
+
+-- Macro Photography Prompt
+local macroPrompt = [[Please analyze this macro photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including subject type, technical details, and macro photography elements
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable environments are present)
+
+Focus on:
+- Subject identification (insects, flowers, textures, objects)
+- Macro photography techniques (magnification, depth of field, focus stacking)
+- Technical details (lighting, background, composition)
+- Texture and detail emphasis
+- Scientific or artistic value
+- Equipment considerations and settings
+- Natural vs. studio environment
+- Seasonal or temporal context
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "macro photography, subject type, technique, detail, texture, magnification",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "environment type if identifiable"
+}]]
+
+-- Abstract Photography Prompt
+local abstractPrompt = [[Please analyze this abstract photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant keywords including visual elements, techniques, and artistic concepts
+5. Special instructions for photo editing or usage
+6. Copyright or attribution information (if visible)
+7. Location information (if identifiable sources are present)
+
+Focus on:
+- Visual elements (shapes, lines, patterns, textures, colors)
+- Abstract techniques (blur, multiple exposure, reflection, shadow)
+- Artistic concepts and interpretation
+- Compositional elements and balance
+- Emotional or conceptual impact
+- Source material (if discernible)
+- Photography techniques used
+- Color theory and visual harmony
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "abstract photography, visual elements, technique, artistic concept, composition",
+  "instructions": "editing suggestions or usage notes",
+  "copyright": "copyright or attribution info if visible",
+  "location": "source location if identifiable"
+}]]
+
 --------------------------------------------------------------------------------
 
 -- Preset definitions
 PromptPresets.presets = {
     {
         name = "Sports Photography",
-        description = "Optimized for sports photos with player identification and jersey numbers",
+        description = "Comprehensive sports analysis including action, players, equipment, and venues",
         prompt = sportsPrompt
     },
     {
@@ -289,6 +448,31 @@ PromptPresets.presets = {
         name = "Street Photography",
         description = "Urban scenes, human activity, and documentary-style capture",
         prompt = streetPrompt
+    },
+    {
+        name = "Automotive Photography",
+        description = "Vehicle identification, automotive features, and car culture contexts",
+        prompt = automotivePrompt
+    },
+    {
+        name = "Food Photography",
+        description = "Cuisine identification, presentation style, and culinary contexts",
+        prompt = foodPrompt
+    },
+    {
+        name = "Fashion Photography",
+        description = "Fashion elements, style analysis, and aesthetic mood capture",
+        prompt = fashionPrompt
+    },
+    {
+        name = "Macro Photography",
+        description = "Close-up subjects, technical details, and magnification techniques",
+        prompt = macroPrompt
+    },
+    {
+        name = "Abstract Photography",
+        description = "Visual elements, artistic concepts, and creative interpretation",
+        prompt = abstractPrompt
     }
 }
 

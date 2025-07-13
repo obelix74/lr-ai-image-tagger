@@ -1,7 +1,7 @@
 --[[----------------------------------------------------------------------------
 
  AI Image Tagger
- Copyright 2024 Anand Kumar Sankaran
+ Copyright 2025 Anand's Photography
  Updated for Lightroom Classic 2024 and Gemini AI API
 
 --------------------------------------------------------------------------------
@@ -269,4 +269,43 @@ end
 -- Get default prompt for UI display
 function GeminiAPI.getDefaultPrompt()
 	return getDefaultPrompt()
+end
+
+-- Load prompt from text file
+function GeminiAPI.loadPromptFromFile(filePath)
+	if not filePath or filePath == "" then
+		return nil, "No file path provided"
+	end
+
+	local file = io.open(filePath, "r")
+	if not file then
+		return nil, "Could not open file: " .. filePath
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	if not content or content == "" then
+		return nil, "File is empty or could not read content"
+	end
+
+	-- Trim whitespace
+	content = LrStringUtils.trimWhitespace(content)
+
+	return content, nil
+end
+
+-- Get available prompt presets
+function GeminiAPI.getPromptPresets()
+	return PromptPresets.getPresets()
+end
+
+-- Get preset names for UI dropdown
+function GeminiAPI.getPresetNames()
+	return PromptPresets.getPresetNames()
+end
+
+-- Get a specific preset by name
+function GeminiAPI.getPreset(name)
+	return PromptPresets.getPreset(name)
 end
