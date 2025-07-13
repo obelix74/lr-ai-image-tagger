@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.2] - 2025-07-13
+
+### Fixed
+- **Build Process**: Updated version numbers and build system for proper distribution
+- **Documentation**: Updated all version references to maintain consistency
+
+### Technical
+- **Version Management**: Incremented patch version from 2.3.1 to 2.3.2
+- **Build System**: Updated Rakefile package naming for new version
+
+---
+
 ## [2.3.1] - 2025-01-13
 
 ### Enhanced
