@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2025-01-13
+
+### Enhanced
+- **Improved Button Layout**: Moved Done button to same row as Apply and Apply All buttons for better workflow
+- **Better User Experience**: Buttons now arranged as Apply | Apply All | Done | Export Results for logical grouping
+
+### Technical
+- **UI Layout Update**: Updated results dialog button arrangement for more intuitive interaction
+- **Dialog Optimization**: Removed redundant dialog action buttons in favor of inline button layout
+
+---
+
 ## [2.3.0] - 2025-01-13
 
 ### Enhanced

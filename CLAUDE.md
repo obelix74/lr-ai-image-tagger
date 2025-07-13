@@ -93,7 +93,7 @@ Built plugin resides in `distribution/plugin/AI-Image-Tagger.lrplugin/` and can 
 - `CHANGELOG.md`: Version history and feature changes
 
 ### Distribution
-- `dist/ai-image-tagger-v2.3.0.zip`: Current production package
+- `dist/ai-image-tagger-v2.3.1.zip`: Current production package
 - Website assets in `distribution/website/`
 
 ## Important Notes
