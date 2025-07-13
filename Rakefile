@@ -1,6 +1,6 @@
 require 'rake/clean'
 
-# Updated for AI Image Tagger v2.3.0 - Lightroom Classic 2024
+# Updated for AI Image Tagger v2.3.1 - Lightroom Classic 2024
 LUAC = "luac5.1"  # Explicitly use Lua 5.1
 ZIP = "zip"
 
@@ -12,13 +12,13 @@ SOURCE_FILES = FileList[ File.join("src", "*.lua") ]
 RESOURCE_FILES = FileList[ File.join("src", "*.png") ]
 README_FILES = FileList[ "README.md", "LICENSE" ]
 TARGET_FILES = SOURCE_FILES.pathmap(File.join(PLUGIN_DIR, "%f")) + README_FILES.pathmap(File.join(PLUGIN_DIR, "%f"))
-PACKAGE_FILE = File.join(DIST_DIR, "ai-image-tagger-v2.3.0.zip")
+PACKAGE_FILE = File.join(DIST_DIR, "ai-image-tagger-v2.3.1.zip")
 
 task :default => [ :compile, :package ]
 
 desc "Show version information"
 task :version do
-  puts "AI Image Tagger v2.3.0 - Updated for Lightroom Classic 2024"
+  puts "AI Image Tagger v2.3.1 - Updated for Lightroom Classic 2024"
   puts "SDK Version: 13.0 (minimum 10.0)"
   puts "Google Gemini AI: Latest API with 13 preset prompts"
 end
