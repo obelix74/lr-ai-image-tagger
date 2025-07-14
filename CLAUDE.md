@@ -96,6 +96,17 @@ Built plugin resides in `distribution/plugin/AI-Image-Tagger.lrplugin/` and can 
 - `dist/ai-image-tagger-v2.3.2.zip`: Current production package
 - Website assets in `distribution/website/`
 
+## Release Process
+
+### Updating Version for Release
+When releasing a new version, update these files:
+1. **distribution/deploy.sh**: Update version numbers in verification check (line ~190) and download URL test (line ~231)
+2. **distribution/website/index.html**: Update download link and button text (line ~469-470)
+
+Example for version 2.3.2:
+- Change `ai-image-tagger-v2.3.1.zip` to `ai-image-tagger-v2.3.2.zip` in deploy.sh
+- Change download button from "Download v2.3.1" to "Download v2.3.2" in index.html
+
 ## Important Notes
 
 - Plugin stores API keys securely using Lightroom's password storage

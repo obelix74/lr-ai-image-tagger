@@ -621,11 +621,6 @@ local function showResponse( propertyTable )
 				end,
 			},
 			f:push_button {
-				title = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
-				place_horizontal = 1,
-				action = "ok",
-			},
-			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
 				title = LOC( "$$$/AiTagger/ResultsDialogExport=Export Results" ),
 				place_horizontal = 1,
@@ -645,6 +640,7 @@ local function showResponse( propertyTable )
 		resizable = true,
 		contents = contents,
 		cancelVerb = "< exclude >", -- magic value to hide the Cancel button
+		actionVerb = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
 	}
 end
 
