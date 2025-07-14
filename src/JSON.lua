@@ -1453,7 +1453,7 @@ return OBJDEF:new()
 --
 --   20160728.17   Added concatenation to the metatable for JSON:asNumber()
 --
---   20160709.16   Could crash if not passed an options table (thanks jarno heikkinen <jarnoh@capturemonkey.com>).
+--   20160709.16   Could crash if not passed an options table (thanks jarno heikkinen).
 --
 --                 Made JSON:asNumber() a bit more resilient to being passed the results of itself.
 --

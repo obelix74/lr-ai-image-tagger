@@ -5,10 +5,17 @@
 
 set -e  # Exit on any error
 
-# Configuration
-BUCKET_NAME="lr.tagimg.net"
-PROJECT_ID="anands-ai-image-tagger-2"
-REGION="us-central1"
+# Configuration - Use environment variables or provide as arguments
+BUCKET_NAME="${BUCKET_NAME:-lr.tagimg.net}"
+PROJECT_ID="${PROJECT_ID:-}"
+REGION="${REGION:-us-central1}"
+
+# Validate required configuration
+if [ -z "$PROJECT_ID" ]; then
+    echo -e "${RED}[ERROR]${NC} PROJECT_ID environment variable is required."
+    echo "Usage: PROJECT_ID=your-project-id BUCKET_NAME=your-bucket ./deploy.sh"
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
