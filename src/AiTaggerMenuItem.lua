@@ -247,7 +247,8 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				safeSetMetadata( "location", location, "IPTC location" )
 				safeSetMetadata( "city", location, "IPTC city" )
 			end
-		end
+		end,
+		{ timeout = 5 }
 	)
 end
 
@@ -724,7 +725,7 @@ local function AiTagger()
 										end
 
 										local start = LrDate.currentTime()
-										local result = GeminiAPI.analyze( fileName, jpegData )
+										local result = GeminiAPI.analyze( fileName, jpegData, photo )
 										local elapsed = LrDate.currentTime() - start
 										if result.status then
 											local keywordCount = result.keywords and #result.keywords or 0

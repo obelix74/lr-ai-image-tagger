@@ -43,6 +43,68 @@ local tempBaseName = "aiimagetagger.tmp"
 
 --------------------------------------------------------------------------------
 
+-- Extract GPS and EXIF metadata from a photo for AI analysis
+local function extractMetadata( photo )
+	local metadata = {}
+	
+	-- GPS coordinates (if available)
+	local gps = photo:getFormattedMetadata( "gps" )
+	if gps and gps ~= "" then
+		metadata.gps = gps
+	end
+	
+	-- Camera and lens information
+	local cameraMake = photo:getFormattedMetadata( "cameraMake" )
+	local cameraModel = photo:getFormattedMetadata( "cameraModel" )
+	local lens = photo:getFormattedMetadata( "lens" )
+	if cameraMake or cameraModel or lens then
+		metadata.camera = {
+			make = cameraMake,
+			model = cameraModel,
+			lens = lens
+		}
+	end
+	
+	-- Shooting settings
+	local focalLength = photo:getFormattedMetadata( "focalLength" )
+	local aperture = photo:getFormattedMetadata( "aperture" )
+	local shutterSpeed = photo:getFormattedMetadata( "shutterSpeed" )
+	local isoSpeedRating = photo:getFormattedMetadata( "isoSpeedRating" )
+	local flash = photo:getFormattedMetadata( "flash" )
+	if focalLength or aperture or shutterSpeed or isoSpeedRating or flash then
+		metadata.settings = {
+			focalLength = focalLength,
+			aperture = aperture,
+			shutterSpeed = shutterSpeed,
+			iso = isoSpeedRating,
+			flash = flash
+		}
+	end
+	
+	-- Date and time
+	local dateTimeOriginal = photo:getFormattedMetadata( "dateTimeOriginal" )
+	if dateTimeOriginal then
+		metadata.datetime = dateTimeOriginal
+	end
+	
+	-- Image dimensions
+	local dimensions = photo:getFormattedMetadata( "dimensions" )
+	local croppedDimensions = photo:getFormattedMetadata( "croppedDimensions" )
+	if dimensions or croppedDimensions then
+		metadata.image = {
+			dimensions = dimensions,
+			croppedDimensions = croppedDimensions
+		}
+	end
+	
+	-- Return nil if no metadata was found
+	if next(metadata) == nil then
+		return nil
+	end
+	
+	return metadata
+end
+
 local function createTempFile( baseName, contents )
 	local fileName = LrFileUtils.chooseUniqueFileName( LrPathUtils.child( tempPath, baseName ) )
 	local file = io.open( fileName, "w" )
@@ -107,7 +169,7 @@ local function getAnalysisPrompt()
 	end
 end
 
-function GeminiAPI.analyze( fileName, photo )
+function GeminiAPI.analyze( fileName, photo, photoObject )
 	local attempts = 0
 	while attempts <= serviceMaxRetries do
 		local apiKey = GeminiAPI.getApiKey()
@@ -117,13 +179,64 @@ function GeminiAPI.analyze( fileName, photo )
 				{ field = httpAccept, value = mimeTypeJson },
 			}
 
+			-- Get the base prompt
+			local prompt = getAnalysisPrompt()
+			
+			-- Add metadata if enabled and photo object is provided
+			local prefs = LrPrefs.prefsForPlugin()
+			if prefs.includeGpsExifData and photoObject then
+				local metadata = extractMetadata( photoObject )
+				if metadata then
+					prompt = prompt .. "\n\nAdditional context from photo metadata:\n"
+					
+					if metadata.gps then
+						prompt = prompt .. string.format( "Location: %s, %s\n", metadata.gps.latitude, metadata.gps.longitude )
+					end
+					
+					if metadata.camera then
+						prompt = prompt .. string.format( "Camera: %s %s", metadata.camera.make or "", metadata.camera.model or "" )
+						if metadata.camera.lens then
+							prompt = prompt .. string.format( " with %s", metadata.camera.lens )
+						end
+						prompt = prompt .. "\n"
+					end
+					
+					if metadata.settings then
+						local settings = {}
+						if metadata.settings.focalLength then table.insert( settings, metadata.settings.focalLength ) end
+						if metadata.settings.aperture then table.insert( settings, metadata.settings.aperture ) end
+						if metadata.settings.shutterSpeed then table.insert( settings, metadata.settings.shutterSpeed ) end
+						if metadata.settings.iso then table.insert( settings, "ISO " .. metadata.settings.iso ) end
+						if metadata.settings.flash then table.insert( settings, "Flash: " .. metadata.settings.flash ) end
+						if #settings > 0 then
+							prompt = prompt .. "Camera settings: " .. table.concat( settings, ", " ) .. "\n"
+						end
+					end
+					
+					if metadata.datetime then
+						prompt = prompt .. "Captured: " .. metadata.datetime .. "\n"
+					end
+					
+					if metadata.image then
+						if metadata.image.dimensions then
+							prompt = prompt .. "Image size: " .. metadata.image.dimensions .. "\n"
+						end
+						if metadata.image.orientation then
+							prompt = prompt .. "Orientation: " .. metadata.image.orientation .. "\n"
+						end
+					end
+					
+					prompt = prompt .. "\nPlease consider this technical information in your analysis."
+				end
+			end
+
 			-- Create the request body for Gemini API
 			local reqBody = JSON:encode {
 				contents = {
 					{
 						parts = {
 							{
-								text = getAnalysisPrompt()
+								text = prompt
 							},
 							{
 								inline_data = {
@@ -249,7 +362,7 @@ function GeminiAPI.analyzeBatch( photos, progressCallback )
 
 		-- Analyze each photo in the batch
 		for j, photoData in ipairs(batch) do
-			local result = GeminiAPI.analyze(photoData.fileName, photoData.jpegData)
+			local result = GeminiAPI.analyze(photoData.fileName, photoData.jpegData, photoData.photo)
 			table.insert(results, result)
 
 			if progressCallback then

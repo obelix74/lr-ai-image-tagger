@@ -56,6 +56,7 @@ local propUseCustomPrompt = "useCustomPrompt"
 local propCustomPrompt = "customPrompt"
 local propBatchSize = "batchSize"
 local propDelayBetweenRequests = "delayBetweenRequests"
+local propIncludeGpsExifData = "includeGpsExifData"
 
 local propApiKey = "apiKey"
 local propVersions = "versions"
@@ -149,6 +150,7 @@ local function startDialog( propertyTable )
 	propertyTable[ "selectedPreset" ] = ""
 	propertyTable[ propBatchSize ] = prefs.batchSize
 	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
+	propertyTable[ propIncludeGpsExifData ] = prefs.includeGpsExifData
 
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
@@ -195,6 +197,7 @@ local function endDialog( propertyTable )
 	prefs.customPrompt = LrStringUtils.trimWhitespace( propertyTable[ propCustomPrompt ] or "" )
 	prefs.batchSize = propertyTable[ propBatchSize ]
 	prefs.delayBetweenRequests = propertyTable[ propDelayBetweenRequests ]
+	prefs.includeGpsExifData = propertyTable[ propIncludeGpsExifData ]
 
 	storeApiKey( propertyTable )
 end
@@ -496,6 +499,29 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				},
 				f:static_text {
 					title = LOC( "$$$/AiTagger/Options/Batch/DelayHelp=milliseconds (500-5000)" ),
+				},
+			},
+		},
+
+		-- Privacy options
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Privacy/Title=Privacy & Metadata" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExif=Include GPS location and EXIF metadata in AI analysis" ),
+					value = bind { key = propIncludeGpsExifData },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExifHelp=When enabled, camera settings, GPS coordinates, and technical metadata will be shared with Gemini AI to enhance analysis accuracy. Disable for enhanced privacy." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
 				},
 			},
 		},

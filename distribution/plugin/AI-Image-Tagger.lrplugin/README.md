@@ -2,7 +2,7 @@
 
 **Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI.**
 
-![AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.3.1-green)
+![AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.3.2-green)
 
 ## 🚀 Features
 

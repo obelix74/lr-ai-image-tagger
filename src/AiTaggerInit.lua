@@ -97,3 +97,8 @@ end
 if prefs.delayBetweenRequests == nil then
 	prefs.delayBetweenRequests = 1000 -- milliseconds
 end
+
+-- GPS and EXIF metadata sharing option
+if prefs.includeGpsExifData == nil then
+	prefs.includeGpsExifData = false  -- Disabled by default for privacy
+end
