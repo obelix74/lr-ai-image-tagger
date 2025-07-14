@@ -172,6 +172,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Powered by**: Google Gemini AI
 - **Built for**: Adobe Lightroom Classic
 
+## 🙏 Acknowledgements
+
+Special thanks to [@tjotala](https://github.com/tjotala) for [lr-robotagger](https://github.com/tjotala/lr-robotagger), which provided the inspiration to get started with this project.
+
 ## 🔗 Links
 
 - [Plugin Homepage](https://lr.tagimg.net)
