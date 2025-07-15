@@ -48,15 +48,14 @@ local propSaveTitleToIptc = "saveTitleToIptc"
 local propSaveCaptionToIptc = "saveCaptionToIptc"
 local propSaveHeadlineToIptc = "saveHeadlineToIptc"
 local propSaveInstructionsToIptc = "saveInstructionsToIptc"
-local propSaveCopyrightToIptc = "saveCopyrightToIptc"
 local propSaveLocationToIptc = "saveLocationToIptc"
-local propSaveKeywordsToIptc = "saveKeywordsToIptc"
 
 local propUseCustomPrompt = "useCustomPrompt"
 local propCustomPrompt = "customPrompt"
 local propBatchSize = "batchSize"
 local propDelayBetweenRequests = "delayBetweenRequests"
 local propIncludeGpsExifData = "includeGpsExifData"
+local propResponseLanguage = "responseLanguage"
 
 local propApiKey = "apiKey"
 local propVersions = "versions"
@@ -141,9 +140,7 @@ local function startDialog( propertyTable )
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
 	propertyTable[ propSaveHeadlineToIptc ] = prefs.saveHeadlineToIptc
 	propertyTable[ propSaveInstructionsToIptc ] = prefs.saveInstructionsToIptc
-	propertyTable[ propSaveCopyrightToIptc ] = prefs.saveCopyrightToIptc
 	propertyTable[ propSaveLocationToIptc ] = prefs.saveLocationToIptc
-	propertyTable[ propSaveKeywordsToIptc ] = prefs.saveKeywordsToIptc
 
 	propertyTable[ propUseCustomPrompt ] = prefs.useCustomPrompt
 	propertyTable[ propCustomPrompt ] = prefs.customPrompt or ""
@@ -151,6 +148,7 @@ local function startDialog( propertyTable )
 	propertyTable[ propBatchSize ] = prefs.batchSize
 	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
 	propertyTable[ propIncludeGpsExifData ] = prefs.includeGpsExifData
+	propertyTable[ propResponseLanguage ] = prefs.responseLanguage or "English"
 
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
@@ -189,15 +187,14 @@ local function endDialog( propertyTable )
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
 	prefs.saveHeadlineToIptc = propertyTable[ propSaveHeadlineToIptc ]
 	prefs.saveInstructionsToIptc = propertyTable[ propSaveInstructionsToIptc ]
-	prefs.saveCopyrightToIptc = propertyTable[ propSaveCopyrightToIptc ]
 	prefs.saveLocationToIptc = propertyTable[ propSaveLocationToIptc ]
-	prefs.saveKeywordsToIptc = propertyTable[ propSaveKeywordsToIptc ]
 
 	prefs.useCustomPrompt = propertyTable[ propUseCustomPrompt ]
 	prefs.customPrompt = LrStringUtils.trimWhitespace( propertyTable[ propCustomPrompt ] or "" )
 	prefs.batchSize = propertyTable[ propBatchSize ]
 	prefs.delayBetweenRequests = propertyTable[ propDelayBetweenRequests ]
 	prefs.includeGpsExifData = propertyTable[ propIncludeGpsExifData ]
+	prefs.responseLanguage = propertyTable[ propResponseLanguage ]
 
 	storeApiKey( propertyTable )
 end
@@ -242,6 +239,48 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:static_text {
 					title = string.format( "%d", tasksMax ),
 					alignment = "left",
+				},
+			},
+		},
+		-- language options
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Language/Title=AI Response Language" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Language/Prompt=AI Response Language:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					value = bind { key = propResponseLanguage },
+					items = {
+						{ title = "English", value = "English" },
+						{ title = "Spanish", value = "Spanish" },
+						{ title = "French", value = "French" },
+						{ title = "German", value = "German" },
+						{ title = "Italian", value = "Italian" },
+						{ title = "Portuguese", value = "Portuguese" },
+						{ title = "Russian", value = "Russian" },
+						{ title = "Japanese", value = "Japanese" },
+						{ title = "Korean", value = "Korean" },
+						{ title = "Chinese (Simplified)", value = "Chinese" },
+						{ title = "Dutch", value = "Dutch" },
+						{ title = "Polish", value = "Polish" },
+						{ title = "Turkish", value = "Turkish" },
+						{ title = "Arabic", value = "Arabic" },
+						{ title = "Hindi", value = "Hindi" },
+					},
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Language/Help=Select the language for AI-generated titles, captions, descriptions, and keywords. This setting applies to all Gemini AI responses." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
 				},
 			},
 		},
@@ -346,26 +385,9 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveCopyright=Save copyright to IPTC metadata" ),
-					value = bind { key = propSaveCopyrightToIptc },
-					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:checkbox {
 					title = LOC( "$$$/AiTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
 					value = bind { key = propSaveLocationToIptc },
 					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveKeywords=Save keywords to IPTC metadata (Note: Keywords auto-included in IPTC on export)" ),
-					value = bind { key = propSaveKeywordsToIptc },
-					fill_horizontal = 1,
-					enabled = false,  -- Disabled due to Lightroom SDK limitations
 				},
 			},
 		},

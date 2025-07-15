@@ -8,24 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.1.0] - 2025-07-15
+## [3.2.0] - 2025-07-15
 
 ### Added
-- **French Language Support**: Complete French localization with 70+ translated strings
-- **Internationalization**: Full support for Adobe Lightroom SDK's LOC() localization system
-- **Multi-Language Ready**: Infrastructure for adding additional languages in the future
+- **Automatic Language Detection**: Gemini AI now automatically responds in the user's Lightroom language
+- **Multi-Language AI Support**: AI-generated metadata (titles, captions, keywords) returned in detected language
+- **Enhanced Multi-Language Experience**: Complete integration between localized UI and AI responses
 
 ### Enhanced
-- **User Experience**: Plugin now automatically displays in French when Lightroom is set to French language
-- **Translation Quality**: Professional translations for all UI elements, settings, and messages
-- **Build System**: Updated Rakefile to include translation files in distribution packages
+- **Intelligent Language Switching**: Plugin detects Lightroom language and instructs Gemini accordingly
+- **Seamless Localization**: No user configuration required - works automatically with Lightroom's language setting
+- **All Prompt Types**: Language detection applies to default prompts, custom prompts, and preset prompts
+- **Consistent Experience**: Both UI and AI responses now match the user's preferred language
+
+### Fixed
+- **Localized UI Display**: Fixed localization display issues - now shows clean localized text
+- **Language Detection**: Resolved `getCurrentLocale()` error with proper Lightroom SDK implementation
+- **Translation Accuracy**: Improved localization accuracy for various UI elements
 
 ### Technical
-- **Translation Files**: Added `TranslatedStrings_fr.txt` with comprehensive French translations
-- **Localization Infrastructure**: Leverages Adobe ZString system for automatic language detection
-- **Build Process**: Enhanced to include translation files in plugin packages
+- **Language Detection System**: Implemented robust language detection using LOC() function testing
+- **Prompt Enhancement**: All prompts automatically include language instructions when non-English
+- **Fallback Mechanisms**: Multiple detection methods ensure reliable language identification
+- **SDK Compatibility**: Removed non-existent LrLocalization functions for better stability
 
 ---
+
 
 ## [3.0.0] - 2025-07-15
 

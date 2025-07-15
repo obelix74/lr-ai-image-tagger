@@ -11,47 +11,15 @@ local PromptPresets = {}
 
 --------------------------------------------------------------------------------
 
--- Detect the current Lightroom language and convert to language name for Gemini
-local function getLanguageForGemini()
-	-- Since LrLocalization.getCurrentLocale() doesn't exist, we'll use a different approach
-	-- We'll test a known localized string to determine the current language
-	local testString = LOC("$$$/Locale/Dimensions/Width=w")
-	
-	-- Test various known translations to detect language
-	if testString == "l" then -- French: "largeur" -> "l"
-		return "French"
-	elseif testString == "b" then -- German: "breite" -> "b"
-		return "German"
-	elseif testString == "a" then -- Spanish: "ancho" -> "a"
-		return "Spanish"
-	elseif testString == "l" then -- Italian: "larghezza" -> "l"
-		return "Italian"
-	elseif testString == "л" then -- Russian: "ширина" -> "л"
-		return "Russian"
-	elseif testString == "幅" then -- Japanese
-		return "Japanese"
-	elseif testString == "너비" then -- Korean
-		return "Korean"
-	elseif testString == "宽" then -- Chinese
-		return "Chinese"
-	else
-		-- If we can't detect the language, try another approach
-		-- Check if our own French translation exists
-		local frenchTest = LOC("$$$/AiTagger/ResultsDialogTitleTitle=Title")
-		if frenchTest == "Titre" then
-			return "French"
-		end
-		
-		-- Default to English if we can't detect the language
-		return "English"
-	end
-end
 
 -- Add language instruction to a prompt
 local function addLanguageInstruction(prompt)
-	local language = getLanguageForGemini()
+	local LrPrefs = import "LrPrefs"
+	local prefs = LrPrefs.prefsForPlugin()
+	local language = prefs.responseLanguage or "English"
+	
 	if language ~= "English" then
-		local languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, copyright, location) should be in %s.\n\n", language, language)
+		local languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, location) should be in %s.\n\n", language, language)
 		return languageInstruction .. prompt
 	end
 	return prompt
@@ -66,8 +34,7 @@ local sportsPrompt = [[Please analyze this sports photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including sport type, action, players, equipment, and venue details
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable venues are present)
+6. Location information (if identifiable venues are present)
 
 Focus on:
 - Sport identification (football, basketball, soccer, baseball, tennis, etc.)
@@ -86,7 +53,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "sport name, action, player details, equipment, venue, team colors, jersey numbers",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "venue name if identifiable"
 }]]
 
@@ -97,8 +63,7 @@ local naturePrompt = [[Please analyze this nature/wildlife photograph and provid
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including species names, habitat, behavior, and environmental conditions
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable landmarks or ecosystems are present)
+6. Location information (if identifiable landmarks or ecosystems are present)
 
 Focus on:
 - Accurate species identification when possible
@@ -114,7 +79,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "species name, behavior, habitat, season, conservation status, photography technique",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "location name if identifiable"
 }]]
 
@@ -125,8 +89,7 @@ local architecturePrompt = [[Please analyze this architectural photograph and pr
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including architectural style, building type, materials, and design elements
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable buildings or landmarks are present)
+6. Location information (if identifiable buildings or landmarks are present)
 
 Focus on:
 - Architectural style and period (Gothic, Modern, Art Deco, etc.)
@@ -143,7 +106,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "architectural style, building type, materials, design elements, period, technique",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "building name or location if identifiable"
 }]]
 
@@ -154,8 +116,7 @@ local portraitPrompt = [[Please analyze this portrait/people photograph and prov
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including mood, lighting style, composition, and setting
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable settings are present)
+6. Location information (if identifiable settings are present)
 
 Focus on:
 - Emotional expression and mood
@@ -174,7 +135,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "portrait style, lighting, mood, composition, setting, age group",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "general location type if identifiable"
 }]]
 
@@ -185,8 +145,7 @@ local eventPrompt = [[Please analyze this event/wedding photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including event type, moments captured, emotions, and setting
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable venues are present)
+6. Location information (if identifiable venues are present)
 
 Focus on:
 - Type of event (wedding, celebration, ceremony, reception)
@@ -203,7 +162,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "event type, moment, emotion, setting, celebration, tradition",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "venue name or type if identifiable"
 }]]
 
@@ -214,8 +172,7 @@ local travelPrompt = [[Please analyze this travel/landscape photograph and provi
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including geographical features, climate, time of day, and cultural elements
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable landmarks or regions are present)
+6. Location information (if identifiable landmarks or regions are present)
 
 Focus on:
 - Geographical features (mountains, ocean, desert, forest, urban)
@@ -233,7 +190,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "landscape type, geographical features, weather, time of day, cultural elements, technique",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "location name if identifiable landmarks present"
 }]]
 
@@ -244,8 +200,7 @@ local productPrompt = [[Please analyze this product photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including product category, features, style, and commercial use
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable settings are present)
+6. Location information (if identifiable settings are present)
 
 Focus on:
 - Product category and type
@@ -264,7 +219,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "product type, features, style, commercial, lighting, brand, market",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "studio or setting type if identifiable"
 }]]
 
@@ -275,8 +229,7 @@ local streetPrompt = [[Please analyze this street photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including urban elements, human activity, cultural context, and photographic style
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable urban areas or landmarks are present)
+6. Location information (if identifiable urban areas or landmarks are present)
 
 Focus on:
 - Urban environment and architecture
@@ -295,7 +248,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "street photography, urban, human activity, culture, technique, mood, architecture",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "city or area name if identifiable"
 }]]
 
@@ -306,8 +258,7 @@ local automotivePrompt = [[Please analyze this automotive photograph and provide
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including vehicle type, brand, model, features, and automotive context
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable venues or settings are present)
+6. Location information (if identifiable venues or settings are present)
 
 Focus on:
 - Vehicle identification (make, model, year if discernible)
@@ -325,7 +276,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "vehicle type, brand, automotive, photography style, setting, features",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "venue or location if identifiable"
 }]]
 
@@ -336,8 +286,7 @@ local foodPrompt = [[Please analyze this food photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including cuisine type, ingredients, presentation style, and culinary context
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable restaurants or venues are present)
+6. Location information (if identifiable restaurants or venues are present)
 
 Focus on:
 - Food identification (dish type, cuisine style, ingredients)
@@ -356,7 +305,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "cuisine type, dish name, ingredients, presentation, photography style, setting",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "restaurant or venue name if identifiable"
 }]]
 
@@ -367,8 +315,7 @@ local fashionPrompt = [[Please analyze this fashion photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including fashion elements, style, mood, and photographic technique
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable settings are present)
+6. Location information (if identifiable settings are present)
 
 Focus on:
 - Fashion elements (clothing, accessories, styling)
@@ -387,7 +334,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "fashion style, clothing type, mood, photography technique, aesthetic, setting",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "location type if identifiable"
 }]]
 
@@ -398,8 +344,7 @@ local macroPrompt = [[Please analyze this macro photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including subject type, technical details, and macro photography elements
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable environments are present)
+6. Location information (if identifiable environments are present)
 
 Focus on:
 - Subject identification (insects, flowers, textures, objects)
@@ -418,7 +363,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "macro photography, subject type, technique, detail, texture, magnification",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "environment type if identifiable"
 }]]
 
@@ -429,8 +373,7 @@ local abstractPrompt = [[Please analyze this abstract photograph and provide:
 3. A detailed headline/description (2-3 sentences)
 4. A list of relevant keywords including visual elements, techniques, and artistic concepts
 5. Special instructions for photo editing or usage
-6. Copyright or attribution information (if visible)
-7. Location information (if identifiable sources are present)
+6. Location information (if identifiable sources are present)
 
 Focus on:
 - Visual elements (shapes, lines, patterns, textures, colors)
@@ -449,7 +392,6 @@ Please format your response as JSON with the following structure:
   "headline": "detailed headline/description here",
   "keywords": "abstract photography, visual elements, technique, artistic concept, composition",
   "instructions": "editing suggestions or usage notes",
-  "copyright": "copyright or attribution info if visible",
   "location": "source location if identifiable"
 }]]
 
