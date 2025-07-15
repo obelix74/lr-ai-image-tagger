@@ -319,6 +319,7 @@
                 <li><a href="#demo">Demo</a></li>
                 <li><a href="#installation">Installation</a></li>
                 <li><a href="#download">Download</a></li>
+                <li><a href="#troubleshooting">Support</a></li>
                 <li><a href="#contribute">GitHub</a></li>
             </ul>
         </nav>
@@ -477,6 +478,71 @@
             </div>
 
 
+        </div>
+    </section>
+
+    <section id="troubleshooting" style="background: #f8f9fa; padding: 4rem 0;">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 3rem; color: #2d3748;"><i class="fas fa-tools"></i> Troubleshooting & Support</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3rem;">
+                <div>
+                    <h3 style="color: #2d3748; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> Common Issues</h3>
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
+                                <i class="fas fa-key" style="position: absolute; left: 0; top: 0.2rem; color: #dc3545;"></i>
+                                <strong>"API key not configured"</strong><br>
+                                <span style="color: #666;">Ensure you've entered a valid Gemini AI API key in plugin settings and that it has proper permissions.</span>
+                            </li>
+                            <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
+                                <i class="fas fa-wifi" style="position: absolute; left: 0; top: 0.2rem; color: #dc3545;"></i>
+                                <strong>"Network error"</strong><br>
+                                <span style="color: #666;">Check your internet connection and firewall settings. Try increasing the delay between requests.</span>
+                            </li>
+                            <li style="margin-bottom: 1rem; padding-left: 1.5rem; position: relative;">
+                                <i class="fas fa-times-circle" style="position: absolute; left: 0; top: 0.2rem; color: #dc3545;"></i>
+                                <strong>"Analysis failed"</strong><br>
+                                <span style="color: #666;">Some images may not be suitable for AI analysis. Try with JPEG format for best results.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="color: #2d3748; margin-bottom: 1rem;"><i class="fas fa-file-alt"></i> Getting Log Files for Support</h3>
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 1rem; color: #666;">When reporting issues, please include log files to help us diagnose the problem:</p>
+                        <ol style="color: #666; padding-left: 1.5rem;">
+                            <li style="margin-bottom: 0.5rem;"><strong>Enable logging:</strong> The plugin automatically logs to Lightroom's log file</li>
+                            <li style="margin-bottom: 0.5rem;"><strong>Find the log file:</strong>
+                                <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                    <li><strong>Windows:</strong> <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">%USERPROFILE%\AppData\Roaming\Adobe\Lightroom\Logs</code></li>
+                                    <li><strong>macOS:</strong> <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">~/Library/Logs/Adobe/Lightroom</code></li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 0.5rem;"><strong>Look for files named:</strong> <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">Lightroom.log</code> or similar</li>
+                            <li style="margin-bottom: 0.5rem;"><strong>Search for:</strong> <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">lr.tagimg.net</code> or <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">GeminiAPI</code></li>
+                            <li><strong>Include relevant log entries</strong> when contacting support</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h3 style="color: #2d3748; margin-bottom: 1rem;"><i class="fas fa-question-circle"></i> Need More Help?</h3>
+                <p style="color: #666; margin-bottom: 1.5rem;">If you're still experiencing issues, please contact support with your log files and a detailed description of the problem.</p>
+                <a href="mailto:lists@anands.net?subject=Gemini AI Image Tagger Support" 
+                   style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: background 0.3s ease;"
+                   onmouseover="this.style.background='#0056b3'"
+                   onmouseout="this.style.background='#007bff'">
+                    <i class="fas fa-envelope"></i> Contact Support
+                </a>
+                <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    <p><strong>When contacting support, please include:</strong></p>
+                    <p>• Lightroom version • Plugin version • Error message • Log file excerpts • Steps to reproduce</p>
+                </div>
+            </div>
         </div>
     </section>
 

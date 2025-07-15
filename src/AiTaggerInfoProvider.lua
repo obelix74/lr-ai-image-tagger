@@ -62,7 +62,6 @@ local propVersions = "versions"
 
 -- canned strings
 local loadingText = LOC( "$$$/AiTagger/Options/Loading=loading..." )
-local sampleKeyword = LOC( "$$$/AiTagger/Options/DecorateKeywords/SampleKeyword=sample keyword" )
 
 local titleKeywordAsIs   = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/None=as-is" )
 local titleKeywordPrefix = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/Prefix=with Prefix" )
@@ -75,23 +74,6 @@ local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Pla
 
 --------------------------------------------------------------------------------
 
-local function renderSampleKeyword( decoration, value )
-	if value then
-		value = LrStringUtils.trimWhitespace( value )
-		if value == "" then
-			value = nil
-		end
-	end
-	if decoration == decorateKeywordPrefix then
-		return string.format( "%s %s", value or placeholderKeywordPrefix, sampleKeyword )
-	elseif decoration == decorateKeywordSuffix then
-		return string.format( "%s %s", sampleKeyword, value or placeholderKeywordSuffix )
-	elseif decoration == decorateKeywordParent then
-		return string.format( "%s/%s", value or placeholderKeywordParent, sampleKeyword )
-	end
-	-- decoration == decorateKeywordAsIs
-	return sampleKeyword
-end
 
 local function loadApiKey( propertyTable )
 	logger:tracef( "loading API key from keystore" )
@@ -329,24 +311,6 @@ local function sectionsForTopOfDialog( f, propertyTable )
 						value = bind { key = propDecorateKeywordValue },
 						immediate = true,
 						width_in_chars = 10,
-					},
-				},
-				f:row {
-					fill_horizontal = 1,
-					f:static_text {
-						title = LOC( "$$$/AiTagger/Options/Keywords/Arrow=^U+25B6" )
-					},
-					f:static_text {
-						title = bind {
-							keys = { propDecorateKeyword, propDecorateKeywordValue },
-							operation = function( binder, values, fromTable )
-								return renderSampleKeyword(
-									values[ propDecorateKeyword ],
-									values[ propDecorateKeywordValue ] )
-							end,
-						},
-						font = "Courier",
-						text_color = LrColor( 0, 0, 1 ),
 					},
 				},
 			},

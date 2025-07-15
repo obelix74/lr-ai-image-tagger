@@ -473,7 +473,7 @@ local function showResponse( propertyTable )
 		},
 		f:row {
 			f:column {
-				fill_horizontal = 0.65,
+				fill_horizontal = 0.5,
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogTitleTitle=Title" ),
 					font = "<system/bold>",
@@ -481,29 +481,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propTitle },
 						fill_horizontal = 1,
 						height_in_lines = 1,
-						width = 500,
-					},
-				},
-				f:spacer { height = 8 },
-				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
-					font = "<system/bold>",
-					f:edit_field {
-						value = bind { key = propCaption },
-						fill_horizontal = 1,
-						height_in_lines = 2,
-						width = 500,
-					},
-				},
-				f:spacer { height = 8 },
-				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogHeadlineTitle=Headline" ),
-					font = "<system/bold>",
-					f:edit_field {
-						value = bind { key = propHeadline },
-						fill_horizontal = 1,
-						height_in_lines = 4,
-						width = 500,
+						width = 425,
 					},
 				},
 				f:spacer { height = 8 },
@@ -548,7 +526,29 @@ local function showResponse( propertyTable )
 			},
 			f:spacer { width = 8 },
 			f:column {
-				fill_horizontal = 0.35,
+				fill_horizontal = 0.5,
+				f:group_box {
+					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propCaption },
+						fill_horizontal = 1,
+						height_in_lines = 2,
+						width = 425,
+					},
+				},
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/AiTagger/ResultsDialogHeadlineTitle=Headline" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propHeadline },
+						fill_horizontal = 1,
+						height_in_lines = 4,
+						width = 425,
+					},
+				},
+				f:spacer { height = 8 },
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogInstructionsTitle=Instructions" ),
 					font = "<system/bold>",
@@ -556,7 +556,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propInstructions },
 						fill_horizontal = 1,
 						height_in_lines = 3,
-						width = 350,
+						width = 425,
 					},
 				},
 				f:spacer { height = 8 },
@@ -567,7 +567,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propLocation },
 						fill_horizontal = 1,
 						height_in_lines = 2,
-						width = 350,
+						width = 425,
 					},
 				},
 			},
