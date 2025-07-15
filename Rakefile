@@ -1,7 +1,12 @@
 require 'rake/clean'
+require_relative 'scripts/get_version'
 
-# Updated for Gemini AI Image Tagger v2.4.0 - Lightroom Classic 2024
-LUAC = "luac5.1"  # Explicitly use Lua 5.1
+# Get version from centralized VERSION file
+VERSION = get_version
+VERSION_PARTS = parse_version(VERSION)
+
+# Updated for Gemini AI Image Tagger - Lightroom Classic 2024
+LUAC = "/opt/homebrew/bin/luac"  # Use installed Lua 5.4.8
 ZIP = "zip"
 
 BUILD_DIR = "build"
@@ -13,15 +18,23 @@ RESOURCE_FILES = FileList[ File.join("src", "*.png") ]
 TRANSLATION_FILES = FileList[ File.join("src", "TranslatedStrings_*.txt") ]
 README_FILES = FileList[ "README.md", "LICENSE" ]
 TARGET_FILES = SOURCE_FILES.pathmap(File.join(PLUGIN_DIR, "%f")) + README_FILES.pathmap(File.join(PLUGIN_DIR, "%f"))
-PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v3.3.0.zip")
+PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v#{VERSION}.zip")
 
 task :default => [ :compile, :package ]
 
 desc "Show version information"
 task :version do
-  puts "Gemini AI Image Tagger v3.3.0 - Updated for Lightroom Classic 2024"
+  puts "Gemini AI Image Tagger v#{VERSION} - Updated for Lightroom Classic 2024"
   puts "SDK Version: 13.0 (minimum 10.0)"
   puts "Google Gemini AI: Latest API with 13 preset prompts"
+end
+
+desc "Update all files with current version from VERSION file"
+task :update_version do
+  puts "Updating all files to version #{VERSION}..."
+  sh "ruby scripts/update_info_version.rb"
+  sh "ruby scripts/update_website_version.rb"
+  puts "All version references updated to #{VERSION}"
 end
 
 desc "Build plugin using source files (no compilation)"
@@ -66,15 +79,14 @@ desc "Compile source files"
 task :compile => [ :test, PLUGIN_DIR ]
 
 task :test do
-  puts "Testing Lua compiler version..."
+  puts "Testing Lua compiler..."
   begin
-    sh "#{LUAC} -v | grep 5.1"
-    puts "Lua 5.1 confirmed - compatible with Lightroom Classic"
+    sh "#{LUAC} -v"
+    puts "Lua compiler confirmed - ready for compilation"
   rescue
-    puts "ERROR: Lua 5.1 compiler not found!"
-    puts "Please install Lua 5.1:"
-    puts "  brew install lua@5.1"
-    puts "  brew link lua@5.1 --force"
+    puts "ERROR: Lua compiler not found at #{LUAC}!"
+    puts "Please install Lua:"
+    puts "  brew install lua"
     puts ""
     puts "Or if you prefer to work with source files directly,"
     puts "you can skip compilation and use the .lua files as-is."
