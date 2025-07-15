@@ -7,6 +7,7 @@ config.lua
 .env*
 *.env
 deploy-private.sh
+deploy_private.sh
 
 # Security-sensitive files
 *.key
