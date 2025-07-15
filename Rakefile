@@ -13,13 +13,13 @@ RESOURCE_FILES = FileList[ File.join("src", "*.png") ]
 TRANSLATION_FILES = FileList[ File.join("src", "TranslatedStrings_*.txt") ]
 README_FILES = FileList[ "README.md", "LICENSE" ]
 TARGET_FILES = SOURCE_FILES.pathmap(File.join(PLUGIN_DIR, "%f")) + README_FILES.pathmap(File.join(PLUGIN_DIR, "%f"))
-PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v3.1.0.zip")
+PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v3.3.0.zip")
 
 task :default => [ :compile, :package ]
 
 desc "Show version information"
 task :version do
-  puts "Gemini AI Image Tagger v3.1.0 - Updated for Lightroom Classic 2024"
+  puts "Gemini AI Image Tagger v3.3.0 - Updated for Lightroom Classic 2024"
   puts "SDK Version: 13.0 (minimum 10.0)"
   puts "Google Gemini AI: Latest API with 13 preset prompts"
 end
