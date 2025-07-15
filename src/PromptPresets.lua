@@ -11,6 +11,54 @@ local PromptPresets = {}
 
 --------------------------------------------------------------------------------
 
+-- Detect the current Lightroom language and convert to language name for Gemini
+local function getLanguageForGemini()
+	-- Since LrLocalization.getCurrentLocale() doesn't exist, we'll use a different approach
+	-- We'll test a known localized string to determine the current language
+	local testString = LOC("$$$/Locale/Dimensions/Width=w")
+	
+	-- Test various known translations to detect language
+	if testString == "l" then -- French: "largeur" -> "l"
+		return "French"
+	elseif testString == "b" then -- German: "breite" -> "b"
+		return "German"
+	elseif testString == "a" then -- Spanish: "ancho" -> "a"
+		return "Spanish"
+	elseif testString == "l" then -- Italian: "larghezza" -> "l"
+		return "Italian"
+	elseif testString == "л" then -- Russian: "ширина" -> "л"
+		return "Russian"
+	elseif testString == "幅" then -- Japanese
+		return "Japanese"
+	elseif testString == "너비" then -- Korean
+		return "Korean"
+	elseif testString == "宽" then -- Chinese
+		return "Chinese"
+	else
+		-- If we can't detect the language, try another approach
+		-- Check if our own French translation exists
+		local frenchTest = LOC("$$$/AiTagger/ResultsDialogTitleTitle=Title")
+		if frenchTest == "Titre" then
+			return "French"
+		end
+		
+		-- Default to English if we can't detect the language
+		return "English"
+	end
+end
+
+-- Add language instruction to a prompt
+local function addLanguageInstruction(prompt)
+	local language = getLanguageForGemini()
+	if language ~= "English" then
+		local languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, copyright, location) should be in %s.\n\n", language, language)
+		return languageInstruction .. prompt
+	end
+	return prompt
+end
+
+--------------------------------------------------------------------------------
+
 -- Sports Photography Prompt
 local sportsPrompt = [[Please analyze this sports photograph and provide:
 1. A short title (2-5 words)
@@ -485,7 +533,13 @@ end
 function PromptPresets.getPreset(name)
     for _, preset in ipairs(PromptPresets.presets) do
         if preset.name == name then
-            return preset
+            -- Create a copy of the preset with language instruction added
+            local localizedPreset = {
+                name = preset.name,
+                description = preset.description,
+                prompt = addLanguageInstruction(preset.prompt)
+            }
+            return localizedPreset
         end
     end
     return nil

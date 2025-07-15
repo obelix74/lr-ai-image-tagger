@@ -10,15 +10,16 @@ DIST_DIR = "dist"
 
 SOURCE_FILES = FileList[ File.join("src", "*.lua") ]
 RESOURCE_FILES = FileList[ File.join("src", "*.png") ]
+TRANSLATION_FILES = FileList[ File.join("src", "TranslatedStrings_*.txt") ]
 README_FILES = FileList[ "README.md", "LICENSE" ]
 TARGET_FILES = SOURCE_FILES.pathmap(File.join(PLUGIN_DIR, "%f")) + README_FILES.pathmap(File.join(PLUGIN_DIR, "%f"))
-PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v3.0.0.zip")
+PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v3.1.0.zip")
 
 task :default => [ :compile, :package ]
 
 desc "Show version information"
 task :version do
-  puts "Gemini AI Image Tagger v3.0.0 - Updated for Lightroom Classic 2024"
+  puts "Gemini AI Image Tagger v3.1.0 - Updated for Lightroom Classic 2024"
   puts "SDK Version: 13.0 (minimum 10.0)"
   puts "Google Gemini AI: Latest API with 13 preset prompts"
 end
@@ -34,8 +35,8 @@ task :build_source => [ PLUGIN_DIR ] do
     puts "Copied: #{src} -> #{tgt}"
   end
 
-  # Copy resource and readme files
-  (RESOURCE_FILES + README_FILES).each do |src|
+  # Copy resource, translation, and readme files
+  (RESOURCE_FILES + TRANSLATION_FILES + README_FILES).each do |src|
     tgt = src.pathmap(File.join(PLUGIN_DIR, "%f"))
     cp src, tgt
     puts "Copied: #{src} -> #{tgt}"

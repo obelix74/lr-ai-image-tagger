@@ -8,6 +8,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2025-07-15
+
+### Added
+- **French Language Support**: Complete French localization with 70+ translated strings
+- **Internationalization**: Full support for Adobe Lightroom SDK's LOC() localization system
+- **Multi-Language Ready**: Infrastructure for adding additional languages in the future
+
+### Enhanced
+- **User Experience**: Plugin now automatically displays in French when Lightroom is set to French language
+- **Translation Quality**: Professional translations for all UI elements, settings, and messages
+- **Build System**: Updated Rakefile to include translation files in distribution packages
+
+### Technical
+- **Translation Files**: Added `TranslatedStrings_fr.txt` with comprehensive French translations
+- **Localization Infrastructure**: Leverages Adobe ZString system for automatic language detection
+- **Build Process**: Enhanced to include translation files in plugin packages
+
+---
+
+## [3.0.0] - 2025-07-15
+
+### Added
+- **Complete Plugin Rebrand**: Transitioned from "AI Image Tagger" to "Gemini AI Image Tagger"
+- **Enhanced Metadata Support**: Added support for sending GPS location and EXIF metadata to AI analysis
+- **Privacy Controls**: New option to include/exclude GPS and EXIF data for enhanced privacy
+- **Improved Website Integration**: Updated all URLs and branding to new tagimg.net domain
+
+### Enhanced
+- **Plugin Identity**: Updated plugin identifier to `net.tagimg.gemini-lr-tagimg`
+- **Metadata Analysis**: Optional GPS coordinates and technical metadata sharing with Gemini AI
+- **User Control**: Configurable privacy settings for metadata sharing
+- **Professional Branding**: Complete visual and textual rebrand throughout the plugin
+
+### Technical
+- **Domain Migration**: Updated all references from aitagger.anands.net to lr.tagimg.net
+- **Plugin Identifier**: Changed from legacy identifier to new standardized format
+- **Privacy Options**: Added `includeGpsExifData` preference for user control
+- **Build System**: Updated version numbering to 3.0.0 for major release
+
+### Breaking Changes
+- **Plugin Identifier**: Changed plugin identifier requires reinstallation
+- **URL Updates**: All help and documentation URLs updated to new domain
+- **Version Jump**: Major version increment reflects significant structural changes
+
+---
+
+## [2.3.3] - 2025-07-14
+
+### Added
+- **Enhanced Metadata Options**: Added option to send GPS location and EXIF metadata with AI analysis
+- **Privacy Controls**: New setting to include/exclude technical metadata for enhanced privacy
+
+### Enhanced
+- **Analysis Accuracy**: Optional GPS coordinates and camera settings can improve AI analysis quality
+- **User Control**: Configurable metadata sharing preferences in plugin settings
+- **Documentation**: Updated help text to explain metadata sharing options
+
+### Technical
+- **Metadata Integration**: Enhanced API calls to include optional GPS and EXIF data
+- **Privacy Settings**: Added `includeGpsExifData` preference with default privacy-focused setting
+
+---
+
 ## [2.3.2] - 2025-07-13
 
 ### Fixed

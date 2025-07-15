@@ -43,6 +43,42 @@ local tempBaseName = "aiimagetagger.tmp"
 
 --------------------------------------------------------------------------------
 
+-- Detect the current Lightroom language and convert to language name for Gemini
+local function getLanguageForGemini()
+	-- Since LrLocalization.getCurrentLocale() doesn't exist, we'll use a different approach
+	-- We'll test a known localized string to determine the current language
+	local testString = LOC("$$$/Locale/Dimensions/Width=w")
+	
+	-- Test various known translations to detect language
+	if testString == "l" then -- French: "largeur" -> "l"
+		return "French"
+	elseif testString == "b" then -- German: "breite" -> "b"
+		return "German"
+	elseif testString == "a" then -- Spanish: "ancho" -> "a"
+		return "Spanish"
+	elseif testString == "l" then -- Italian: "larghezza" -> "l"
+		return "Italian"
+	elseif testString == "л" then -- Russian: "ширина" -> "л"
+		return "Russian"
+	elseif testString == "幅" then -- Japanese
+		return "Japanese"
+	elseif testString == "너비" then -- Korean
+		return "Korean"
+	elseif testString == "宽" then -- Chinese
+		return "Chinese"
+	else
+		-- If we can't detect the language, try another approach
+		-- Check if our own French translation exists
+		local frenchTest = LOC("$$$/AiTagger/ResultsDialogTitleTitle=Title")
+		if frenchTest == "Titre" then
+			return "French"
+		end
+		
+		-- Default to English if we can't detect the language
+		return "English"
+	end
+end
+
 -- Extract GPS and EXIF metadata from a photo for AI analysis
 local function extractMetadata( photo )
 	local metadata = {}
@@ -157,13 +193,27 @@ end
 --------------------------------------------------------------------------------
 
 local function getDefaultPrompt()
-	return "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Copyright or attribution information (if visible)\n7. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+	local language = getLanguageForGemini()
+	local languageInstruction = ""
+	
+	if language ~= "English" then
+		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, copyright, location) should be in %s.\n\n", language, language)
+	end
+	
+	return languageInstruction .. "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Copyright or attribution information (if visible)\n7. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
 end
 
 local function getAnalysisPrompt()
 	local prefs = LrPrefs.prefsForPlugin()
+	local language = getLanguageForGemini()
+	local languageInstruction = ""
+	
+	if language ~= "English" then
+		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields should be in %s.\n\n", language, language)
+	end
+	
 	if prefs.useCustomPrompt and prefs.customPrompt and prefs.customPrompt ~= "" then
-		return prefs.customPrompt
+		return languageInstruction .. prefs.customPrompt
 	else
 		return getDefaultPrompt()
 	end
