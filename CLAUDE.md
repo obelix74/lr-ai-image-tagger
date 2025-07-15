@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an AI Image Tagger plugin for Adobe Lightroom Classic that automatically generates captions, descriptions, and keywords using Google's Gemini AI API. The plugin integrates with Lightroom's SDK to analyze selected photos and populate IPTC metadata fields.
+This is an Gemini AI Image Tagger plugin for Adobe Lightroom Classic that automatically generates captions, descriptions, and keywords using Google's Gemini AI API. The plugin integrates with Lightroom's SDK to analyze selected photos and populate IPTC metadata fields.
 
 ## Core Architecture
 
 ### Plugin Structure
 - **src/**: Source Lua files for the Lightroom plugin
-- **distribution/plugin/AI-Image-Tagger.lrplugin/**: Built plugin files ready for installation
-- **build/**: Temporary build directory (created during compilation)
+- **build/**: Local development build directory with plugin files
+- **distribution/plugin/gemini-lr-tagimg.lrplugin/**: Web deployment plugin files
 - **dist/**: Distribution packages (.zip files)
 
 ### Key Components
@@ -28,7 +28,7 @@ This is an AI Image Tagger plugin for Adobe Lightroom Classic that automatically
 - Adds menu items to Library and Export menus
 - Processes selected photos in batches
 - Writes metadata to IPTC fields and Lightroom keywords
-- Plugin identifier: `net.tagimg.aiimagetagger`
+- Plugin identifier: `net.tagimg.gemini-lr-tagimg`
 
 ## Development Commands
 
@@ -85,7 +85,8 @@ rake clobber
 ## File Locations
 
 ### Plugin Installation
-Built plugin resides in `distribution/plugin/AI-Image-Tagger.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
+For local development, built plugin resides in `build/gemini-lr-tagimg.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
+For deployment, plugin resides in `distribution/plugin/gemini-lr-tagimg.lrplugin/`.
 
 ### Documentation
 - `README.md`: User-facing documentation and installation guide
@@ -93,7 +94,7 @@ Built plugin resides in `distribution/plugin/AI-Image-Tagger.lrplugin/` and can 
 - `CHANGELOG.md`: Version history and feature changes
 
 ### Distribution
-- `dist/ai-image-tagger-v2.3.2.zip`: Current production package
+- `dist/gemini-lr-tagimg-v2.3.2.zip`: Current production package
 - Website assets in `distribution/website/`
 
 ## Release Process
@@ -104,7 +105,7 @@ When releasing a new version, update these files:
 2. **distribution/website/index.html**: Update download link and button text (line ~469-470)
 
 Example for version 2.3.2:
-- Change `ai-image-tagger-v2.3.1.zip` to `ai-image-tagger-v2.3.2.zip` in deploy.sh
+- Change `gemini-lr-tagimg-v2.3.1.zip` to `gemini-lr-tagimg-v2.3.2.zip` in deploy.sh
 - Change download button from "Download v2.3.1" to "Download v2.3.2" in index.html
 
 ## Important Notes

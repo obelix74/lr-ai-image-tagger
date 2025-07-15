@@ -194,7 +194,7 @@ verify_deployment() {
         exit 1
     fi
     
-    if gsutil ls "gs://$BUCKET_NAME/ai-image-tagger-v2.4.0.zip" &> /dev/null; then
+    if gsutil ls "gs://$BUCKET_NAME/gemini-lr-tagimg-v2.4.0.zip" &> /dev/null; then
         print_success "Plugin ZIP file deployed successfully."
     else
         print_error "Plugin ZIP file not found in bucket."
@@ -235,7 +235,7 @@ test_deployment() {
         fi
 
         # Test download link
-        local download_url="https://storage.googleapis.com/$BUCKET_NAME/ai-image-tagger-v2.4.0.zip"
+        local download_url="https://storage.googleapis.com/$BUCKET_NAME/gemini-lr-tagimg-v2.4.0.zip"
         if curl -s -o /dev/null -w "%{http_code}" "$download_url" | grep -q "200"; then
             print_success "Plugin download is accessible at: $download_url"
         else
