@@ -43,6 +43,89 @@ local tempBaseName = "aiimagetagger.tmp"
 
 --------------------------------------------------------------------------------
 
+
+-- Extract GPS and EXIF metadata from a photo for AI analysis
+local function extractMetadata( photo )
+	local metadata = {}
+	
+	-- GPS coordinates (if available)
+	local gps = photo:getFormattedMetadata( "gps" )
+	if gps and gps ~= "" then
+		metadata.gps = gps
+	end
+	
+	-- Copyright information
+	local copyright = photo:getFormattedMetadata( "copyright" )
+	if copyright and copyright ~= "" then
+		metadata.copyright = copyright
+	end
+	
+	-- Location/city information
+	local city = photo:getFormattedMetadata( "city" )
+	local stateProvince = photo:getFormattedMetadata( "stateProvince" )
+	local country = photo:getFormattedMetadata( "country" )
+	local location = photo:getFormattedMetadata( "location" )
+	if city or stateProvince or country or location then
+		metadata.location = {
+			city = city,
+			stateProvince = stateProvince,
+			country = country,
+			location = location
+		}
+	end
+	
+	-- Camera and lens information
+	local cameraMake = photo:getFormattedMetadata( "cameraMake" )
+	local cameraModel = photo:getFormattedMetadata( "cameraModel" )
+	local lens = photo:getFormattedMetadata( "lens" )
+	if cameraMake or cameraModel or lens then
+		metadata.camera = {
+			make = cameraMake,
+			model = cameraModel,
+			lens = lens
+		}
+	end
+	
+	-- Shooting settings
+	local focalLength = photo:getFormattedMetadata( "focalLength" )
+	local aperture = photo:getFormattedMetadata( "aperture" )
+	local shutterSpeed = photo:getFormattedMetadata( "shutterSpeed" )
+	local isoSpeedRating = photo:getFormattedMetadata( "isoSpeedRating" )
+	local flash = photo:getFormattedMetadata( "flash" )
+	if focalLength or aperture or shutterSpeed or isoSpeedRating or flash then
+		metadata.settings = {
+			focalLength = focalLength,
+			aperture = aperture,
+			shutterSpeed = shutterSpeed,
+			iso = isoSpeedRating,
+			flash = flash
+		}
+	end
+	
+	-- Date and time
+	local dateTimeOriginal = photo:getFormattedMetadata( "dateTimeOriginal" )
+	if dateTimeOriginal then
+		metadata.datetime = dateTimeOriginal
+	end
+	
+	-- Image dimensions
+	local dimensions = photo:getFormattedMetadata( "dimensions" )
+	local croppedDimensions = photo:getFormattedMetadata( "croppedDimensions" )
+	if dimensions or croppedDimensions then
+		metadata.image = {
+			dimensions = dimensions,
+			croppedDimensions = croppedDimensions
+		}
+	end
+	
+	-- Return nil if no metadata was found
+	if next(metadata) == nil then
+		return nil
+	end
+	
+	return metadata
+end
+
 local function createTempFile( baseName, contents )
 	local fileName = LrFileUtils.chooseUniqueFileName( LrPathUtils.child( tempPath, baseName ) )
 	local file = io.open( fileName, "w" )
@@ -95,19 +178,34 @@ end
 --------------------------------------------------------------------------------
 
 local function getDefaultPrompt()
-	return "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Copyright or attribution information (if visible)\n7. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"copyright\": \"copyright or attribution info if visible\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+	local prefs = LrPrefs.prefsForPlugin()
+	local language = prefs.responseLanguage or "English"
+	local languageInstruction = ""
+	
+	if language ~= "English" then
+		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, location) should be in %s.\n\n", language, language)
+	end
+	
+	return languageInstruction .. "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
 end
 
 local function getAnalysisPrompt()
 	local prefs = LrPrefs.prefsForPlugin()
+	local language = prefs.responseLanguage or "English"
+	local languageInstruction = ""
+	
+	if language ~= "English" then
+		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields should be in %s.\n\n", language, language)
+	end
+	
 	if prefs.useCustomPrompt and prefs.customPrompt and prefs.customPrompt ~= "" then
-		return prefs.customPrompt
+		return languageInstruction .. prefs.customPrompt
 	else
 		return getDefaultPrompt()
 	end
 end
 
-function GeminiAPI.analyze( fileName, photo )
+function GeminiAPI.analyze( fileName, photo, photoObject )
 	local attempts = 0
 	while attempts <= serviceMaxRetries do
 		local apiKey = GeminiAPI.getApiKey()
@@ -117,13 +215,117 @@ function GeminiAPI.analyze( fileName, photo )
 				{ field = httpAccept, value = mimeTypeJson },
 			}
 
+			-- Get the base prompt
+			local prompt = getAnalysisPrompt()
+			
+			-- Add metadata if enabled and photo object is provided
+			local prefs = LrPrefs.prefsForPlugin()
+			if prefs.includeGpsExifData and photoObject then
+				local metadata = extractMetadata( photoObject )
+				if metadata then
+					-- Log what metadata we're sending to Gemini
+					logger:infof( "GeminiAPI: Including EXIF/GPS metadata in analysis:" )
+					logger:infof( "  GPS: %s", metadata.gps or "none" )
+					if metadata.camera then
+						logger:infof( "  Camera: %s %s %s", metadata.camera.make or "", metadata.camera.model or "", metadata.camera.lens or "" )
+					else
+						logger:infof( "  Camera: none" )
+					end
+					if metadata.settings then
+						local settings = {}
+						if metadata.settings.focalLength then table.insert( settings, metadata.settings.focalLength ) end
+						if metadata.settings.aperture then table.insert( settings, metadata.settings.aperture ) end
+						if metadata.settings.shutterSpeed then table.insert( settings, metadata.settings.shutterSpeed ) end
+						if metadata.settings.iso then table.insert( settings, "ISO " .. metadata.settings.iso ) end
+						if metadata.settings.flash then table.insert( settings, "Flash: " .. metadata.settings.flash ) end
+						logger:infof( "  Settings: %s", #settings > 0 and table.concat( settings, ", " ) or "none" )
+					else
+						logger:infof( "  Settings: none" )
+					end
+					logger:infof( "  Date: %s", metadata.datetime or "none" )
+					if metadata.image then
+						logger:infof( "  Dimensions: %s", metadata.image.dimensions or "none" )
+						logger:infof( "  Cropped: %s", metadata.image.croppedDimensions or "none" )
+					else
+						logger:infof( "  Dimensions: none" )
+					end
+					logger:infof( "  Copyright: %s", metadata.copyright or "none" )
+					if metadata.location then
+						local locationParts = {}
+						if metadata.location.city then table.insert(locationParts, metadata.location.city) end
+						if metadata.location.stateProvince then table.insert(locationParts, metadata.location.stateProvince) end
+						if metadata.location.country then table.insert(locationParts, metadata.location.country) end
+						if metadata.location.location then table.insert(locationParts, metadata.location.location) end
+						logger:infof( "  Location: %s", #locationParts > 0 and table.concat(locationParts, ", ") or "none" )
+					else
+						logger:infof( "  Location: none" )
+					end
+					
+					prompt = prompt .. "\n\nAdditional context from photo metadata:\n"
+					
+					if metadata.gps then
+						prompt = prompt .. "GPS Location: " .. metadata.gps .. "\n"
+					end
+					
+					if metadata.camera then
+						prompt = prompt .. string.format( "Camera: %s %s", metadata.camera.make or "", metadata.camera.model or "" )
+						if metadata.camera.lens then
+							prompt = prompt .. string.format( " with %s", metadata.camera.lens )
+						end
+						prompt = prompt .. "\n"
+					end
+					
+					if metadata.settings then
+						local settings = {}
+						if metadata.settings.focalLength then table.insert( settings, metadata.settings.focalLength ) end
+						if metadata.settings.aperture then table.insert( settings, metadata.settings.aperture ) end
+						if metadata.settings.shutterSpeed then table.insert( settings, metadata.settings.shutterSpeed ) end
+						if metadata.settings.iso then table.insert( settings, "ISO " .. metadata.settings.iso ) end
+						if metadata.settings.flash then table.insert( settings, "Flash: " .. metadata.settings.flash ) end
+						if #settings > 0 then
+							prompt = prompt .. "Camera settings: " .. table.concat( settings, ", " ) .. "\n"
+						end
+					end
+					
+					if metadata.datetime then
+						prompt = prompt .. "Captured: " .. metadata.datetime .. "\n"
+					end
+					
+					if metadata.image then
+						if metadata.image.dimensions then
+							prompt = prompt .. "Image size: " .. metadata.image.dimensions .. "\n"
+						end
+						if metadata.image.croppedDimensions then
+							prompt = prompt .. "Cropped size: " .. metadata.image.croppedDimensions .. "\n"
+						end
+					end
+					
+					if metadata.copyright then
+						prompt = prompt .. "Copyright: " .. metadata.copyright .. "\n"
+					end
+					
+					if metadata.location then
+						local locationParts = {}
+						if metadata.location.city then table.insert(locationParts, metadata.location.city) end
+						if metadata.location.stateProvince then table.insert(locationParts, metadata.location.stateProvince) end
+						if metadata.location.country then table.insert(locationParts, metadata.location.country) end
+						if metadata.location.location then table.insert(locationParts, metadata.location.location) end
+						if #locationParts > 0 then
+							prompt = prompt .. "Location metadata: " .. table.concat(locationParts, ", ") .. "\n"
+						end
+					end
+					
+					prompt = prompt .. "\nPlease consider this technical and location information in your analysis and include relevant location details in your response."
+				end
+			end
+
 			-- Create the request body for Gemini API
 			local reqBody = JSON:encode {
 				contents = {
 					{
 						parts = {
 							{
-								text = getAnalysisPrompt()
+								text = prompt
 							},
 							{
 								inline_data = {
@@ -165,7 +367,7 @@ function GeminiAPI.analyze( fileName, photo )
 								results.caption = analysisResult.caption or ""
 								results.headline = analysisResult.headline or analysisResult.description or ""  -- Support both new and old field names
 								results.instructions = analysisResult.instructions or ""
-								results.copyright = analysisResult.copyright or ""
+								results.copyright = ""
 								results.location = analysisResult.location or ""
 
 								-- Parse keywords into array
@@ -249,7 +451,7 @@ function GeminiAPI.analyzeBatch( photos, progressCallback )
 
 		-- Analyze each photo in the batch
 		for j, photoData in ipairs(batch) do
-			local result = GeminiAPI.analyze(photoData.fileName, photoData.jpegData)
+			local result = GeminiAPI.analyze(photoData.fileName, photoData.jpegData, photoData.photo)
 			table.insert(results, result)
 
 			if progressCallback then

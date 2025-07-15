@@ -1,8 +1,8 @@
-# AI Image Tagger for Adobe Lightroom Classic
+# Gemini Gemini AI Image Tagger for Adobe Lightroom Classic
 
 **Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI.**
 
-![AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.3.1-green)
+![Gemini Gemini AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.4.0-green)
 
 ## 🚀 Features
 
@@ -55,7 +55,7 @@
 
 ### Step 4: Configure the Plugin
 1. In Lightroom, go to **File > Plug-in Manager**
-2. Select **AI Image Tagger** from the list
+2. Select **Gemini AI Image Tagger** from the list
 3. Paste your Gemini AI API key in the **API Key** field
 4. Configure your preferred settings:
    - Choose which IPTC metadata fields to save
@@ -171,6 +171,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Created By**: Anand's Photography (2025)
 - **Powered by**: Google Gemini AI
 - **Built for**: Adobe Lightroom Classic
+
+## 🙏 Acknowledgements
+
+Special thanks to [@tjotala](https://github.com/tjotala) for [lr-robotagger](https://github.com/tjotala/lr-robotagger), which provided the inspiration to get started with this project.
 
 ## 🔗 Links
 

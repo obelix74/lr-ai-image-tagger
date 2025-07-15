@@ -48,21 +48,20 @@ local propSaveTitleToIptc = "saveTitleToIptc"
 local propSaveCaptionToIptc = "saveCaptionToIptc"
 local propSaveHeadlineToIptc = "saveHeadlineToIptc"
 local propSaveInstructionsToIptc = "saveInstructionsToIptc"
-local propSaveCopyrightToIptc = "saveCopyrightToIptc"
 local propSaveLocationToIptc = "saveLocationToIptc"
-local propSaveKeywordsToIptc = "saveKeywordsToIptc"
 
 local propUseCustomPrompt = "useCustomPrompt"
 local propCustomPrompt = "customPrompt"
 local propBatchSize = "batchSize"
 local propDelayBetweenRequests = "delayBetweenRequests"
+local propIncludeGpsExifData = "includeGpsExifData"
+local propResponseLanguage = "responseLanguage"
 
 local propApiKey = "apiKey"
 local propVersions = "versions"
 
 -- canned strings
 local loadingText = LOC( "$$$/AiTagger/Options/Loading=loading..." )
-local sampleKeyword = LOC( "$$$/AiTagger/Options/DecorateKeywords/SampleKeyword=sample keyword" )
 
 local titleKeywordAsIs   = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/None=as-is" )
 local titleKeywordPrefix = LOC( "$$$/AiTagger/Options/DecorateKeywords/Title/Prefix=with Prefix" )
@@ -75,23 +74,6 @@ local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Pla
 
 --------------------------------------------------------------------------------
 
-local function renderSampleKeyword( decoration, value )
-	if value then
-		value = LrStringUtils.trimWhitespace( value )
-		if value == "" then
-			value = nil
-		end
-	end
-	if decoration == decorateKeywordPrefix then
-		return string.format( "%s %s", value or placeholderKeywordPrefix, sampleKeyword )
-	elseif decoration == decorateKeywordSuffix then
-		return string.format( "%s %s", sampleKeyword, value or placeholderKeywordSuffix )
-	elseif decoration == decorateKeywordParent then
-		return string.format( "%s/%s", value or placeholderKeywordParent, sampleKeyword )
-	end
-	-- decoration == decorateKeywordAsIs
-	return sampleKeyword
-end
 
 local function loadApiKey( propertyTable )
 	logger:tracef( "loading API key from keystore" )
@@ -140,15 +122,15 @@ local function startDialog( propertyTable )
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
 	propertyTable[ propSaveHeadlineToIptc ] = prefs.saveHeadlineToIptc
 	propertyTable[ propSaveInstructionsToIptc ] = prefs.saveInstructionsToIptc
-	propertyTable[ propSaveCopyrightToIptc ] = prefs.saveCopyrightToIptc
 	propertyTable[ propSaveLocationToIptc ] = prefs.saveLocationToIptc
-	propertyTable[ propSaveKeywordsToIptc ] = prefs.saveKeywordsToIptc
 
 	propertyTable[ propUseCustomPrompt ] = prefs.useCustomPrompt
 	propertyTable[ propCustomPrompt ] = prefs.customPrompt or ""
 	propertyTable[ "selectedPreset" ] = ""
 	propertyTable[ propBatchSize ] = prefs.batchSize
 	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
+	propertyTable[ propIncludeGpsExifData ] = prefs.includeGpsExifData
+	propertyTable[ propResponseLanguage ] = prefs.responseLanguage or "English"
 
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
@@ -187,14 +169,14 @@ local function endDialog( propertyTable )
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
 	prefs.saveHeadlineToIptc = propertyTable[ propSaveHeadlineToIptc ]
 	prefs.saveInstructionsToIptc = propertyTable[ propSaveInstructionsToIptc ]
-	prefs.saveCopyrightToIptc = propertyTable[ propSaveCopyrightToIptc ]
 	prefs.saveLocationToIptc = propertyTable[ propSaveLocationToIptc ]
-	prefs.saveKeywordsToIptc = propertyTable[ propSaveKeywordsToIptc ]
 
 	prefs.useCustomPrompt = propertyTable[ propUseCustomPrompt ]
 	prefs.customPrompt = LrStringUtils.trimWhitespace( propertyTable[ propCustomPrompt ] or "" )
 	prefs.batchSize = propertyTable[ propBatchSize ]
 	prefs.delayBetweenRequests = propertyTable[ propDelayBetweenRequests ]
+	prefs.includeGpsExifData = propertyTable[ propIncludeGpsExifData ]
+	prefs.responseLanguage = propertyTable[ propResponseLanguage ]
 
 	storeApiKey( propertyTable )
 end
@@ -216,7 +198,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					alignment = "right",
 				},
 				f:edit_field {
-					placeholder_string = LOC( "$$$/AiTagger/Options/General/MaxTasks=<max requests>" ),
+					placeholder_string = LOC( "$$$/AiTagger/Options/General/MaxTasksPlaceholder=<max requests>" ),
 					value = bind { key = propGeneralMaxTasks },
 					immediate = true,
 					min = tasksMin,
@@ -239,6 +221,48 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:static_text {
 					title = string.format( "%d", tasksMax ),
 					alignment = "left",
+				},
+			},
+		},
+		-- language options
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Language/Title=AI Response Language" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Language/Prompt=AI Response Language:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					value = bind { key = propResponseLanguage },
+					items = {
+						{ title = LOC( "$$$/AiTagger/Language/English=English" ), value = "English" },
+						{ title = LOC( "$$$/AiTagger/Language/Spanish=Spanish" ), value = "Spanish" },
+						{ title = LOC( "$$$/AiTagger/Language/French=French" ), value = "French" },
+						{ title = LOC( "$$$/AiTagger/Language/German=German" ), value = "German" },
+						{ title = LOC( "$$$/AiTagger/Language/Italian=Italian" ), value = "Italian" },
+						{ title = LOC( "$$$/AiTagger/Language/Portuguese=Portuguese" ), value = "Portuguese" },
+						{ title = LOC( "$$$/AiTagger/Language/Russian=Russian" ), value = "Russian" },
+						{ title = LOC( "$$$/AiTagger/Language/Japanese=Japanese" ), value = "Japanese" },
+						{ title = LOC( "$$$/AiTagger/Language/Korean=Korean" ), value = "Korean" },
+						{ title = LOC( "$$$/AiTagger/Language/ChineseSimplified=Chinese (Simplified)" ), value = "Chinese" },
+						{ title = LOC( "$$$/AiTagger/Language/Dutch=Dutch" ), value = "Dutch" },
+						{ title = LOC( "$$$/AiTagger/Language/Polish=Polish" ), value = "Polish" },
+						{ title = LOC( "$$$/AiTagger/Language/Turkish=Turkish" ), value = "Turkish" },
+						{ title = LOC( "$$$/AiTagger/Language/Arabic=Arabic" ), value = "Arabic" },
+						{ title = LOC( "$$$/AiTagger/Language/Hindi=Hindi" ), value = "Hindi" },
+					},
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Language/Help=Select the language for AI-generated titles, captions, descriptions, and keywords. This setting applies to all Gemini AI responses." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
 				},
 			},
 		},
@@ -289,24 +313,6 @@ local function sectionsForTopOfDialog( f, propertyTable )
 						width_in_chars = 10,
 					},
 				},
-				f:row {
-					fill_horizontal = 1,
-					f:static_text {
-						title = LOC( "$$$/AiTagger/Options/Keywords/Arrow=^U+25B6" )
-					},
-					f:static_text {
-						title = bind {
-							keys = { propDecorateKeyword, propDecorateKeywordValue },
-							operation = function( binder, values, fromTable )
-								return renderSampleKeyword(
-									values[ propDecorateKeyword ],
-									values[ propDecorateKeywordValue ] )
-							end,
-						},
-						font = "Courier",
-						text_color = LrColor( 0, 0, 1 ),
-					},
-				},
 			},
 			f:row {
 				fill_horizontal = 1,
@@ -343,26 +349,9 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveCopyright=Save copyright to IPTC metadata" ),
-					value = bind { key = propSaveCopyrightToIptc },
-					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:checkbox {
 					title = LOC( "$$$/AiTagger/Options/IPTC/SaveLocation=Save location to IPTC metadata" ),
 					value = bind { key = propSaveLocationToIptc },
 					fill_horizontal = 1,
-				},
-			},
-			f:row {
-				fill_horizontal = 1,
-				f:checkbox {
-					title = LOC( "$$$/AiTagger/Options/IPTC/SaveKeywords=Save keywords to IPTC metadata (Note: Keywords auto-included in IPTC on export)" ),
-					value = bind { key = propSaveKeywordsToIptc },
-					fill_horizontal = 1,
-					enabled = false,  -- Disabled due to Lightroom SDK limitations
 				},
 			},
 		},
@@ -390,7 +379,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:popup_menu {
 					enabled = bind { key = propUseCustomPrompt },
 					items = (function()
-						local items = {{ title = "Select a preset...", value = "" }}
+						local items = {{ title = LOC( "$$$/AiTagger/Preset/SelectPreset=Select a preset..." ), value = "" }}
 						local presets = GeminiAPI.getPromptPresets()
 						for _, preset in ipairs(presets) do
 							table.insert(items, { title = preset.name .. " - " .. preset.description, value = preset.name })
@@ -405,8 +394,8 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					title = LOC( "$$$/AiTagger/Options/AI/BrowseFile=Browse File..." ),
 					action = function()
 						local fileName = LrDialogs.runOpenPanel({
-							title = "Select Prompt File",
-							prompt = "Choose a text file containing your custom prompt:",
+							title = LOC( "$$$/AiTagger/Prompt/SelectFile=Select Prompt File" ),
+							prompt = LOC( "$$$/AiTagger/Prompt/ChooseFile=Choose a text file containing your custom prompt:" ),
 							canChooseFiles = true,
 							canChooseDirectories = false,
 							allowsMultipleSelection = false,
@@ -428,7 +417,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 								logger:tracef("Property table updated with file content")
 							else
 								logger:errorf("Failed to load file: %s", error or "unknown error")
-								LrDialogs.message("Error Loading File", error or "Could not load prompt from file.", "error")
+								LrDialogs.message( LOC( "$$$/AiTagger/Prompt/ErrorLoadingFile=Error Loading File" ), error or LOC( "$$$/AiTagger/Prompt/CouldNotLoadFile=Could not load prompt from file." ), "error" )
 							end
 						end
 					end,
@@ -500,6 +489,29 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			},
 		},
 
+		-- Privacy options
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Privacy/Title=Privacy & Metadata" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExif=Include GPS location and EXIF metadata in AI analysis" ),
+					value = bind { key = propIncludeGpsExifData },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExifHelp=When enabled, camera settings, GPS coordinates, and technical metadata will be shared with Gemini AI to enhance analysis accuracy. Disable for enhanced privacy." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
+				},
+			},
+		},
+
 		-- API key
 		{
 			bind_to_object = propertyTable,
@@ -509,9 +521,9 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				object = propertyTable,
 				transform = function( value, fromTable )
 					if value and value ~= "" then
-						return "API key configured"
+						return LOC( "$$$/AiTagger/ApiKey/Configured=API key configured" )
 					else
-						return "API key not configured"
+						return LOC( "$$$/AiTagger/ApiKey/NotConfigured=API key not configured" )
 					end
 				end,
 			},

@@ -104,7 +104,7 @@ SOURCE_FILES.each do |src|
 	task PACKAGE_FILE => tgt
 end
 
-(RESOURCE_FILES + README_FILES).each do |src|
+(RESOURCE_FILES + TRANSLATION_FILES + README_FILES).each do |src|
 	tgt = src.pathmap(File.join(PLUGIN_DIR, "%f"))
 	file tgt => src do
 		cp src, tgt

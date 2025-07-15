@@ -198,7 +198,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					alignment = "right",
 				},
 				f:edit_field {
-					placeholder_string = LOC( "$$$/AiTagger/Options/General/MaxTasks=<max requests>" ),
+					placeholder_string = LOC( "$$$/AiTagger/Options/General/MaxTasksPlaceholder=<max requests>" ),
 					value = bind { key = propGeneralMaxTasks },
 					immediate = true,
 					min = tasksMin,
@@ -239,21 +239,21 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:popup_menu {
 					value = bind { key = propResponseLanguage },
 					items = {
-						{ title = "English", value = "English" },
-						{ title = "Spanish", value = "Spanish" },
-						{ title = "French", value = "French" },
-						{ title = "German", value = "German" },
-						{ title = "Italian", value = "Italian" },
-						{ title = "Portuguese", value = "Portuguese" },
-						{ title = "Russian", value = "Russian" },
-						{ title = "Japanese", value = "Japanese" },
-						{ title = "Korean", value = "Korean" },
-						{ title = "Chinese (Simplified)", value = "Chinese" },
-						{ title = "Dutch", value = "Dutch" },
-						{ title = "Polish", value = "Polish" },
-						{ title = "Turkish", value = "Turkish" },
-						{ title = "Arabic", value = "Arabic" },
-						{ title = "Hindi", value = "Hindi" },
+						{ title = LOC( "$$$/AiTagger/Language/English=English" ), value = "English" },
+						{ title = LOC( "$$$/AiTagger/Language/Spanish=Spanish" ), value = "Spanish" },
+						{ title = LOC( "$$$/AiTagger/Language/French=French" ), value = "French" },
+						{ title = LOC( "$$$/AiTagger/Language/German=German" ), value = "German" },
+						{ title = LOC( "$$$/AiTagger/Language/Italian=Italian" ), value = "Italian" },
+						{ title = LOC( "$$$/AiTagger/Language/Portuguese=Portuguese" ), value = "Portuguese" },
+						{ title = LOC( "$$$/AiTagger/Language/Russian=Russian" ), value = "Russian" },
+						{ title = LOC( "$$$/AiTagger/Language/Japanese=Japanese" ), value = "Japanese" },
+						{ title = LOC( "$$$/AiTagger/Language/Korean=Korean" ), value = "Korean" },
+						{ title = LOC( "$$$/AiTagger/Language/ChineseSimplified=Chinese (Simplified)" ), value = "Chinese" },
+						{ title = LOC( "$$$/AiTagger/Language/Dutch=Dutch" ), value = "Dutch" },
+						{ title = LOC( "$$$/AiTagger/Language/Polish=Polish" ), value = "Polish" },
+						{ title = LOC( "$$$/AiTagger/Language/Turkish=Turkish" ), value = "Turkish" },
+						{ title = LOC( "$$$/AiTagger/Language/Arabic=Arabic" ), value = "Arabic" },
+						{ title = LOC( "$$$/AiTagger/Language/Hindi=Hindi" ), value = "Hindi" },
 					},
 				},
 			},
@@ -379,7 +379,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:popup_menu {
 					enabled = bind { key = propUseCustomPrompt },
 					items = (function()
-						local items = {{ title = "Select a preset...", value = "" }}
+						local items = {{ title = LOC( "$$$/AiTagger/Preset/SelectPreset=Select a preset..." ), value = "" }}
 						local presets = GeminiAPI.getPromptPresets()
 						for _, preset in ipairs(presets) do
 							table.insert(items, { title = preset.name .. " - " .. preset.description, value = preset.name })
@@ -394,8 +394,8 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					title = LOC( "$$$/AiTagger/Options/AI/BrowseFile=Browse File..." ),
 					action = function()
 						local fileName = LrDialogs.runOpenPanel({
-							title = "Select Prompt File",
-							prompt = "Choose a text file containing your custom prompt:",
+							title = LOC( "$$$/AiTagger/Prompt/SelectFile=Select Prompt File" ),
+							prompt = LOC( "$$$/AiTagger/Prompt/ChooseFile=Choose a text file containing your custom prompt:" ),
 							canChooseFiles = true,
 							canChooseDirectories = false,
 							allowsMultipleSelection = false,
@@ -417,7 +417,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 								logger:tracef("Property table updated with file content")
 							else
 								logger:errorf("Failed to load file: %s", error or "unknown error")
-								LrDialogs.message("Error Loading File", error or "Could not load prompt from file.", "error")
+								LrDialogs.message( LOC( "$$$/AiTagger/Prompt/ErrorLoadingFile=Error Loading File" ), error or LOC( "$$$/AiTagger/Prompt/CouldNotLoadFile=Could not load prompt from file." ), "error" )
 							end
 						end
 					end,
@@ -521,9 +521,9 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				object = propertyTable,
 				transform = function( value, fromTable )
 					if value and value ~= "" then
-						return "API key configured"
+						return LOC( "$$$/AiTagger/ApiKey/Configured=API key configured" )
 					else
-						return "API key not configured"
+						return LOC( "$$$/AiTagger/ApiKey/NotConfigured=API key not configured" )
 					end
 				end,
 			},

@@ -49,7 +49,6 @@ local propTitle = "title"
 local propCaption = "caption"
 local propHeadline = "headline"
 local propInstructions = "instructions"
-local propCopyright = "copyright"
 local propLocation = "location"
 
 local function propKeywordTitle( i )
@@ -82,12 +81,11 @@ local function savePhoto( propertyTable, index )
 		photo.caption = propertyTable[ propCaption ]
 		photo.headline = propertyTable[ propHeadline ]
 		photo.instructions = propertyTable[ propInstructions ]
-		photo.copyright = propertyTable[ propCopyright ]
 		photo.location = propertyTable[ propLocation ]
 
-		logger:tracef( "saved metadata to photo data: title='%s', caption='%s', headline='%s', instructions='%s', copyright='%s', location='%s'",
+		logger:tracef( "saved metadata to photo data: title='%s', caption='%s', headline='%s', instructions='%s', location='%s'",
 			photo.title or "nil", photo.caption or "nil", photo.headline or "nil", photo.instructions or "nil",
-			photo.copyright or "nil", photo.location or "nil" )
+			photo.location or "nil" )
 	end
 end
 
@@ -118,7 +116,6 @@ local function loadPhoto( propertyTable, index )
 	propertyTable[ propCaption ] = photo.caption or ""
 	propertyTable[ propHeadline ] = photo.headline or ""
 	propertyTable[ propInstructions ] = photo.instructions or ""
-	propertyTable[ propCopyright ] = photo.copyright or ""
 	propertyTable[ propLocation ] = photo.location or ""
 end
 
@@ -141,9 +138,9 @@ local function selectPhoto( propertyTable, newIndex )
 end
 
 -- apply the selected keywords and all metadata to the photo
-local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, copyright, location )
-	logger:tracef( "applyMetadataToPhoto called with: title='%s', caption='%s', headline='%s', instructions='%s', copyright='%s', location='%s'",
-		title or "nil", caption or "nil", headline or "nil", instructions or "nil", copyright or "nil", location or "nil" )
+local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, location )
+	logger:tracef( "applyMetadataToPhoto called with: title='%s', caption='%s', headline='%s', instructions='%s', location='%s'",
+		title or "nil", caption or "nil", headline or "nil", instructions or "nil", location or "nil" )
 
 	-- Helper function to safely set metadata
 	local function safeSetMetadata( fieldName, value, description )
@@ -238,16 +235,14 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				safeSetMetadata( "instructions", instructions, "IPTC instructions" )
 			end
 
-			if prefs.saveCopyrightToIptc and copyright and copyright ~= "" then
-				safeSetMetadata( "copyright", copyright, "IPTC copyright" )
-			end
 
 			if prefs.saveLocationToIptc and location and location ~= "" then
 				-- Try different location fields that are known to work in Lightroom
 				safeSetMetadata( "location", location, "IPTC location" )
 				safeSetMetadata( "city", location, "IPTC city" )
 			end
-		end
+		end,
+		{ timeout = 5 }
 	)
 end
 
@@ -255,13 +250,13 @@ end
 local function exportResults( propertyTable )
 	local photos = propertyTable[ propPhotos ]
 	if not photos or #photos == 0 then
-		LrDialogs.message( "No Results", "No analysis results to export.", "info" )
+		LrDialogs.message( LOC( "$$$/AiTagger/Export/NoResults=No Results" ), LOC( "$$$/AiTagger/Export/NoResultsMessage=No analysis results to export." ), "info" )
 		return
 	end
 
 	local fileName = LrDialogs.runSavePanel( {
-		title = "Export Analysis Results",
-		label = "Save as:",
+		title = LOC( "$$$/AiTagger/Export/Title=Export Analysis Results" ),
+		label = LOC( "$$$/AiTagger/Export/SaveAs=Save as:" ),
 		requiredFileType = "csv",
 		initialDirectory = LrPathUtils.getStandardFilePath( "desktop" ),
 		initialFileName = "aiimagetagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
@@ -271,7 +266,7 @@ local function exportResults( propertyTable )
 		local file = io.open( fileName, "w" )
 		if file then
 			-- Write CSV header
-			file:write( "Filename,Title,Caption,Headline,Keywords,Instructions,Copyright,Location,Analysis Time (sec)\n" )
+			file:write( LOC( "$$$/AiTagger/Export/CSVHeader=Filename,Title,Caption,Headline,Keywords,Instructions,Location,Analysis Time (sec)" ) .. "\n" )
 
 			-- Write data for each photo
 			for _, photoData in ipairs( photos ) do
@@ -281,7 +276,6 @@ local function exportResults( propertyTable )
 				local caption = (photoData.caption or ""):gsub( '"', '""' )
 				local headline = (photoData.headline or ""):gsub( '"', '""' )
 				local instructions = (photoData.instructions or ""):gsub( '"', '""' )
-				local copyright = (photoData.copyright or ""):gsub( '"', '""' )
 				local location = (photoData.location or ""):gsub( '"', '""' )
 				local elapsed = photoData.elapsed or 0
 
@@ -296,14 +290,14 @@ local function exportResults( propertyTable )
 				end
 				local keywordStr = table.concat( keywords, "; " ):gsub( '"', '""' )
 
-				file:write( string.format( '"%s","%s","%s","%s","%s","%s","%s","%s",%.3f\n',
-					filename, title, caption, headline, keywordStr, instructions, copyright, location, elapsed ) )
+				file:write( string.format( '"%s","%s","%s","%s","%s","%s","%s",%.3f\n',
+					filename, title, caption, headline, keywordStr, instructions, location, elapsed ) )
 			end
 
 			file:close()
-			LrDialogs.message( "Export Complete", "Analysis results exported to:\n" .. fileName, "info" )
+			LrDialogs.message( LOC( "$$$/AiTagger/Export/Complete=Export Complete" ), LOC( "$$$/AiTagger/Export/CompleteMessage=Analysis results exported to:\n" ) .. fileName, "info" )
 		else
-			LrDialogs.message( "Export Failed", "Could not create file:\n" .. fileName, "error" )
+			LrDialogs.message( LOC( "$$$/AiTagger/Export/Failed=Export Failed" ), LOC( "$$$/AiTagger/Export/FailedMessage=Could not create file:\n" ) .. fileName, "error" )
 		end
 	end
 end
@@ -354,47 +348,12 @@ local function showResponse( propertyTable )
 		end
 	)
 
-	-- Define actions that can be called from buttons and keyboard shortcuts
-	local function applyAllAndExit()
-		LrTasks.startAsyncTask(
-			function()
-				savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
-				for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-					applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.copyright, photo.location )
-				end
-			end
-		)
-		LrDialogs.stopModalWithResult(nil, "ok")
-	end
-
-	local function exitWithoutSave()
-		LrDialogs.stopModalWithResult(nil, "cancel")
-	end
-
 	local contents = f:column {
 		bind_to_object = propertyTable,
 		spacing = f:dialog_spacing(),
 		fill_horizontal = 1,
 		place_horizontal = 0.5,
 		width = 900,
-		-- Header row with title and X button
-		f:row {
-			fill_horizontal = 1,
-			f:static_text {
-				title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
-				font = "<system/bold>",
-				text_color = LrColor(0, 0, 0),
-				fill_horizontal = 1,
-			},
-			f:push_button {
-				title = "✕",
-				width = 30,
-				height = 25,
-				font = "<system/bold>",
-				action = exitWithoutSave,
-			},
-		},
-		f:spacer { height = 8 },
 		f:column {
 			fill_horizontal = 1,
 			place_horizontal = 0.5,
@@ -514,7 +473,7 @@ local function showResponse( propertyTable )
 		},
 		f:row {
 			f:column {
-				fill_horizontal = 0.65,
+				fill_horizontal = 0.5,
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogTitleTitle=Title" ),
 					font = "<system/bold>",
@@ -522,29 +481,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propTitle },
 						fill_horizontal = 1,
 						height_in_lines = 1,
-						width = 500,
-					},
-				},
-				f:spacer { height = 8 },
-				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
-					font = "<system/bold>",
-					f:edit_field {
-						value = bind { key = propCaption },
-						fill_horizontal = 1,
-						height_in_lines = 2,
-						width = 500,
-					},
-				},
-				f:spacer { height = 8 },
-				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogHeadlineTitle=Headline" ),
-					font = "<system/bold>",
-					f:edit_field {
-						value = bind { key = propHeadline },
-						fill_horizontal = 1,
-						height_in_lines = 4,
-						width = 500,
+						width = 425,
 					},
 				},
 				f:spacer { height = 8 },
@@ -589,7 +526,29 @@ local function showResponse( propertyTable )
 			},
 			f:spacer { width = 8 },
 			f:column {
-				fill_horizontal = 0.35,
+				fill_horizontal = 0.5,
+				f:group_box {
+					title = LOC( "$$$/AiTagger/ResultsDialogCaptionTitle=Caption" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propCaption },
+						fill_horizontal = 1,
+						height_in_lines = 2,
+						width = 425,
+					},
+				},
+				f:spacer { height = 8 },
+				f:group_box {
+					title = LOC( "$$$/AiTagger/ResultsDialogHeadlineTitle=Headline" ),
+					font = "<system/bold>",
+					f:edit_field {
+						value = bind { key = propHeadline },
+						fill_horizontal = 1,
+						height_in_lines = 4,
+						width = 425,
+					},
+				},
+				f:spacer { height = 8 },
 				f:group_box {
 					title = LOC( "$$$/AiTagger/ResultsDialogInstructionsTitle=Instructions" ),
 					font = "<system/bold>",
@@ -597,18 +556,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propInstructions },
 						fill_horizontal = 1,
 						height_in_lines = 3,
-						width = 350,
-					},
-				},
-				f:spacer { height = 8 },
-				f:group_box {
-					title = LOC( "$$$/AiTagger/ResultsDialogCopyrightTitle=Copyright" ),
-					font = "<system/bold>",
-					f:edit_field {
-						value = bind { key = propCopyright },
-						fill_horizontal = 1,
-						height_in_lines = 2,
-						width = 350,
+						width = 425,
 					},
 				},
 				f:spacer { height = 8 },
@@ -619,7 +567,7 @@ local function showResponse( propertyTable )
 						value = bind { key = propLocation },
 						fill_horizontal = 1,
 						height_in_lines = 2,
-						width = 350,
+						width = 425,
 					},
 				},
 			},
@@ -635,7 +583,7 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							local photo = propertyTable[ propPhotos ][ propertyTable[ propCurrentPhotoIndex ] ]
-							applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.copyright, photo.location )
+							applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location )
 						end
 					)
 				end,
@@ -649,16 +597,11 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.copyright, photo.location )
+								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location )
 							end
 						end
 					)
 				end,
-			},
-			f:push_button {
-				title = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
-				place_horizontal = 1,
-				action = applyAllAndExit,
 			},
 			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
@@ -676,13 +619,11 @@ local function showResponse( propertyTable )
 		},
 	}
 	local results = LrDialogs.presentModalDialog {
-		title = "",  -- Empty title since we have custom header
+		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
 		resizable = true,
 		contents = contents,
-		actionVerb = LOC( "$$$/AiTagger/ResultsDialogApplyAllDone=Apply All & Done" ),
-		actionCallback = applyAllAndExit,
-		cancelVerb = LOC( "$$$/AiTagger/ResultsDialogCancel=Cancel" ),
-		cancelCallback = exitWithoutSave,
+		cancelVerb = "< exclude >", -- magic value to hide the Cancel button
+		actionVerb = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
 	}
 end
 
@@ -712,7 +653,6 @@ local function AiTagger()
 				propertyTable[ propCaption ] = ""
 				propertyTable[ propHeadline ] = ""
 				propertyTable[ propInstructions ] = ""
-				propertyTable[ propCopyright ] = ""
 				propertyTable[ propLocation ] = ""
 
 				local progressScope = LrProgressScope {
@@ -766,7 +706,7 @@ local function AiTagger()
 										end
 
 										local start = LrDate.currentTime()
-										local result = GeminiAPI.analyze( fileName, jpegData )
+										local result = GeminiAPI.analyze( fileName, jpegData, photo )
 										local elapsed = LrDate.currentTime() - start
 										if result.status then
 											local keywordCount = result.keywords and #result.keywords or 0
@@ -774,16 +714,14 @@ local function AiTagger()
 											local hasCaption = result.caption and result.caption ~= ""
 											local hasHeadline = result.headline and result.headline ~= ""
 											local hasInstructions = result.instructions and result.instructions ~= ""
-											local hasCopyright = result.copyright and result.copyright ~= ""
 											local hasLocation = result.location and result.location ~= ""
 
-											trace( "completed in %.03f sec, got %d keywords, title: %s, caption: %s, headline: %s, instructions: %s, copyright: %s, location: %s",
+											trace( "completed in %.03f sec, got %d keywords, title: %s, caption: %s, headline: %s, instructions: %s, location: %s",
 												elapsed, keywordCount,
 												hasTitle and "yes" or "no",
 												hasCaption and "yes" or "no",
 												hasHeadline and "yes" or "no",
 												hasInstructions and "yes" or "no",
-												hasCopyright and "yes" or "no",
 												hasLocation and "yes" or "no" )
 											propertyTable[ propPhotos ][ i ] = {
 												photo = photo,
@@ -792,7 +730,6 @@ local function AiTagger()
 												caption = result.caption,
 												headline = result.headline,
 												instructions = result.instructions,
-												copyright = result.copyright,
 												location = result.location,
 												elapsed = elapsed,
 											}

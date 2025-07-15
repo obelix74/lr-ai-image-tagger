@@ -250,13 +250,13 @@ end
 local function exportResults( propertyTable )
 	local photos = propertyTable[ propPhotos ]
 	if not photos or #photos == 0 then
-		LrDialogs.message( "No Results", "No analysis results to export.", "info" )
+		LrDialogs.message( LOC( "$$$/AiTagger/Export/NoResults=No Results" ), LOC( "$$$/AiTagger/Export/NoResultsMessage=No analysis results to export." ), "info" )
 		return
 	end
 
 	local fileName = LrDialogs.runSavePanel( {
-		title = "Export Analysis Results",
-		label = "Save as:",
+		title = LOC( "$$$/AiTagger/Export/Title=Export Analysis Results" ),
+		label = LOC( "$$$/AiTagger/Export/SaveAs=Save as:" ),
 		requiredFileType = "csv",
 		initialDirectory = LrPathUtils.getStandardFilePath( "desktop" ),
 		initialFileName = "aiimagetagger_results_" .. LrDate.timeToUserFormat( LrDate.currentTime(), "%Y%m%d_%H%M%S" ) .. ".csv"
@@ -266,7 +266,7 @@ local function exportResults( propertyTable )
 		local file = io.open( fileName, "w" )
 		if file then
 			-- Write CSV header
-			file:write( "Filename,Title,Caption,Headline,Keywords,Instructions,Location,Analysis Time (sec)\n" )
+			file:write( LOC( "$$$/AiTagger/Export/CSVHeader=Filename,Title,Caption,Headline,Keywords,Instructions,Location,Analysis Time (sec)" ) .. "\n" )
 
 			-- Write data for each photo
 			for _, photoData in ipairs( photos ) do
@@ -295,9 +295,9 @@ local function exportResults( propertyTable )
 			end
 
 			file:close()
-			LrDialogs.message( "Export Complete", "Analysis results exported to:\n" .. fileName, "info" )
+			LrDialogs.message( LOC( "$$$/AiTagger/Export/Complete=Export Complete" ), LOC( "$$$/AiTagger/Export/CompleteMessage=Analysis results exported to:\n" ) .. fileName, "info" )
 		else
-			LrDialogs.message( "Export Failed", "Could not create file:\n" .. fileName, "error" )
+			LrDialogs.message( LOC( "$$$/AiTagger/Export/Failed=Export Failed" ), LOC( "$$$/AiTagger/Export/FailedMessage=Could not create file:\n" ) .. fileName, "error" )
 		end
 	end
 end

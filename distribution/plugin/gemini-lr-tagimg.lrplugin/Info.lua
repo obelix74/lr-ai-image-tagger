@@ -1,6 +1,6 @@
 --[[----------------------------------------------------------------------------
 
- AI Image Tagger - Automatically Tag Photos using Gemini AI API
+ Gemini AI Image Tagger - Automatically Tag Photos using Gemini AI API
  Copyright 2025 Anand's Photography
  Updated for Lightroom Classic 2024 and Gemini AI
 
@@ -18,9 +18,9 @@ return {
 	LrSdkVersion = 13.0,
 	LrSdkMinimumVersion = 10.0, -- minimum SDK version required by this plug-in
 
-	LrToolkitIdentifier = "net.tagimg.aiimagetagger",
+	LrToolkitIdentifier = "net.tagimg.gemini-lr-tagimg",
 
-	LrPluginName = LOC( "$$$/AiTagger/PluginName=AI Image Tagger" ),
+	LrPluginName = LOC( "$$$/AiTagger/PluginName=Gemini AI Image Tagger" ),
 	LrPluginInfoUrl = "https://lr.tagimg.net",
 	LrPluginInfoProvider = "AiTaggerInfoProvider.lua",
 
@@ -31,7 +31,7 @@ return {
 
 	LrExportMenuItems = {
 		{
-			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with AI" ),
+			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
 			file = "AiTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},
@@ -41,12 +41,12 @@ return {
 
 	LrLibraryMenuItems = {
 		{
-			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with AI" ),
+			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
 			file = "AiTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},
 	},
 
-	VERSION = { major = 2, minor = 3, revision = 1, build = 1, },
+	VERSION = { major = 3, minor = 3, revision = 0, build = 1, },
 
 }
