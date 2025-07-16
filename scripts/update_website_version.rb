@@ -17,7 +17,8 @@ def update_website_version
   content.gsub!(/href="gemini-lr-tagimg-v[\d.]+\.zip"/, "href=\"gemini-lr-tagimg-v#{version}.zip\"")
   
   # Update download button text
-  content.gsub!(/>Download v[\d.]+\s*\(Latest\)/, ">Download v#{version} (Latest)")
+  content.gsub!(/(Download\s*)v\d+\.\d+\.\d+/, "\\1v#{version}")
+
   
   File.write(website_file, content)
   puts "Updated website version to #{version}"

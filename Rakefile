@@ -6,7 +6,7 @@ VERSION = get_version
 VERSION_PARTS = parse_version(VERSION)
 
 # Updated for Gemini AI Image Tagger - Lightroom Classic 2024
-LUAC = "/opt/homebrew/bin/luac"  # Use installed Lua 5.4.8
+LUAC = "/usr/local/bin/luac"  # Use installed Lua 5.4.8
 ZIP = "zip"
 
 BUILD_DIR = "build"
@@ -118,4 +118,6 @@ task :package => [ :compile, PACKAGE_FILE ]
 
 task PACKAGE_FILE => DIST_DIR do
 	sh "cd #{BUILD_DIR} && #{ZIP} --recurse-paths #{File.absolute_path(PACKAGE_FILE)} #{PLUGIN_DIR.pathmap("%f")}"
+	sh "cd #{File.dirname(__FILE__)}/distribution/website && rm *.zip"
+	sh "cd #{BUILD_DIR} && cp #{File.absolute_path(PACKAGE_FILE)} #{File.dirname(__FILE__)}/distribution/website"
 end

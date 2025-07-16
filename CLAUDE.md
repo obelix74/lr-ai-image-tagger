@@ -11,8 +11,8 @@ This is an Gemini AI Image Tagger plugin for Adobe Lightroom Classic that automa
 ### Plugin Structure
 - **src/**: Source Lua files for the Lightroom plugin
 - **build/**: Local development build directory with plugin files
-- **distribution/plugin/gemini-lr-tagimg.lrplugin/**: Web deployment plugin files
 - **dist/**: Distribution packages (.zip files)
+- **distribtuion/website/**: files to be uploaded
 
 ### Key Components
 - **Info.lua**: Plugin manifest defining SDK version, menu items, and metadata
@@ -63,7 +63,7 @@ rake clobber
 
 ### Lua Requirements
 - Lua 5.1 compiler required for production builds
-- Install with: `brew install lua@5.1 && brew link lua@5.1 --force`
+- Install with: Download Lightroom classic SDK, and copy luac from the distribution to PATH: https://developer.adobe.com/lightroom-classic/
 - For development, can work with source .lua files directly
 
 ## API Integration
@@ -79,23 +79,26 @@ rake clobber
 - **Description**: Detailed 2-3 sentence description  
 - **Keywords**: Extracted relevant keywords
 - **Instructions**: Usage and editing suggestions
-- **Copyright**: Detected attribution information
 - **Location**: Identified landmarks and locations
 
 ## File Locations
 
 ### Plugin Installation
 For local development, built plugin resides in `build/gemini-lr-tagimg.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
-For deployment, plugin resides in `distribution/plugin/gemini-lr-tagimg.lrplugin/`.
+For deployment, plugin resides in `distribution/website/gemini-lr-tagimg-#{version}.zip`.
 
 ### Documentation
 - `README.md`: User-facing documentation and installation guide
 - `docs/`: Additional user guides and prompt examples
 - `CHANGELOG.md`: Version history and feature changes
 
-### Distribution
-- `dist/gemini-lr-tagimg-v2.3.2.zip`: Current production package
-- Website assets in `distribution/website/`
+### Deployment
+- Edit VERSION file
+- rake udpate_version
+- rake clean
+- rake clobber
+- rake package
+- ./deploy_private.sh (or call distribution/deploy.sh with correct ENV variables)
 
 ## Release Process
 
