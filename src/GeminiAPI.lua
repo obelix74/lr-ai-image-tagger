@@ -226,11 +226,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 					-- Log what metadata we're sending to Gemini
 					logger:infof( "GeminiAPI: Including EXIF/GPS metadata in analysis:" )
 					logger:infof( "  GPS: %s", metadata.gps or "none" )
-					if metadata.camera then
-						logger:infof( "  Camera: %s %s %s", metadata.camera.make or "", metadata.camera.model or "", metadata.camera.lens or "" )
-					else
-						logger:infof( "  Camera: none" )
-					end
 					if metadata.settings then
 						local settings = {}
 						if metadata.settings.focalLength then table.insert( settings, metadata.settings.focalLength ) end
@@ -238,18 +233,9 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 						if metadata.settings.shutterSpeed then table.insert( settings, metadata.settings.shutterSpeed ) end
 						if metadata.settings.iso then table.insert( settings, "ISO " .. metadata.settings.iso ) end
 						if metadata.settings.flash then table.insert( settings, "Flash: " .. metadata.settings.flash ) end
-						logger:infof( "  Settings: %s", #settings > 0 and table.concat( settings, ", " ) or "none" )
 					else
 						logger:infof( "  Settings: none" )
 					end
-					logger:infof( "  Date: %s", metadata.datetime or "none" )
-					if metadata.image then
-						logger:infof( "  Dimensions: %s", metadata.image.dimensions or "none" )
-						logger:infof( "  Cropped: %s", metadata.image.croppedDimensions or "none" )
-					else
-						logger:infof( "  Dimensions: none" )
-					end
-					logger:infof( "  Copyright: %s", metadata.copyright or "none" )
 					if metadata.location then
 						local locationParts = {}
 						if metadata.location.city then table.insert(locationParts, metadata.location.city) end

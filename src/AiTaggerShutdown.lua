@@ -15,4 +15,3 @@ require "Logger"
 
 --------------------------------------------------------------------------------
 
-logger:tracef( "AI Image Tagger v2.0: shutdown" )

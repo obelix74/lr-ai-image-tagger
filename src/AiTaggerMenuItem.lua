@@ -70,7 +70,6 @@ local function savePhoto( propertyTable, index )
 
 	local photo = propertyTable[ propPhotos ][ index ]
 	if photo ~= nil then
-		logger:tracef( "saving keyword selections" )
 		local keywords = photo.keywords or { }
 		for i, keyword in ipairs( keywords ) do
 			keyword.selected = propertyTable[ propKeywordSelected( i ) ]
@@ -82,10 +81,6 @@ local function savePhoto( propertyTable, index )
 		photo.headline = propertyTable[ propHeadline ]
 		photo.instructions = propertyTable[ propInstructions ]
 		photo.location = propertyTable[ propLocation ]
-
-		logger:tracef( "saved metadata to photo data: title='%s', caption='%s', headline='%s', instructions='%s', location='%s'",
-			photo.title or "nil", photo.caption or "nil", photo.headline or "nil", photo.instructions or "nil",
-			photo.location or "nil" )
 	end
 end
 
@@ -104,7 +99,6 @@ local function loadPhoto( propertyTable, index )
 	end
 
 	local keywords = photo.keywords or { }
-	logger:tracef( "updating %d keywords", #keywords )
 	for i = 1, prefs.maxKeywords do
 		local keyword = keywords[ i ] or { description = nil, selected = false }
 		propertyTable[ propKeywordTitle( i ) ] = keyword.description
@@ -121,8 +115,6 @@ end
 
 -- select photo (i.e. move from index X to Y)
 local function selectPhoto( propertyTable, newIndex )
-	logger:tracef( "selecting photo %d of %d (total photos in array: %d)", newIndex, propertyTable[ propTotalPhotos ] or 0, #propertyTable[ propPhotos ] )
-
 	local oldIndex = propertyTable[ propCurrentPhotoIndex ]
 	if oldIndex ~= newIndex then
 		savePhoto( propertyTable, oldIndex )
@@ -131,7 +123,6 @@ local function selectPhoto( propertyTable, newIndex )
 	if newIndex > 0 and newIndex <= #propertyTable[ propPhotos ] then
 		loadPhoto( propertyTable, newIndex )
 		propertyTable[ propCurrentPhotoIndex ] = newIndex
-		logger:tracef( "selectPhoto completed: new currentIndex=%d", propertyTable[ propCurrentPhotoIndex ] )
 	else
 		logger:errorf( "selectPhoto failed: index %d out of range (1-%d)", newIndex, #propertyTable[ propPhotos ] )
 	end
@@ -139,16 +130,12 @@ end
 
 -- apply the selected keywords and all metadata to the photo
 local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, location )
-	logger:tracef( "applyMetadataToPhoto called with: title='%s', caption='%s', headline='%s', instructions='%s', location='%s'",
-		title or "nil", caption or "nil", headline or "nil", instructions or "nil", location or "nil" )
-
 	-- Helper function to safely set metadata
 	local function safeSetMetadata( fieldName, value, description )
 		local success, error = pcall( function()
 			photo:setRawMetadata( fieldName, value )
 		end )
 		if success then
-			logger:tracef( "successfully set %s: %s", description, value )
 		else
 			logger:errorf( "failed to set %s (%s): %s", description, fieldName, tostring(error) )
 		end
@@ -175,7 +162,6 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				else
 					 -- decorateKeywordAsIs or decorateKeywordParent, do nothing
 				end
-				logger:tracef( "creating keyword %s", name )
 				return catalog:createKeyword( name, nil, true, parent, true )
 			end
 
@@ -304,9 +290,6 @@ end
 
 local function showResponse( propertyTable )
 
-	logger:tracef( "showResponse called: totalPhotos=%d, photosArrayLength=%d, currentIndex=%d",
-		propertyTable[ propTotalPhotos ] or 0, #propertyTable[ propPhotos ], propertyTable[ propCurrentPhotoIndex ] or 0 )
-
 	local f = LrView.osFactory()
 
 	-- create keywords array
@@ -331,7 +314,6 @@ local function showResponse( propertyTable )
 	propertyTable:addObserver( propPhotos,
 		function( propertyTable, key, value )
 			if #value > 0 and propertyTable[ propCurrentPhotoIndex ] == 0 then
-				logger:tracef( "making the initial selection" )
 				selectPhoto( propertyTable, 1 )
 			end
 		end
@@ -366,14 +348,12 @@ local function showResponse( propertyTable )
 						key = propCurrentPhotoIndex,
 						transform = function( value, fromTable )
 							local hasPrev = (value or 0) > 1
-							logger:tracef( "previous button enabled check: currentIndex=%d, hasPrev=%s", value or 0, tostring(hasPrev) )
 							return hasPrev
 						end,
 					},
 					action = function( btn )
 						local currentIndex = propertyTable[ propCurrentPhotoIndex ]
 						local newIndex = currentIndex - 1
-						logger:tracef( "previous photo: current=%d, new=%d, total=%d", currentIndex, newIndex, #propertyTable[ propPhotos ] )
 						selectPhoto( propertyTable, newIndex )
 					end,
 				},
@@ -406,13 +386,6 @@ local function showResponse( propertyTable )
 							local i = values[ propCurrentPhotoIndex ] or 0
 							local photos = values[ propPhotos ] or {}
 							local hasNext = photos[ i + 1 ] ~= nil
-							logger:tracef( "next button enabled check: currentIndex=%d, totalPhotos=%d, hasNext=%s, photosArrayLength=%d",
-								i, #photos, tostring(hasNext), #photos )
-							-- Additional debugging
-							if #photos > 0 then
-								logger:tracef( "photos array contents: photo1=%s, photo2=%s",
-									photos[1] and "exists" or "nil", photos[2] and "exists" or "nil" )
-							end
 							return hasNext
 						end,
 					},
@@ -630,7 +603,6 @@ end
 local function AiTagger()
 	LrFunctionContext.postAsyncTaskWithContext( "analyzing photos",
 		function( context )
-			logger:tracef( "AiTaggerMenuItem v2.0: enter" )
 			LrDialogs.attachErrorDialogToFunctionContext( context )
 			local catalog = LrApplication.activeCatalog()
 
@@ -687,12 +659,10 @@ local function AiTagger()
 					end
 
 					while ( runningTasks >= prefs.maxTasks ) and not ( progressScope:isCanceled() or progressScope:isDone() ) do
-						-- logger:tracef( "%d analysis tasks running, waiting for one to finish", runningTasks )
 						LrTasks.sleep( 0.2 )
 					end
 					runningTasks = runningTasks + 1
 
-					trace( "begin analysis" )
 					table.insert( thumbnailRequests, i, photo:requestJpegThumbnail( prefs.thumbnailWidth, prefs.thumbnailHeight,
 						function( jpegData, errorMsg )
 							LrTasks.startAsyncTask(
@@ -774,7 +744,6 @@ local function AiTagger()
 				end
 
 				while runningTasks > 0 do
-					logger:tracef( "waiting for %d analysis tasks to finish", runningTasks )
 					LrTasks.sleep( 0.2 )
 				end
 				thumbnailRequests = nil
@@ -809,7 +778,6 @@ local function AiTagger()
 				end
 			end
 
-			logger:tracef( "AiTaggerMenuItem: exit" )
 		end
 	)
 end

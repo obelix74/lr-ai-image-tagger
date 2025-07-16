@@ -76,7 +76,6 @@ local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Pla
 
 
 local function loadApiKey( propertyTable )
-	logger:tracef( "loading API key from keystore" )
 	local apiKey = GeminiAPI.getApiKey()
 	if apiKey then
 		propertyTable[ propApiKey ] = apiKey
@@ -98,8 +97,6 @@ local function clearApiKey( propertyTable )
 end
 
 local function startDialog( propertyTable )
-	logger:tracef( "AiTaggerInfoProvider: startDialog" )
-
 	propertyTable[ propVersions ] = {
 		gemini = {
 			version = loadingText,
@@ -107,9 +104,7 @@ local function startDialog( propertyTable )
 	}
 	LrTasks.startAsyncTask(
 		function()
-			logger:tracef( "getting Gemini API versions" )
 			propertyTable[ propVersions ] = GeminiAPI.getVersions()
-			logger:tracef( "got Gemini API versions" )
 		end
 	)
 
@@ -135,17 +130,14 @@ local function startDialog( propertyTable )
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
 		if newValue and newValue ~= "" then
-			logger:tracef("Preset observer triggered: %s", newValue)
 			local preset = GeminiAPI.getPreset(newValue)
 			if preset then
-				logger:tracef("Loading preset prompt, length: %d characters", #preset.prompt)
 				-- Direct property assignment
 				propertyTable[propCustomPrompt] = preset.prompt
 				-- Force UI refresh
 				local currentValue = propertyTable[propUseCustomPrompt]
 				propertyTable[propUseCustomPrompt] = not currentValue
 				propertyTable[propUseCustomPrompt] = currentValue
-				logger:tracef("Property table updated with preset content")
 				-- Reset dropdown selection
 				propertyTable["selectedPreset"] = ""
 			else
@@ -158,8 +150,6 @@ local function startDialog( propertyTable )
 end
 
 local function endDialog( propertyTable )
-	logger:tracef( "AiTaggerInfoProvider: endDialog" )
-
 	prefs.maxTasks = propertyTable[ propGeneralMaxTasks ]
 
 	prefs.decorateKeyword = propertyTable[ propDecorateKeyword ]
@@ -182,7 +172,6 @@ local function endDialog( propertyTable )
 end
 
 local function sectionsForTopOfDialog( f, propertyTable )
-	logger:tracef( "AiTaggerInfoProvider: sectionsForTopOfDialog" )
 
 	return {
 		-- general options
@@ -404,17 +393,14 @@ local function sectionsForTopOfDialog( f, propertyTable )
 						})
 
 						if fileName and fileName[1] then
-							logger:tracef("Loading prompt from file: %s", fileName[1])
 							local content, error = GeminiAPI.loadPromptFromFile(fileName[1])
 							if content then
-								logger:tracef("File loaded successfully, length: %d characters", #content)
 								-- Direct property assignment
 								propertyTable[propCustomPrompt] = content
 								-- Force UI refresh
 								local currentValue = propertyTable[propUseCustomPrompt]
 								propertyTable[propUseCustomPrompt] = not currentValue
 								propertyTable[propUseCustomPrompt] = currentValue
-								logger:tracef("Property table updated with file content")
 							else
 								logger:errorf("Failed to load file: %s", error or "unknown error")
 								LrDialogs.message( LOC( "$$$/AiTagger/Prompt/ErrorLoadingFile=Error Loading File" ), error or LOC( "$$$/AiTagger/Prompt/CouldNotLoadFile=Could not load prompt from file." ), "error" )
