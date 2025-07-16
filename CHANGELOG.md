@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.0] - 2025-07-16
+
+### Changed
+- **Auto Collections Simplification**: Removed smart collections option from configuration UI
+- **Enhanced Collection Management**: Streamlined auto collections to focus on working functionality only
+- **Improved User Experience**: Eliminated disabled/non-functional smart collections option
+
+### Fixed  
+- **Configuration Clarity**: Removed references to smart collections that were disabled due to Lightroom SDK limitations
+- **UI Consistency**: Auto collections configuration now only shows functional options
+- **Help Text Accuracy**: Updated collection help text to reflect actual capabilities
+
+### Technical
+- **Code Cleanup**: Removed all smart collections related code and UI elements
+- **Preference Management**: Simplified collection preferences to working features only
+- **Localization Updates**: Removed smart collections strings from all translation files
+
+---
+
 ## [3.4.0] - 2025-07-16
 
 ### Added

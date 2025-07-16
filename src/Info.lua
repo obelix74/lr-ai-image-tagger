@@ -47,6 +47,9 @@ return {
 		},
 	},
 
-	VERSION = { major = 3, minor = 4, revision = 0, build = 1, },
+	-- Custom plugin properties for AI metadata storage
+	-- LrMetadataProvider = "AiTaggerMetadataProvider.lua",
+
+	VERSION = { major = 3, minor = 5, revision = 0, build = 1, },
 
 }

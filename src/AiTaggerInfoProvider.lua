@@ -60,6 +60,10 @@ local propResponseLanguage = "responseLanguage"
 local propApiKey = "apiKey"
 local propVersions = "versions"
 
+-- auto collections properties
+local propCreateAutoCollections = "createAutoCollections"
+local propCollectionScheme = "collectionScheme"
+
 -- canned strings
 local loadingText = LOC( "$$$/AiTagger/Options/Loading=loading..." )
 
@@ -126,6 +130,10 @@ local function startDialog( propertyTable )
 	propertyTable[ propDelayBetweenRequests ] = prefs.delayBetweenRequests
 	propertyTable[ propIncludeGpsExifData ] = prefs.includeGpsExifData
 	propertyTable[ propResponseLanguage ] = prefs.responseLanguage or "English"
+	
+	-- auto collections properties
+	propertyTable[ propCreateAutoCollections ] = prefs.createAutoCollections or false
+	propertyTable[ propCollectionScheme ] = prefs.collectionScheme or "Content-Based"
 
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
@@ -167,6 +175,10 @@ local function endDialog( propertyTable )
 	prefs.delayBetweenRequests = propertyTable[ propDelayBetweenRequests ]
 	prefs.includeGpsExifData = propertyTable[ propIncludeGpsExifData ]
 	prefs.responseLanguage = propertyTable[ propResponseLanguage ]
+	
+	-- auto collections preferences
+	prefs.createAutoCollections = propertyTable[ propCreateAutoCollections ]
+	prefs.collectionScheme = propertyTable[ propCollectionScheme ]
 
 	storeApiKey( propertyTable )
 end
@@ -542,6 +554,45 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					action = function( btn )
 						clearApiKey( propertyTable )
 					end,
+				},
+			},
+		},
+		-- auto collections
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Collections/Title=Auto Collections" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/Collections/CreateAuto=Create automatic collections" ),
+					value = bind { key = propCreateAutoCollections },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Collections/Scheme=Collection Scheme:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					enabled = bind { key = propCreateAutoCollections },
+					value = bind { key = propCollectionScheme },
+					items = {
+						{ title = LOC( "$$$/AiTagger/Options/Collections/ContentBased=Content-Based" ), value = "Content-Based" },
+						{ title = LOC( "$$$/AiTagger/Options/Collections/QualityBased=Quality-Based" ), value = "Quality-Based" },
+						{ title = LOC( "$$$/AiTagger/Options/Collections/LocationBased=Location-Based" ), value = "Location-Based" },
+					},
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Collections/Help=Automatically organize AI-tagged photos into collections. Content-based groups by subject matter, Quality-based by AI confidence, Location-based by identified places." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
 				},
 			},
 		},

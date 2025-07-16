@@ -37,6 +37,28 @@ require "GeminiAPI"
 
 local prefs = LrPrefs.prefsForPlugin()
 
+-- Collection management constants
+local KEYWORD_COLLECTIONS = {
+	["Landscapes"] = {"landscape", "nature", "outdoor", "mountain", "ocean", "forest", "desert", "valley", "lake", "river"},
+	["People"] = {"person", "people", "portrait", "face", "family", "child", "baby", "man", "woman"},
+	["Animals"] = {"animal", "dog", "cat", "bird", "horse", "wildlife", "pet", "farm", "zoo"},
+	["Architecture"] = {"building", "house", "church", "bridge", "tower", "architecture", "urban", "city"},
+	["Food"] = {"food", "meal", "restaurant", "cooking", "kitchen", "fruit", "vegetable", "drink"},
+	["Events"] = {"wedding", "party", "birthday", "celebration", "festival", "concert", "graduation"},
+	["Sports"] = {"sport", "football", "basketball", "tennis", "running", "swimming", "cycling", "golf"},
+	["Travel"] = {"travel", "vacation", "tourist", "hotel", "airport", "train", "car", "road"}
+}
+
+local LOCATION_COLLECTIONS = {
+	["National Parks"] = {"national park", "yosemite", "yellowstone", "grand canyon", "zion"},
+	["Cities"] = {"city", "urban", "downtown", "street", "skyline", "new york", "san francisco", "los angeles"},
+	["Landmarks"] = {"landmark", "monument", "statue", "historic", "famous", "tower", "bridge"},
+	["Indoor"] = {"indoor", "inside", "room", "house", "building", "interior"},
+	["Outdoor"] = {"outdoor", "outside", "garden", "park", "field", "forest"},
+	["Beach"] = {"beach", "ocean", "sea", "sand", "coast", "shore", "wave"},
+	["Mountains"] = {"mountain", "hill", "peak", "summit", "alpine", "hiking", "climbing"}
+}
+
 local propPhotos = "photos"
 local propCurrentPhotoIndex = "currentPhotoIndex"
 local propCurrentPhotoName = "currentPhotoName"
@@ -56,6 +78,246 @@ local function propKeywordTitle( i )
 end
 local function propKeywordSelected( i )
 	return string.format( "keywordSelected%d", i )
+end
+
+--------------------------------------------------------------------------------
+
+-- Collection Management Functions
+
+-- Store AI metadata using standard properties
+local function storeAIMetadata(photo, confidence, categories, processDate)
+	logger:tracef("storeAIMetadata called for photo %s with confidence %s", 
+		photo:getFormattedMetadata("fileName"), tostring(confidence))
+	
+	-- Store confidence in instructions field as "AI Confidence: X.XX"
+	local currentInstructions = photo:getFormattedMetadata("instructions") or ""
+	logger:tracef("Current instructions: '%s'", currentInstructions)
+	
+	if currentInstructions:find("AI Confidence:") then
+		-- Replace existing confidence
+		currentInstructions = currentInstructions:gsub("AI Confidence: %d+%.%d+", "AI Confidence: " .. tostring(confidence))
+	else
+		-- Add confidence to instructions
+		if currentInstructions ~= "" then
+			currentInstructions = currentInstructions .. " | AI Confidence: " .. tostring(confidence)
+		else
+			currentInstructions = "AI Confidence: " .. tostring(confidence)
+		end
+	end
+	
+	logger:tracef("Setting instructions to: '%s'", currentInstructions)
+	photo:setRawMetadata("instructions", currentInstructions)
+	
+	-- Verify the metadata was set
+	local verifyInstructions = photo:getFormattedMetadata("instructions") or ""
+	logger:tracef("Verified instructions after setting: '%s'", verifyInstructions)
+	
+	-- Store categories as a special keyword prefix
+	if categories and #categories > 0 then
+		logger:tracef("Adding %d AI category keywords", #categories)
+		local catalog = LrApplication.activeCatalog()
+		for _, category in ipairs(categories) do
+			local keywordName = "AI:" .. category
+			logger:tracef("Creating keyword: %s", keywordName)
+			local keyword = catalog:createKeyword(keywordName, {}, false, nil, true)
+			photo:addKeyword(keyword)
+		end
+	else
+		logger:tracef("No categories provided for AI keywords")
+	end
+end
+
+-- Create or get collection set for AI tagged photos
+local function getOrCreateAICollectionSet()
+	local catalog = LrApplication.activeCatalog()
+	local collectionSet = nil
+	
+	-- Look for existing AI collection set
+	local allCollections = catalog:getChildCollectionSets()
+	for _, set in ipairs(allCollections) do
+		if set:getName() == "Gemini AI Tagged" then
+			collectionSet = set
+			break
+		end
+	end
+	
+	-- Create if doesn't exist
+	if not collectionSet then
+		collectionSet = catalog:createCollectionSet("Gemini AI Tagged", nil, true)
+		logger:info("Created AI collection set: Gemini AI Tagged")
+	end
+	
+	return collectionSet
+end
+
+-- Create or get a collection within the AI collection set
+local function getOrCreateCollection(name, parent)
+	local catalog = LrApplication.activeCatalog()
+	
+	-- Look for existing collection
+	local collections = parent:getChildCollections()
+	for _, collection in ipairs(collections) do
+		if collection:getName() == name then
+			return collection
+		end
+	end
+	
+	-- Create new collection
+	local collection = catalog:createCollection(name, parent, true)
+	logger:infof("Created collection: %s", name)
+	
+	-- Force refresh to ensure collection info is available
+	LrTasks.yield()
+	
+	return collection
+end
+
+-- Determine which collections a photo should belong to based on keywords
+local function determinePhotoCollections(keywords, scheme)
+	local collections = {}
+	
+	if scheme == "Content-Based" then
+		for collectionName, collectionKeywords in pairs(KEYWORD_COLLECTIONS) do
+			for _, keyword in ipairs(keywords) do
+				for _, collectionKeyword in ipairs(collectionKeywords) do
+					if string.lower(keyword):find(string.lower(collectionKeyword)) then
+						table.insert(collections, collectionName)
+						break
+					end
+				end
+			end
+		end
+	elseif scheme == "Location-Based" then
+		for collectionName, collectionKeywords in pairs(LOCATION_COLLECTIONS) do
+			for _, keyword in ipairs(keywords) do
+				for _, collectionKeyword in ipairs(collectionKeywords) do
+					if string.lower(keyword):find(string.lower(collectionKeyword)) then
+						table.insert(collections, collectionName)
+						break
+					end
+				end
+			end
+		end
+	end
+	
+	-- Remove duplicates
+	local uniqueCollections = {}
+	local seen = {}
+	for _, collection in ipairs(collections) do
+		if not seen[collection] then
+			table.insert(uniqueCollections, collection)
+			seen[collection] = true
+		end
+	end
+	
+	return uniqueCollections
+end
+
+-- Create auto collections for processed photos
+local function createAutoCollections(processedPhotos)
+	if not prefs.createAutoCollections then
+		return
+	end
+	
+	LrTasks.startAsyncTask(function()
+		logger:info("Creating auto collections for AI tagged photos...")
+		
+		local catalog = LrApplication.activeCatalog()
+		local aiCollectionSet = nil
+		local schemeSet = nil
+		local qualitySet = nil
+			
+		-- Step 1: Create collection sets first
+		catalog:withWriteAccessDo("Create Collection Sets", function()
+			aiCollectionSet = getOrCreateAICollectionSet()
+			if prefs.createAutoCollections then
+				local scheme = prefs.collectionScheme or "Content-Based"
+				schemeSet = catalog:createCollectionSet(scheme, aiCollectionSet, true)
+				qualitySet = catalog:createCollectionSet("Quality-Based", aiCollectionSet, true)
+				logger:infof("Created collection sets: %s, Quality-Based", scheme)
+			end
+		end)
+		
+		-- Step 2: Create content-based collections
+		if prefs.createAutoCollections and schemeSet then
+			local scheme = prefs.collectionScheme or "Content-Based"
+			
+			-- Group photos by their determined collections
+			local photoGroups = {}
+			
+			for _, photoData in ipairs(processedPhotos) do
+				local keywords = {}
+				if photoData.keywords then
+					for _, keywordData in ipairs(photoData.keywords) do
+						if keywordData.selected then
+							table.insert(keywords, keywordData.title or keywordData.description)
+						end
+					end
+				end
+				
+				local photoCollections = determinePhotoCollections(keywords, scheme)
+				
+				for _, collectionName in ipairs(photoCollections) do
+					photoGroups[collectionName] = photoGroups[collectionName] or {}
+					table.insert(photoGroups[collectionName], photoData.photo)
+				end
+			end
+			
+			-- Create collections and add photos in separate write access
+			catalog:withWriteAccessDo("Create Content Collections", function()
+				for collectionName, photos in pairs(photoGroups) do
+					if #photos > 0 then
+						local collection = catalog:createCollection(collectionName, schemeSet, true)
+						collection:addPhotos(photos)
+						logger:infof("Added %d photos to collection: %s", #photos, collectionName)
+					end
+				end
+			end)
+		end
+		
+		-- Step 3: Create quality-based collections
+		if prefs.createAutoCollections and qualitySet then
+			local highConfidence = {}
+			local mediumConfidence = {}
+			local lowConfidence = {}
+			
+			for _, photoData in ipairs(processedPhotos) do
+				local confidence = photoData.confidence or 0.5
+				
+				if confidence >= 0.9 then
+					table.insert(highConfidence, photoData.photo)
+				elseif confidence >= 0.7 then
+					table.insert(mediumConfidence, photoData.photo)
+				else
+					table.insert(lowConfidence, photoData.photo)
+				end
+			end
+			
+			-- Create quality collections in separate write access
+			catalog:withWriteAccessDo("Create Quality Collections", function()
+				if #highConfidence > 0 then
+					local collection = catalog:createCollection("High Confidence (>90%)", qualitySet, true)
+					collection:addPhotos(highConfidence)
+					logger:infof("Added %d photos to High Confidence collection", #highConfidence)
+				end
+				
+				if #mediumConfidence > 0 then
+					local collection = catalog:createCollection("Medium Confidence (70-90%)", qualitySet, true)
+					collection:addPhotos(mediumConfidence)
+					logger:infof("Added %d photos to Medium Confidence collection", #mediumConfidence)
+				end
+				
+				if #lowConfidence > 0 then
+					local collection = catalog:createCollection("Needs Review (<70%)", qualitySet, true)
+					collection:addPhotos(lowConfidence)
+					logger:infof("Added %d photos to Needs Review collection", #lowConfidence)
+				end
+			end)
+		end
+		
+		
+		logger:info("Auto collections creation completed")
+	end)
 end
 
 --------------------------------------------------------------------------------
@@ -129,7 +391,7 @@ local function selectPhoto( propertyTable, newIndex )
 end
 
 -- apply the selected keywords and all metadata to the photo
-local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, location )
+local function applyMetadataToPhoto( photo, keywords, title, caption, headline, instructions, location, confidence )
 	-- Helper function to safely set metadata
 	local function safeSetMetadata( fieldName, value, description )
 		local success, error = pcall( function()
@@ -226,6 +488,11 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				-- Try different location fields that are known to work in Lightroom
 				safeSetMetadata( "location", location, "IPTC location" )
 				safeSetMetadata( "city", location, "IPTC city" )
+			end
+			
+			-- Store AI metadata for collection management
+			if confidence then
+				storeAIMetadata( photo, confidence, selectedKeywords, LrDate.currentTime() )
 			end
 		end,
 		{ timeout = 5 }
@@ -556,7 +823,7 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							local photo = propertyTable[ propPhotos ][ propertyTable[ propCurrentPhotoIndex ] ]
-							applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location )
+							applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location, photo.confidence )
 						end
 					)
 				end,
@@ -570,8 +837,14 @@ local function showResponse( propertyTable )
 						function()
 							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
 							for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location )
+								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location, photo.confidence )
 							end
+							
+							-- Create auto collections after applying all metadata (in separate task to avoid write access conflicts)
+							LrTasks.startAsyncTask(function()
+								LrTasks.sleep(0.5) -- Small delay to ensure all metadata writes are complete
+								createAutoCollections( propertyTable[ propPhotos ] )
+							end)
 						end
 					)
 				end,
@@ -686,13 +959,22 @@ local function AiTagger()
 											local hasInstructions = result.instructions and result.instructions ~= ""
 											local hasLocation = result.location and result.location ~= ""
 
-											trace( "completed in %.03f sec, got %d keywords, title: %s, caption: %s, headline: %s, instructions: %s, location: %s",
+											-- Calculate confidence based on metadata completeness
+											local metadataFields = { hasTitle, hasCaption, hasHeadline, hasInstructions, hasLocation }
+											local filledFields = 0
+											for _, hasField in ipairs( metadataFields ) do
+												if hasField then filledFields = filledFields + 1 end
+											end
+											local confidence = (filledFields / #metadataFields) * 0.7 + (math.min(keywordCount, 10) / 10) * 0.3
+											
+											trace( "completed in %.03f sec, got %d keywords, title: %s, caption: %s, headline: %s, instructions: %s, location: %s, confidence: %.2f",
 												elapsed, keywordCount,
 												hasTitle and "yes" or "no",
 												hasCaption and "yes" or "no",
 												hasHeadline and "yes" or "no",
 												hasInstructions and "yes" or "no",
-												hasLocation and "yes" or "no" )
+												hasLocation and "yes" or "no",
+												confidence )
 											propertyTable[ propPhotos ][ i ] = {
 												photo = photo,
 												keywords = result.keywords,
@@ -702,6 +984,7 @@ local function AiTagger()
 												instructions = result.instructions,
 												location = result.location,
 												elapsed = elapsed,
+												confidence = confidence,
 											}
 											propertyTable[ propConsumedTime ] = propertyTable[ propConsumedTime ] + elapsed
 											propertyTable[ propElapsedTime ] = LrDate.currentTime() - propertyTable[ propStartTime ]
