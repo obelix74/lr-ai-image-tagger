@@ -352,9 +352,9 @@ main() {
 }
 
 # Check if script is being run from the correct directory
-if [ ! -d "website" ] || [ ! -d "plugin" ]; then
+if [ ! -d "website" ]; then
     print_error "This script must be run from the distribution directory."
-    print_error "Make sure you're in the directory containing 'website' and 'plugin' folders."
+    print_error "Make sure you're in the directory containing 'website' folder."
     exit 1
 fi
 

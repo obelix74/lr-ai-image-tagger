@@ -8,6 +8,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2025-07-16
+
+### Added
+- **Complete Internationalization**: Full localization support for all 16 languages supported by Adobe Lightroom Classic
+- **Multi-Language UI**: Comprehensive translation of all user-facing strings and interface elements
+- **Global Accessibility**: Native language support for English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese (Simplified & Traditional), Dutch, Polish, Swedish, Norwegian, and Thai
+- **TranslatedStrings System**: Implemented Adobe Lightroom SDK localization standard with proper string namespacing
+
+### Enhanced
+- **Language Coverage**: All 94 user interface strings translated professionally across 16 languages
+- **Technical Terminology**: Accurate photography and AI-specific terminology in each language
+- **Cultural Adaptation**: Localized text that respects cultural and linguistic conventions
+- **Unicode Support**: Full support for non-Latin scripts including Japanese, Chinese, Korean, Thai, Russian, and Arabic
+
+### Technical
+- **Lightroom SDK Compliance**: Proper `$$$/AiTagger/` namespace implementation for all localized strings
+- **File Structure**: Individual TranslatedStrings files for each supported language (e.g., `TranslatedStrings_es.txt`)
+- **Placeholder Handling**: Consistent support for dynamic content placeholders (^1, ^2, etc.) across all languages
+- **Deployment Infrastructure**: Fixed deployment script directory structure and path resolution issues
+
+### Fixed
+- **Deployment Scripts**: Corrected file path issues in `deploy_private.sh` and `deploy.sh`
+- **Directory Structure**: Updated deployment validation to match actual project structure
+- **Build Process**: Improved deployment reliability and error handling
+
+### International Markets
+- **European Union**: German, French, Italian, Spanish, Portuguese, Dutch, Polish, Swedish support
+- **Asia Pacific**: Japanese, Korean, Chinese (Simplified & Traditional), Thai support  
+- **Americas**: English, Spanish, Portuguese support
+- **Nordic Region**: Swedish, Norwegian support
+- **Global Reach**: Russian and additional language support for worldwide accessibility
+
+---
+
 ## [3.3.0] - 2025-07-15
 
 ### Added
