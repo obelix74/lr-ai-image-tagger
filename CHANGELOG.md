@@ -8,30 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.2.0] - 2025-07-15
+## [3.3.0] - 2025-07-15
 
 ### Added
-- **Automatic Language Detection**: Gemini AI now automatically responds in the user's Lightroom language
-- **Multi-Language AI Support**: AI-generated metadata (titles, captions, keywords) returned in detected language
-- **Enhanced Multi-Language Experience**: Complete integration between localized UI and AI responses
-
-### Enhanced
-- **Intelligent Language Switching**: Plugin detects Lightroom language and instructs Gemini accordingly
-- **Seamless Localization**: No user configuration required - works automatically with Lightroom's language setting
-- **All Prompt Types**: Language detection applies to default prompts, custom prompts, and preset prompts
-- **Consistent Experience**: Both UI and AI responses now match the user's preferred language
-
-### Fixed
-- **Localized UI Display**: Fixed localization display issues - now shows clean localized text
-- **Language Detection**: Resolved `getCurrentLocale()` error with proper Lightroom SDK implementation
-- **Translation Accuracy**: Improved localization accuracy for various UI elements
-
-### Technical
-- **Language Detection System**: Implemented robust language detection using LOC() function testing
-- **Prompt Enhancement**: All prompts automatically include language instructions when non-English
-- **Fallback Mechanisms**: Multiple detection methods ensure reliable language identification
-- **SDK Compatibility**: Removed non-existent LrLocalization functions for better stability
-
+- **Internationalization**: Support for multiple languages results from Gemini
+- **Internationalization**: All plugin text customizable in differnt languages
 ---
 
 
