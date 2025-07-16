@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=ตุรกี"
 "$$$/AiTagger/Language/Arabic=อาหรับ"
 "$$$/AiTagger/Language/Hindi=ฮินดี"
+"$$$/AiTagger/Language/Tamil=ทมิฬ"
 "$$$/AiTagger/Preset/SelectPreset=เลือกพรีเซ็ต..."
 "$$$/AiTagger/Prompt/SelectFile=เลือกไฟล์พรอมต์"
 "$$$/AiTagger/Prompt/ChooseFile=เลือกไฟล์ข้อความที่มีพรอมต์ที่กำหนดเองของคุณ:"

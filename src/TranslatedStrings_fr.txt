@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=Turc"
 "$$$/AiTagger/Language/Arabic=Arabe"
 "$$$/AiTagger/Language/Hindi=Hindi"
+"$$$/AiTagger/Language/Tamil=Tamoul"
 "$$$/AiTagger/Preset/SelectPreset=Sélectionnez un préréglage..."
 "$$$/AiTagger/Prompt/SelectFile=Sélectionner un fichier d'invite"
 "$$$/AiTagger/Prompt/ChooseFile=Choisissez un fichier texte contenant votre invite personnalisée :"

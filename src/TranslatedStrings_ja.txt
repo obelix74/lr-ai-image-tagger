@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=トルコ語"
 "$$$/AiTagger/Language/Arabic=アラビア語"
 "$$$/AiTagger/Language/Hindi=ヒンディー語"
+"$$$/AiTagger/Language/Tamil=タミル語"
 "$$$/AiTagger/Preset/SelectPreset=プリセットを選択..."
 "$$$/AiTagger/Prompt/SelectFile=プロンプトファイルを選択"
 "$$$/AiTagger/Prompt/ChooseFile=カスタムプロンプトを含むテキストファイルを選択してください:"

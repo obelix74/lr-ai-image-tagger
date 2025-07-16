@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=Türkisch"
 "$$$/AiTagger/Language/Arabic=Arabisch"
 "$$$/AiTagger/Language/Hindi=Hindi"
+"$$$/AiTagger/Language/Tamil=Tamil"
 "$$$/AiTagger/Preset/SelectPreset=Vorlage auswählen..."
 "$$$/AiTagger/Prompt/SelectFile=Prompt-Datei Auswählen"
 "$$$/AiTagger/Prompt/ChooseFile=Wählen Sie eine Textdatei mit Ihrem benutzerdefinierten Prompt:"

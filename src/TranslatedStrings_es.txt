@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=Turco"
 "$$$/AiTagger/Language/Arabic=Árabe"
 "$$$/AiTagger/Language/Hindi=Hindi"
+"$$$/AiTagger/Language/Tamil=Tamil"
 "$$$/AiTagger/Preset/SelectPreset=Seleccionar un preset..."
 "$$$/AiTagger/Prompt/SelectFile=Seleccionar Archivo de Prompt"
 "$$$/AiTagger/Prompt/ChooseFile=Elija un archivo de texto que contenga su prompt personalizado:"

@@ -243,6 +243,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 						{ title = LOC( "$$$/AiTagger/Language/Turkish=Turkish" ), value = "Turkish" },
 						{ title = LOC( "$$$/AiTagger/Language/Arabic=Arabic" ), value = "Arabic" },
 						{ title = LOC( "$$$/AiTagger/Language/Hindi=Hindi" ), value = "Hindi" },
+						{ title = LOC( "$$$/AiTagger/Language/Tamil=Tamil" ), value = "Tamil" },
 					},
 				},
 			},

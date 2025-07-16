@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=Tyrkisk"
 "$$$/AiTagger/Language/Arabic=Arabisk"
 "$$$/AiTagger/Language/Hindi=Hindi"
+"$$$/AiTagger/Language/Tamil=Tamil"
 "$$$/AiTagger/Preset/SelectPreset=Velg en forhåndsinnstilling..."
 "$$$/AiTagger/Prompt/SelectFile=Velg Prompt-fil"
 "$$$/AiTagger/Prompt/ChooseFile=Velg en tekstfil som inneholder din tilpassede prompt:"

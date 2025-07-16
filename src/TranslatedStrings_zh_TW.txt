@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=土耳其語"
 "$$$/AiTagger/Language/Arabic=阿拉伯語"
 "$$$/AiTagger/Language/Hindi=印地語"
+"$$$/AiTagger/Language/Tamil=泰米爾語"
 "$$$/AiTagger/Preset/SelectPreset=選擇預設..."
 "$$$/AiTagger/Prompt/SelectFile=選擇提示檔案"
 "$$$/AiTagger/Prompt/ChooseFile=選擇包含您自訂提示的文字檔案:"

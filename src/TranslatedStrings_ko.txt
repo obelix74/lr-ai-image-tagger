@@ -99,6 +99,7 @@
 "$$$/AiTagger/Language/Turkish=터키어"
 "$$$/AiTagger/Language/Arabic=아랍어"
 "$$$/AiTagger/Language/Hindi=힌디어"
+"$$$/AiTagger/Language/Tamil=타밀어"
 "$$$/AiTagger/Preset/SelectPreset=프리셋 선택..."
 "$$$/AiTagger/Prompt/SelectFile=프롬프트 파일 선택"
 "$$$/AiTagger/Prompt/ChooseFile=사용자 정의 프롬프트가 포함된 텍스트 파일을 선택하세요:"
