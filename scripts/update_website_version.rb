@@ -4,7 +4,7 @@ require_relative 'get_version'
 
 def update_website_version
   version = get_version
-  website_file = File.join(File.dirname(__FILE__), '..', 'distribution', 'website', 'index.html')
+  website_file = File.join(File.dirname(__FILE__), '..', 'docs', 'index.html')
   
   if !File.exist?(website_file)
     puts "ERROR: Website file not found: #{website_file}"
@@ -13,8 +13,8 @@ def update_website_version
   
   content = File.read(website_file)
   
-  # Update download link href
-  content.gsub!(/href="gemini-lr-tagimg-v[\d.]+\.zip"/, "href=\"gemini-lr-tagimg-v#{version}.zip\"")
+  # Update download link href with new GitHub path format
+  content.gsub!(/href="https:\/\/github\.com\/obelix74\/lr-gemini-ai-image-tagger\/blob\/main\/dist\/gemini-lr-tagimg-v[\d.]+\.zip"/, "href=\"https://github.com/obelix74/lr-gemini-ai-image-tagger/blob/main/dist/gemini-lr-tagimg-v#{version}.zip\"")
   
   # Update download button text
   content.gsub!(/(Download\s*)v\d+\.\d+\.\d+/, "\\1v#{version}")

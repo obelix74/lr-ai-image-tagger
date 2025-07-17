@@ -12,7 +12,7 @@ This is an Gemini AI Image Tagger plugin for Adobe Lightroom Classic that automa
 - **src/**: Source Lua files for the Lightroom plugin
 - **build/**: Local development build directory with plugin files
 - **dist/**: Distribution packages (.zip files)
-- **distribtuion/website/**: files to be uploaded
+- **docs/**: GitHub Pages website files
 
 ### Key Components
 - **Info.lua**: Plugin manifest defining SDK version, menu items, and metadata
@@ -85,7 +85,7 @@ rake clobber
 
 ### Plugin Installation
 For local development, built plugin resides in `build/gemini-lr-tagimg.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
-For deployment, plugin resides in `distribution/website/gemini-lr-tagimg-#{version}.zip`.
+For deployment, plugin is packaged in `dist/gemini-lr-tagimg-v#{version}.zip` and distributed via GitHub releases.
 
 ### Documentation
 - `README.md`: User-facing documentation and installation guide
@@ -94,22 +94,20 @@ For deployment, plugin resides in `distribution/website/gemini-lr-tagimg-#{versi
 
 ### Deployment
 - Edit VERSION file
-- rake udpate_version
+- rake update_version
 - rake clean
 - rake clobber
 - rake package
-- ./deploy_private.sh (or call distribution/deploy.sh with correct ENV variables)
+- Upload package to GitHub release and update docs/index.html
 
 ## Release Process
 
 ### Updating Version for Release
-When releasing a new version, update these files:
-1. **distribution/deploy.sh**: Update version numbers in verification check (line ~190) and download URL test (line ~231)
-2. **distribution/website/index.html**: Update download link and button text (line ~469-470)
+When releasing a new version, the `rake update_version` task will automatically update:
+1. **docs/index.html**: Updates download link and button text to match VERSION file
+2. **src/Info.lua**: Updates plugin version metadata
 
-Example for version 2.3.2:
-- Change `gemini-lr-tagimg-v2.3.1.zip` to `gemini-lr-tagimg-v2.3.2.zip` in deploy.sh
-- Change download button from "Download v2.3.1" to "Download v2.3.2" in index.html
+The website now uses GitHub Pages with docs/ directory and downloads link directly to GitHub releases.
 
 ## Important Notes
 

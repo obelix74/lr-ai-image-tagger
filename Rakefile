@@ -118,6 +118,6 @@ task :package => [ :compile, PACKAGE_FILE ]
 
 task PACKAGE_FILE => DIST_DIR do
 	sh "cd #{BUILD_DIR} && #{ZIP} --recurse-paths #{File.absolute_path(PACKAGE_FILE)} #{PLUGIN_DIR.pathmap("%f")}"
-	sh "cd #{File.dirname(__FILE__)}/distribution/website && rm *.zip"
-	sh "cd #{BUILD_DIR} && cp #{File.absolute_path(PACKAGE_FILE)} #{File.dirname(__FILE__)}/distribution/website"
+	puts "Package created: #{PACKAGE_FILE}"
+	puts "Note: Update docs/index.html manually if needed for GitHub Pages"
 end

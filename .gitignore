@@ -1,13 +1,10 @@
 # Build directories
 build/*
-dist/*
 
 # Configuration files with sensitive data
 config.lua
 .env*
 *.env
-deploy-private.sh
-deploy_private.sh
 
 # Security-sensitive files
 *.key
