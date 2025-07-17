@@ -410,19 +410,19 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 		function()
 			local function createDecoratedKeyword( name, decoration, value )
 				local parent = nil
-				if decoration == decorateKeywordParent then
+				if decoration == AiTaggerConstants.decorateKeywordParent then
 					parent = catalog:createKeyword( value, nil, true, nil, true )
 					if parent == nil then
 						logger:errorf( "failed to add parent keyword %s", value )
 						return nil
 					end
 				end
-				if decoration == decorateKeywordPrefix then
+				if decoration == AiTaggerConstants.decorateKeywordPrefix then
 					name = string.format( "%s %s", value, name )
-				elseif decoration == decorateKeywordSuffix then
+				elseif decoration == AiTaggerConstants.decorateKeywordSuffix then
 					name = string.format( "%s %s", name, value )
 				else
-					 -- decorateKeywordAsIs or decorateKeywordParent, do nothing
+					 -- AiTaggerConstants.decorateKeywordAsIs or decorateKeywordParent, do nothing
 				end
 				return catalog:createKeyword( name, nil, true, parent, true )
 			end
@@ -909,14 +909,16 @@ local function AiTagger()
 				-- show the progress dialog, as an async task (will be triggered after analysis completes)
 				local inDialog = true
 
-				-- Enumerate through all selected photos in the catalog
-				local runningTasks = 0
-				local thumbnailRequests = { }
-				logger:tracef( "begin analyzing %d photos", #photos )
+				-- First phase: Collect all thumbnails
+				local thumbnailData = { } -- Store thumbnail data for processing
+				local processingErrors = { } -- Collect errors instead of showing modal dialogs
+				local thumbnailsPending = #photos
+				logger:tracef( "begin collecting %d thumbnails", #photos )
 
 				-- Set initial progress message
-				progressScope:setCaption( LOC( "$$$/AiTagger/ProgressStarting=Starting AI analysis of ^1 photos...", #photos ) )
+				progressScope:setCaption( LOC( "$$$/AiTagger/ProgressStarting=Collecting thumbnails for ^1 photos...", #photos ) )
 				progressScope:setPortionComplete( 0, #photos )
+				
 				for i, photo in ipairs( photos ) do
 					if progressScope:isCanceled() or progressScope:isDone() then
 						break
@@ -927,8 +929,52 @@ local function AiTagger()
 					progressScope:setCaption( LOC( "$$$/AiTagger/ProgressCaption=Preparing ^1 (^2 of ^3)", fileName, i, #photos ) )
 					progressScope:setPortionComplete( (i-1), #photos )
 
+					-- Request thumbnail in non-yielding context
+					photo:requestJpegThumbnail( prefs.thumbnailWidth, prefs.thumbnailHeight,
+						function( jpegData, errorMsg )
+							if jpegData then
+								-- Store thumbnail data for later processing
+								table.insert( thumbnailData, {
+									photo = photo,
+									jpegData = jpegData,
+									fileName = fileName,
+									index = i
+								})
+							else
+								-- Collect thumbnail error
+								table.insert( processingErrors, { fileName = fileName, message = errorMsg or "Failed to generate thumbnail", type = "thumbnail" } )
+							end
+							
+							thumbnailsPending = thumbnailsPending - 1
+						end
+					)
+				end
+
+				-- Wait for all thumbnails to be collected
+				while thumbnailsPending > 0 and not (progressScope:isCanceled() or progressScope:isDone()) do
+					LrTasks.sleep( 0.1 )
+				end
+
+				-- Second phase: Process thumbnails with AI analysis
+				local runningTasks = 0
+				local totalThumbnails = #thumbnailData
+				logger:tracef( "begin analyzing %d thumbnails", totalThumbnails )
+
+				progressScope:setCaption( LOC( "$$$/AiTagger/ProgressStarting=Starting AI analysis of ^1 photos...", totalThumbnails ) )
+				progressScope:setPortionComplete( 0, totalThumbnails )
+				
+				for i, thumbnailInfo in ipairs( thumbnailData ) do
+					if progressScope:isCanceled() or progressScope:isDone() then
+						break
+					end
+
+					local photo = thumbnailInfo.photo
+					local jpegData = thumbnailInfo.jpegData
+					local fileName = thumbnailInfo.fileName
+					local originalIndex = thumbnailInfo.index
+
 					local function trace( msg, ... )
-						logger:tracef( "[%d | %d | %s] %s", #photos, i, fileName, string.format( msg, ... ) )
+						logger:tracef( "[%d | %d | %s] %s", totalThumbnails, i, fileName, string.format( msg, ... ) )
 					end
 
 					while ( runningTasks >= prefs.maxTasks ) and not ( progressScope:isCanceled() or progressScope:isDone() ) do
@@ -936,21 +982,20 @@ local function AiTagger()
 					end
 					runningTasks = runningTasks + 1
 
-					table.insert( thumbnailRequests, i, photo:requestJpegThumbnail( prefs.thumbnailWidth, prefs.thumbnailHeight,
-						function( jpegData, errorMsg )
-							LrTasks.startAsyncTask(
-								function()
-									if jpegData then
-										trace( "analyzing thumbnail (%s bytes)", LrStringUtils.numberToStringWithSeparators( #jpegData, 0 ) )
+					-- Process in async task context where yielding is allowed
+					LrTasks.startAsyncTask(
+						function()
+							LrFunctionContext.callWithContext( "aiAnalysis", function( context )
+								trace( "analyzing thumbnail (%s bytes)", LrStringUtils.numberToStringWithSeparators( #jpegData, 0 ) )
 
-										-- Update progress to show AI analysis in progress
-										if not (progressScope:isCanceled() or progressScope:isDone()) then
-											progressScope:setCaption( LOC( "$$$/AiTagger/ProgressAnalyzing=Analyzing with AI: ^1 (^2 of ^3)", fileName, i, #photos ) )
-										end
+								-- Update progress to show AI analysis in progress
+								if not (progressScope:isCanceled() or progressScope:isDone()) then
+									progressScope:setCaption( LOC( "$$$/AiTagger/ProgressAnalyzing=Analyzing with AI: ^1 (^2 of ^3)", fileName, i, totalThumbnails ) )
+								end
 
-										local start = LrDate.currentTime()
-										local result = GeminiAPI.analyze( fileName, jpegData, photo )
-										local elapsed = LrDate.currentTime() - start
+								local start = LrDate.currentTime()
+								local result = GeminiAPI.analyze( fileName, jpegData, photo )
+								local elapsed = LrDate.currentTime() - start
 										if result.status then
 											local keywordCount = result.keywords and #result.keywords or 0
 											local hasTitle = result.title and result.title ~= ""
@@ -995,33 +1040,24 @@ local function AiTagger()
 
 											-- Update progress to show completion
 											if not (progressScope:isCanceled() or progressScope:isDone()) then
-												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressComplete=Completed: ^1 (^2 of ^3)", fileName, i, #photos ) )
-												progressScope:setPortionComplete( i, #photos )
+												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressComplete=Completed: ^1 (^2 of ^3)", fileName, i, totalThumbnails ) )
+												progressScope:setPortionComplete( i, totalThumbnails )
 											end
 										else
 											-- Update progress to show error
 											if not (progressScope:isCanceled() or progressScope:isDone()) then
-												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressError=Error analyzing ^1 (^2 of ^3)", fileName, i, #photos ) )
+												progressScope:setCaption( LOC( "$$$/AiTagger/ProgressError=Error analyzing ^1 (^2 of ^3)", fileName, i, totalThumbnails ) )
 											end
 
-											local action = LrDialogs.confirm( LOC( "$$$/AiTagger/FailedAnalysis=Failed to analyze photo ^1", fileName ), result.message )
-											if action == "cancel" then
-												progressScope:cancel()
-											end
+											-- Collect error instead of showing modal dialog
+											table.insert( processingErrors, { fileName = fileName, message = result.message, type = "analysis" } )
 										end
-									else
-										local action = LrDialogs.confirm( LOC( "$$$/AiTagger/FailedThumbnail=Failed to generate thumbnail for ^1", fileName ), errorMsg )
-										if action == "cancel" then
-											progressScope:cancel()
-										end
-									end
-									table.remove( thumbnailRequests, i )
-									runningTasks = runningTasks - 1
-									trace( "end analysis" )
-								end
-							)
+
+										runningTasks = runningTasks - 1
+										trace( "end analysis" )
+							end)
 						end
-					) )
+					)
 
 					LrTasks.yield()
 				end
@@ -1029,7 +1065,6 @@ local function AiTagger()
 				while runningTasks > 0 do
 					LrTasks.sleep( 0.2 )
 				end
-				thumbnailRequests = nil
 				progressScope:done()
 
 				logger:tracef( "done analyzing %d photos in %.02f sec (%.02f sec elapsed)", #photos, propertyTable[ propConsumedTime ], propertyTable[ propElapsedTime ] )
@@ -1041,6 +1076,15 @@ local function AiTagger()
 					progressScope:setPortionComplete( 1, 1 )
 					-- Brief pause to let user see completion message
 					LrTasks.sleep( 0.5 )
+
+					-- Show error summary if there were any processing errors
+					if #processingErrors > 0 then
+						local errorMessage = string.format("Processing completed with %d error(s):\n\n", #processingErrors)
+						for i, error in ipairs(processingErrors) do
+							errorMessage = errorMessage .. string.format("%d. %s: %s\n", i, error.fileName, error.message)
+						end
+						LrDialogs.message("Processing Errors", errorMessage, "warning")
+					end
 
 					-- Ensure first photo is selected before showing dialog
 					if #propertyTable[ propPhotos ] > 0 and propertyTable[ propCurrentPhotoIndex ] == 0 then

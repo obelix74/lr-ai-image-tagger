@@ -17,6 +17,7 @@ local LrPrefs = import "LrPrefs"
 local LrPasswords = import "LrPasswords"
 local LrPathUtils = import "LrPathUtils"
 local LrFileUtils = import "LrFileUtils"
+local LrFunctionContext = import "LrFunctionContext"
 
 local JSON = require "JSON"
 require "Logger"
@@ -331,7 +332,18 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 			}
 			
 			local serviceUri = string.format( "%s/models/%s:generateContent?key=%s", serviceBaseUri, serviceModel, apiKey )
+			
+			-- Make HTTP call - yielding is now allowed in proper task context
 			local resBody, resHeaders = LrHttp.post( serviceUri, reqBody, reqHeaders )
+			
+			if not resBody then
+				local errorMsg = "Network request failed: no response received"
+				if resHeaders and resHeaders.error then
+					errorMsg = string.format( "Network error: %s", resHeaders.error.name or "unknown error" )
+				end
+				logger:errorf( "GeminiAPI: %s", errorMsg )
+				return { status = false, message = errorMsg }
+			end
 			
 			if resBody then
 				local resJson = JSON:decode( resBody )
@@ -465,13 +477,18 @@ function GeminiAPI.loadPromptFromFile(filePath)
 		return nil, "No file path provided"
 	end
 
-	local file = io.open(filePath, "r")
-	if not file then
-		return nil, "Could not open file: " .. filePath
+	-- Protect file operations with error handling
+	local success, file = pcall(io.open, filePath, "r")
+	if not success or not file then
+		return nil, "Could not open file: " .. tostring(file or filePath)
 	end
 
-	local content = file:read("*all")
+	local readSuccess, content = pcall(function() return file:read("*all") end)
 	file:close()
+	
+	if not readSuccess then
+		return nil, "Could not read content from file: " .. tostring(content)
+	end
 
 	if not content or content == "" then
 		return nil, "File is empty or could not read content"

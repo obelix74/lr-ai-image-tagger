@@ -13,5 +13,9 @@ Logger.lua
 local LrLogger = import "LrLogger"
 
 -- Create the logger and enable the print function.
-logger = LrLogger( "lr.tagimg.net" )
+local logger = LrLogger( "lr.tagimg.net" )
 logger:enable( "logfile" )
+
+-- Export logger to global namespace in a controlled way
+-- This prevents accidental global pollution while maintaining accessibility
+_G.logger = logger

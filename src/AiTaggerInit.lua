@@ -21,22 +21,38 @@ require "Logger"
 
 local prefs = LrPrefs.prefsForPlugin()
 
-decorateKeywordAsIs   = "keywordAsIs"
-decorateKeywordPrefix = "keywordPrefix"
-decorateKeywordSuffix = "keywordSuffix"
-decorateKeywordParent = "keywordParent"
+-- Plugin constants - now properly scoped as local variables
+local decorateKeywordAsIs   = "keywordAsIs"
+local decorateKeywordPrefix = "keywordPrefix"
+local decorateKeywordSuffix = "keywordSuffix"
+local decorateKeywordParent = "keywordParent"
 
-thresholdMin = 0
-thresholdMax = 100
-thresholdStep = 1
+local thresholdMin = 0
+local thresholdMax = 100
+local thresholdStep = 1
 
-tasksMin = 1
-tasksMax = LrSystemInfo.numCPUs()
-tasksStep = 1
+local tasksMin = 1
+local tasksMax = LrSystemInfo.numCPUs()
+local tasksStep = 1
 
 if prefs.maxTasks == nil then
 	prefs.maxTasks = math.min(tasksMax, 4) -- Limit to 4 concurrent requests for better stability
 end
+
+-- Export constants for use by other modules
+-- This prevents global namespace pollution while maintaining accessibility
+_G.AiTaggerConstants = {
+	decorateKeywordAsIs = decorateKeywordAsIs,
+	decorateKeywordPrefix = decorateKeywordPrefix,
+	decorateKeywordSuffix = decorateKeywordSuffix,
+	decorateKeywordParent = decorateKeywordParent,
+	thresholdMin = thresholdMin,
+	thresholdMax = thresholdMax,
+	thresholdStep = thresholdStep,
+	tasksMin = tasksMin,
+	tasksMax = tasksMax,
+	tasksStep = tasksStep
+}
 
 prefs.maxKeywords = 10
 -- Increase thumbnail size for better accuracy with modern AI
@@ -44,7 +60,7 @@ prefs.thumbnailWidth = 1600
 prefs.thumbnailHeight = 1600
 
 if prefs.decorateKeyword == nil then
-	prefs.decorateKeyword = decorateKeywordAsIs
+	prefs.decorateKeyword = AiTaggerConstants.decorateKeywordAsIs
 	prefs.decorateKeywordValue = nil
 end
 
