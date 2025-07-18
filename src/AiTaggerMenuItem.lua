@@ -89,28 +89,8 @@ local function storeAIMetadata(photo, confidence, categories, processDate)
 	logger:tracef("storeAIMetadata called for photo %s with confidence %s", 
 		photo:getFormattedMetadata("fileName"), tostring(confidence))
 	
-	-- Store confidence in instructions field as "AI Confidence: X.XX"
-	local currentInstructions = photo:getFormattedMetadata("instructions") or ""
-	logger:tracef("Current instructions: '%s'", currentInstructions)
-	
-	if currentInstructions:find("AI Confidence:") then
-		-- Replace existing confidence
-		currentInstructions = currentInstructions:gsub("AI Confidence: %d+%.%d+", "AI Confidence: " .. tostring(confidence))
-	else
-		-- Add confidence to instructions
-		if currentInstructions ~= "" then
-			currentInstructions = currentInstructions .. " | AI Confidence: " .. tostring(confidence)
-		else
-			currentInstructions = "AI Confidence: " .. tostring(confidence)
-		end
-	end
-	
-	logger:tracef("Setting instructions to: '%s'", currentInstructions)
-	photo:setRawMetadata("instructions", currentInstructions)
-	
-	-- Verify the metadata was set
-	local verifyInstructions = photo:getFormattedMetadata("instructions") or ""
-	logger:tracef("Verified instructions after setting: '%s'", verifyInstructions)
+	-- Store confidence in a custom field or keyword instead of overwriting instructions
+	-- The instructions field should preserve the AI-generated content in the user's language
 	
 	-- Store categories as a special keyword prefix
 	if categories and #categories > 0 then
@@ -830,27 +810,6 @@ local function showResponse( propertyTable )
 			},
 			f:push_button {
 				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
-				title = LOC( "$$$/AiTagger/ResultsDialogApplyAll=Apply All" ),
-				place_horizontal = 1,
-				action = function()
-					LrTasks.startAsyncTask(
-						function()
-							savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
-							for _, photo in ipairs( propertyTable[ propPhotos ] ) do
-								applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location, photo.confidence )
-							end
-							
-							-- Create auto collections after applying all metadata (in separate task to avoid write access conflicts)
-							LrTasks.startAsyncTask(function()
-								LrTasks.sleep(0.5) -- Small delay to ensure all metadata writes are complete
-								createAutoCollections( propertyTable[ propPhotos ] )
-							end)
-						end
-					)
-				end,
-			},
-			f:push_button {
-				enabled = LrBinding.keyIsNot( propCurrentPhotoIndex, 0 ),
 				title = LOC( "$$$/AiTagger/ResultsDialogExport=Export Results" ),
 				place_horizontal = 1,
 				action = function()
@@ -868,9 +827,28 @@ local function showResponse( propertyTable )
 		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
 		resizable = true,
 		contents = contents,
-		cancelVerb = "< exclude >", -- magic value to hide the Cancel button
-		actionVerb = LOC( "$$$/AiTagger/ResultsDialogOk=Done" ),
+		cancelVerb = LOC( "$$$/AiTagger/ResultsDialogCancel=Cancel" ),
+		actionVerb = LOC( "$$$/AiTagger/ResultsDialogApplyAll=Apply All" ),
 	}
+	
+	-- Handle the dialog result
+	if results == "ok" then
+		-- User clicked "Apply All" button (the default action)
+		LrTasks.startAsyncTask(
+			function()
+				savePhoto( propertyTable, propertyTable[ propCurrentPhotoIndex ])
+				for _, photo in ipairs( propertyTable[ propPhotos ] ) do
+					applyMetadataToPhoto( photo.photo, photo.keywords, photo.title, photo.caption, photo.headline, photo.instructions, photo.location, photo.confidence )
+				end
+				
+				-- Create auto collections after applying all metadata (in separate task to avoid write access conflicts)
+				LrTasks.startAsyncTask(function()
+					LrTasks.sleep(0.5) -- Small delay to ensure all metadata writes are complete
+					createAutoCollections( propertyTable[ propPhotos ] )
+				end)
+			end
+		)
+	end
 end
 
 local function AiTagger()

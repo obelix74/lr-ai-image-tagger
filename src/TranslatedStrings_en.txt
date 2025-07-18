@@ -69,6 +69,7 @@
 "$$$/AiTagger/ResultsDialogInstructionsTitle=Instructions"
 "$$$/AiTagger/ResultsDialogKeywordsTitle=Keywords"
 "$$$/AiTagger/ResultsDialogLocationTitle=Location"
+"$$$/AiTagger/ResultsDialogCancel=Cancel"
 "$$$/AiTagger/ResultsDialogOk=Done"
 "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results"
 "$$$/AiTagger/ResultsDialogTitleTitle=Title"

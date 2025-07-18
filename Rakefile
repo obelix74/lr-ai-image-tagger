@@ -64,6 +64,9 @@ task :package_source => [ :build_source, DIST_DIR ] do
   puts "Creating distribution package..."
   sh "cd #{BUILD_DIR} && #{ZIP} --recurse-paths #{File.absolute_path(PACKAGE_FILE)} #{PLUGIN_DIR.pathmap("%f")}"
   puts "Package created: #{PACKAGE_FILE}"
+  puts "Adding package to git..."
+  sh "git add #{PACKAGE_FILE}"
+  puts "Package added to git staging area"
 end
 
 directory BUILD_DIR
@@ -119,5 +122,8 @@ task :package => [ :compile, PACKAGE_FILE ]
 task PACKAGE_FILE => DIST_DIR do
 	sh "cd #{BUILD_DIR} && #{ZIP} --recurse-paths #{File.absolute_path(PACKAGE_FILE)} #{PLUGIN_DIR.pathmap("%f")}"
 	puts "Package created: #{PACKAGE_FILE}"
+	puts "Adding package to git..."
+	sh "git add #{PACKAGE_FILE}"
+	puts "Package added to git staging area"
 	puts "Note: Update docs/index.html manually if needed for GitHub Pages"
 end
