@@ -21,7 +21,7 @@ return {
 	LrToolkitIdentifier = "net.tagimg.gemini-lr-tagimg",
 
 	LrPluginName = LOC( "$$$/AiTagger/PluginName=Gemini AI Image Tagger" ),
-	LrPluginInfoUrl = "https://lr.tagimg.net",
+	LrPluginInfoUrl = "https://obelix74.github.io/lr-gemini-ai-image-tagger/",
 	LrPluginInfoProvider = "AiTaggerInfoProvider.lua",
 
 	LrInitPlugin = "AiTaggerInit.lua",

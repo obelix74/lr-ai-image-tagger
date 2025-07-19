@@ -36,7 +36,7 @@
 ## 🔧 Installation
 
 ### Step 1: Download the Plugin
-1. Download the latest release from the [plugin website](https://lr.tagimg.net)
+1. Download the latest release from the [plugin website](https://obelix74.github.io/lr-gemini-ai-image-tagger/)
 2. Extract the ZIP file to a folder on your computer
 
 ### Step 2: Install in Lightroom
@@ -178,7 +178,7 @@ Special thanks to [@tjotala](https://github.com/tjotala) for [lr-robotagger](htt
 
 ## 🔗 Links
 
-- [Plugin Homepage](https://lr.tagimg.net)
+- [Plugin Homepage](https://obelix74.github.io/lr-gemini-ai-image-tagger/)
 
 - [Google Gemini AI](https://ai.google.dev)
 - [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)
