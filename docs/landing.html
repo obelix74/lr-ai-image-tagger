@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Tagger - Powered by Gemini AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: white;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .hero {
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.95;
+        }
+
+        .projects {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e6ed;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .project-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .project-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .project-card p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .features li {
+            padding: 8px 0;
+            color: #555;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .secondary-button {
+            display: inline-block;
+            background: transparent;
+            color: #667eea;
+            padding: 15px 30px;
+            text-decoration: none;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            margin-left: 15px;
+        }
+
+        .secondary-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tech-badge {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .hero h2 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .project-card {
+                padding: 30px;
+            }
+
+            .secondary-button {
+                margin-left: 0;
+                margin-top: 10px;
+                display: block;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>AI Image Tagger</h1>
+            <p>Powered by Google Gemini AI</p>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="container">
+            <h2>Intelligent Photo Tagging Made Simple</h2>
+            <p>Automatically generate captions, descriptions, and keywords for your photos using advanced AI technology. Choose between our standalone application or Adobe Lightroom plugin.</p>
+        </div>
+    </div>
+
+    <div class="projects">
+        <div class="container">
+            <h2 class="section-title">Choose Your Solution</h2>
+            <p class="section-subtitle">Pick the perfect AI image tagging solution for your workflow</p>
+
+            <div class="projects-grid">
+                <!-- Standalone Node.js Application -->
+                <div class="project-card">
+                    <div class="project-icon">🖥️</div>
+                    <h3>Standalone Web Application</h3>
+                    <p>Full-featured web application with multi-user support, batch processing, and both cloud and local AI inference capabilities.</p>
+                    
+                    <ul class="features">
+                        <li>Multi-user authentication system</li>
+                        <li>Dual AI providers (Gemini AI & Ollama)</li>
+                        <li>Batch processing with progress tracking</li>
+                        <li>Recursive folder scanning</li>
+                        <li>Real-time analysis with confidence scores</li>
+                        <li>Duplicate detection</li>
+                        <li>Background processing</li>
+                        <li>Modern React-based interface</li>
+                    </ul>
+
+                    <div class="tech-stack">
+                        <span class="tech-badge">TypeScript</span>
+                        <span class="tech-badge">React</span>
+                        <span class="tech-badge">Express.js</span>
+                        <span class="tech-badge">SQLite</span>
+                        <span class="tech-badge">Gemini AI</span>
+                        <span class="tech-badge">Ollama</span>
+                    </div>
+
+                    <a href="https://github.com/obelix74/image-tagger" class="cta-button">View on GitHub</a>
+                    <a href="https://github.com/obelix74/image-tagger/blob/main/README.md" class="secondary-button">Documentation</a>
+                </div>
+
+                <!-- Lightroom Plugin -->
+                <div class="project-card">
+                    <div class="project-icon">📸</div>
+                    <h3>Adobe Lightroom Classic Plugin</h3>
+                    <p>Seamlessly integrated plugin for Adobe Lightroom Classic that adds AI-powered metadata generation directly to your photo editing workflow.</p>
+                    
+                    <ul class="features">
+                        <li>Native Lightroom Classic integration</li>
+                        <li>Complete IPTC metadata support</li>
+                        <li>Smart keyword management</li>
+                        <li>Custom AI prompt templates</li>
+                        <li>Batch processing with rate limiting</li>
+                        <li>CSV export functionality</li>
+                        <li>Location and copyright detection</li>
+                        <li>Professional workflow optimization</li>
+                    </ul>
+
+                    <div class="tech-stack">
+                        <span class="tech-badge">Lua</span>
+                        <span class="tech-badge">Lightroom SDK</span>
+                        <span class="tech-badge">Gemini AI</span>
+                        <span class="tech-badge">IPTC Metadata</span>
+                    </div>
+
+                    <a href="https://obelix74.github.io/lr-gemini-ai-image-tagger/" class="cta-button">Download Plugin</a>
+                    <a href="https://github.com/obelix74/lr-gemini-ai-image-tagger" class="secondary-button">Source Code</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2025 Anand's Photography. Built with ❤️ for photographers and content creators worldwide.</p>
+            <p>Powered by <a href="https://ai.google.dev">Google Gemini AI</a></p>
+            <p>Contact: <a href="mailto:lists@anands.net">lists@anands.net</a></p>
+        </div>
+    </div>
+</body>
+</html>
