@@ -14,7 +14,7 @@ def update_website_version
   content = File.read(website_file)
   
   # Update download link href with GitHub raw URL for direct download
-  content.gsub!(/href="https:\/\/github\.com\/obelix74\/lr-gemini-ai-image-tagger\/raw\/main\/dist\/gemini-lr-tagimg-v[\d.]+\.zip"/, "href=\"https://github.com/obelix74/lr-gemini-ai-image-tagger/raw/main/dist/gemini-lr-tagimg-v#{version}.zip\"")
+  content.gsub!(/href="https:\/\/github\.com\/obelix74\/lr-ai-image-tagger\/raw\/main\/dist\/ai-lr-tagimg-v[\d.]+\.zip"/, "href=\"https://github.com/obelix74/lr-ai-image-tagger/raw/main/dist/ai-lr-tagimg-v#{version}.zip\"")
   
   # Update download button text
   content.gsub!(/(Download\s*)v\d+\.\d+\.\d+/, "\\1v#{version}")

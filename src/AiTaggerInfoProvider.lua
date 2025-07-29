@@ -27,7 +27,7 @@ local share = LrView.share
 
 local inspect = require "inspect"
 require "Logger"
-require "GeminiAPI"
+require "AIProviderFactory"
 
 --------------------------------------------------------------------------------
 
@@ -60,6 +60,12 @@ local propResponseLanguage = "responseLanguage"
 local propApiKey = "apiKey"
 local propVersions = "versions"
 
+-- AI Provider properties
+local propAiProvider = "aiProvider"
+local propOllamaBaseUrl = "ollamaBaseUrl"
+local propOllamaModel = "ollamaModel"
+local propOllamaTimeout = "ollamaTimeout"
+
 -- auto collections properties
 local propCreateAutoCollections = "createAutoCollections"
 local propCollectionScheme = "collectionScheme"
@@ -80,37 +86,91 @@ local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Pla
 
 
 local function loadApiKey( propertyTable )
-	local apiKey = GeminiAPI.getApiKey()
-	if apiKey then
-		propertyTable[ propApiKey ] = apiKey
+	local api = AIProviderFactory.getAPI()
+	if api.getApiKey then
+		local apiKey = api.getApiKey()
+		if apiKey then
+			propertyTable[ propApiKey ] = apiKey
+		else
+			propertyTable[ propApiKey ] = ""
+		end
 	else
 		propertyTable[ propApiKey ] = ""
 	end
 end
 
 local function storeApiKey( propertyTable )
-	local apiKey = propertyTable[ propApiKey ]
-	if apiKey and apiKey ~= "" then
-		GeminiAPI.storeApiKey( apiKey )
+	local api = AIProviderFactory.getAPI()
+	if api.storeApiKey then
+		local apiKey = propertyTable[ propApiKey ]
+		if apiKey and apiKey ~= "" then
+			api.storeApiKey( apiKey )
+		end
 	end
 end
 
 local function clearApiKey( propertyTable )
-	GeminiAPI.clearApiKey()
+	local api = AIProviderFactory.getAPI()
+	if api.clearApiKey then
+		api.clearApiKey()
+	end
 	propertyTable[ propApiKey ] = ""
 end
 
 local function startDialog( propertyTable )
+	-- Load AI provider settings
+	propertyTable[ propAiProvider ] = AIProviderFactory.getCurrentProvider()
+	
+	-- Load Ollama settings
+	if AIProviderFactory.getAPI().getBaseUrl then
+		propertyTable[ propOllamaBaseUrl ] = AIProviderFactory.getAPI().getBaseUrl()
+	else
+		propertyTable[ propOllamaBaseUrl ] = "http://localhost:11434"
+	end
+	
+	if AIProviderFactory.getAPI().getModel then
+		propertyTable[ propOllamaModel ] = AIProviderFactory.getAPI().getModel()
+	else
+		propertyTable[ propOllamaModel ] = "llava:latest"
+	end
+	
+	if AIProviderFactory.getAPI().getTimeout then
+		propertyTable[ propOllamaTimeout ] = AIProviderFactory.getAPI().getTimeout() / 1000 -- Convert to seconds for UI
+	else
+		propertyTable[ propOllamaTimeout ] = 300
+	end
+	
 	propertyTable[ propVersions ] = {
-		gemini = {
+		provider = {
 			version = loadingText,
 		},
 	}
 	LrTasks.startAsyncTask(
 		function()
-			propertyTable[ propVersions ] = GeminiAPI.getVersions()
+			propertyTable[ propVersions ] = AIProviderFactory.getVersions()
 		end
 	)
+	
+	-- Add observer for AI provider changes
+	propertyTable:addObserver( propAiProvider, function( properties, key, newValue )
+		if newValue then
+			AIProviderFactory.setCurrentProvider( newValue )
+			-- Reload API key for new provider
+			loadApiKey( propertyTable )
+			-- Update Ollama settings when switching to Ollama
+			if newValue == "ollama" then
+				if AIProviderFactory.getAPI().getBaseUrl then
+					propertyTable[ propOllamaBaseUrl ] = AIProviderFactory.getAPI().getBaseUrl()
+				end
+				if AIProviderFactory.getAPI().getModel then
+					propertyTable[ propOllamaModel ] = AIProviderFactory.getAPI().getModel()
+				end
+				if AIProviderFactory.getAPI().getTimeout then
+					propertyTable[ propOllamaTimeout ] = AIProviderFactory.getAPI().getTimeout() / 1000
+				end
+			end
+		end
+	end )
 
 	propertyTable[ propGeneralMaxTasks ] = prefs.maxTasks
 
@@ -138,7 +198,7 @@ local function startDialog( propertyTable )
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
 		if newValue and newValue ~= "" then
-			local preset = GeminiAPI.getPreset(newValue)
+			local preset = AIProviderFactory.getPreset(newValue)
 			if preset then
 				-- Direct property assignment
 				propertyTable[propCustomPrompt] = preset.prompt
@@ -179,6 +239,22 @@ local function endDialog( propertyTable )
 	-- auto collections preferences
 	prefs.createAutoCollections = propertyTable[ propCreateAutoCollections ]
 	prefs.collectionScheme = propertyTable[ propCollectionScheme ]
+	
+	-- Save AI provider settings
+	AIProviderFactory.setCurrentProvider( propertyTable[ propAiProvider ] )
+	
+	-- Save Ollama settings if using Ollama
+	local api = AIProviderFactory.getAPI()
+	if api.setBaseUrl then
+		api.setBaseUrl( LrStringUtils.trimWhitespace( propertyTable[ propOllamaBaseUrl ] or "http://localhost:11434" ) )
+	end
+	if api.setModel then
+		api.setModel( LrStringUtils.trimWhitespace( propertyTable[ propOllamaModel ] or "llava:latest" ) )
+	end
+	if api.setTimeout then
+		local timeoutMs = ( propertyTable[ propOllamaTimeout ] or 300 ) * 1000 -- Convert back to milliseconds
+		api.setTimeout( timeoutMs )
+	end
 
 	storeApiKey( propertyTable )
 end
@@ -186,6 +262,36 @@ end
 local function sectionsForTopOfDialog( f, propertyTable )
 
 	return {
+		-- AI Provider selection
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Provider/Title=AI Provider" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Provider/Select=AI Provider:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					value = bind { key = propAiProvider },
+					items = {
+						{ title = "Google Gemini", value = "gemini" },
+						{ title = "Ollama (Local)", value = "ollama" },
+					},
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Provider/Help=Choose between Google Gemini cloud service or local Ollama server. Gemini requires an API key, Ollama requires local installation." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
+				},
+			},
+		},
 		-- general options
 		{
 			bind_to_object = propertyTable,
@@ -222,6 +328,61 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:static_text {
 					title = string.format( "%d", AiTaggerConstants.tasksMax ),
 					alignment = "left",
+				},
+			},
+		},
+		-- Ollama Configuration
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/Options/Ollama/Title=Ollama Configuration" ),
+			spacing = f:control_spacing(),
+			visible = LrBinding.keyEquals( propAiProvider, "ollama" ),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Ollama/BaseUrl=Server URL:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propOllamaBaseUrl },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Ollama/Model=Model:" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propOllamaModel },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Ollama/Timeout=Timeout (seconds):" ),
+					width = share( propGeneralOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propOllamaTimeout },
+					min = 30,
+					max = 600,
+					increment = 30,
+					precision = 0,
+					width_in_digits = 4,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Ollama/Help=Configure your local Ollama server. Default URL is http://localhost:11434. Recommended models: llava:latest, llava:7b, llava:13b." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
 				},
 			},
 		},
@@ -262,7 +423,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/AiTagger/Options/Language/Help=Select the language for AI-generated titles, captions, descriptions, and keywords. This setting applies to all Gemini AI responses." ),
+					title = LOC( "$$$/AiTagger/Options/Language/Help=Select the language for AI-generated titles, captions, descriptions, and keywords. This setting applies to all AI provider responses." ),
 					text_color = LrColor( 0.5, 0.5, 0.5 ),
 					width_in_chars = 80,
 				},
@@ -382,7 +543,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					enabled = bind { key = propUseCustomPrompt },
 					items = (function()
 						local items = {{ title = LOC( "$$$/AiTagger/Preset/SelectPreset=Select a preset..." ), value = "" }}
-						local presets = GeminiAPI.getPromptPresets()
+						local presets = AIProviderFactory.getPromptPresets()
 						for _, preset in ipairs(presets) do
 							table.insert(items, { title = preset.name .. " - " .. preset.description, value = preset.name })
 						end
@@ -406,7 +567,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 						})
 
 						if fileName and fileName[1] then
-							local content, error = GeminiAPI.loadPromptFromFile(fileName[1])
+							local content, error = AIProviderFactory.loadPromptFromFile(fileName[1])
 							if content then
 								-- Direct property assignment
 								propertyTable[propCustomPrompt] = content
@@ -504,17 +665,18 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExifHelp=When enabled, camera settings, GPS coordinates, and technical metadata will be shared with Gemini AI to enhance analysis accuracy. Disable for enhanced privacy." ),
+					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExifHelp=When enabled, camera settings, GPS coordinates, and technical metadata will be shared with the AI provider to enhance analysis accuracy. For Ollama (local), data stays on your machine. For Gemini, data is sent to Google." ),
 					text_color = LrColor( 0.5, 0.5, 0.5 ),
 					width_in_chars = 80,
 				},
 			},
 		},
 
-		-- API key
+		-- API key (Gemini only)
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/AiTagger/ApiKey/Title=Gemini AI API Key" ),
+			title = LOC( "$$$/AiTagger/ApiKey/Title=Gemini API Key" ),
+			visible = LrBinding.keyEquals( propAiProvider, "gemini" ),
 			synopsis = bind {
 				key = propApiKey,
 				object = propertyTable,
@@ -599,24 +761,39 @@ local function sectionsForTopOfDialog( f, propertyTable )
 		-- versions
 		{
 			bind_to_object = propertyTable,
-			title = LOC( "$$$/AiTagger/Versions/Title=Versions" ),
+			title = LOC( "$$$/AiTagger/Versions/Title=AI Provider Status" ),
 			synopsis = bind {
-				key = propVersions,
-				object = propertyTable,
-				transform = function( value, fromTable )
-					return value.gemini.version
+				keys = { propVersions, propAiProvider },
+				operation = function( binder, values, fromTable )
+					local versions = values[ propVersions ] or {}
+					local provider = values[ propAiProvider ] or "gemini"
+					if provider == "gemini" and versions.gemini then
+						return versions.gemini.version or "Unknown"
+					elseif provider == "ollama" and versions.ollama then
+						return versions.ollama.version or "Unknown"
+					else
+						return "Unknown"
+					end
 				end,
 			},
 			spacing = f:label_spacing(),
 			f:row {
 				f:static_text {
-					title = LOC( "$$$/AiTagger/Versions/Gemini/Arrow=^U+25B6" )
+					title = LOC( "$$$/AiTagger/Versions/Provider/Arrow=^U+25B6" )
 				},
 				f:static_text {
 					title = bind {
-						key = propVersions,
-						transform = function( value, fromTable )
-							return value.gemini.version
+						keys = { propVersions, propAiProvider },
+						operation = function( binder, values, fromTable )
+							local versions = values[ propVersions ] or {}
+							local provider = values[ propAiProvider ] or "gemini"
+							if provider == "gemini" and versions.gemini then
+								return "Gemini: " .. (versions.gemini.version or "Unknown")
+							elseif provider == "ollama" and versions.ollama then
+								return "Ollama: " .. (versions.ollama.version or "Unknown")
+							else
+								return "Status: Unknown"
+							end
 						end,
 					},
 					fill_horizontal = 1,

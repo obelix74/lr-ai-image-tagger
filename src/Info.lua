@@ -1,8 +1,8 @@
 --[[----------------------------------------------------------------------------
 
- Gemini AI Image Tagger - Automatically Tag Photos using Gemini AI API
+ AI Image Tagger - Automatically Tag Photos using AI
  Copyright 2025 Anand's Photography
- Updated for Lightroom Classic 2024 and Gemini AI
+ Updated for Lightroom Classic 2024 with Gemini AI and Ollama support
 
 --------------------------------------------------------------------------------
 
@@ -18,10 +18,10 @@ return {
 	LrSdkVersion = 13.0,
 	LrSdkMinimumVersion = 10.0, -- minimum SDK version required by this plug-in
 
-	LrToolkitIdentifier = "net.tagimg.gemini-lr-tagimg",
+	LrToolkitIdentifier = "net.tagimg.ai-lr-tagimg",
 
-	LrPluginName = LOC( "$$$/AiTagger/PluginName=Gemini AI Image Tagger" ),
-	LrPluginInfoUrl = "https://obelix74.github.io/lr-gemini-ai-image-tagger/",
+	LrPluginName = LOC( "$$$/AiTagger/PluginName=AI Image Tagger" ),
+	LrPluginInfoUrl = "https://obelix74.github.io/lr-ai-image-tagger/",
 	LrPluginInfoProvider = "AiTaggerInfoProvider.lua",
 
 	LrInitPlugin = "AiTaggerInit.lua",
@@ -31,7 +31,7 @@ return {
 
 	LrExportMenuItems = {
 		{
-			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
+			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with AI" ),
 			file = "AiTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},
@@ -41,7 +41,7 @@ return {
 
 	LrLibraryMenuItems = {
 		{
-			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with Gemini AI" ),
+			title = LOC( "$$$/AiTagger/LibraryMenuItem=Tag Photos with AI" ),
 			file = "AiTaggerMenuItem.lua",
 			enabledWhen = "photosSelected",
 		},
@@ -50,6 +50,6 @@ return {
 	-- Custom plugin properties for AI metadata storage
 	-- LrMetadataProvider = "AiTaggerMetadataProvider.lua",
 
-	VERSION = { major = 3, minor = 6, revision = 0, build = 1, },
+	VERSION = { major = 4, minor = 0, revision = 0, build = 1, },
 
 }

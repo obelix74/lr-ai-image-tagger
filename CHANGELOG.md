@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.0] - 2025-07-29
+
+### Added
+- **🆕 Ollama Support**: Full integration with local Ollama AI models for privacy-focused processing
+- **🔄 AI Provider Selection**: Choose between Google Gemini (cloud) or Ollama (local) processing
+- **🏭 Provider Factory Pattern**: Clean architecture supporting multiple AI providers
+- **⚙️ Ollama Configuration**: Settings for server URL, model selection, and timeout configuration
+- **🔒 Local Processing**: Complete privacy with Ollama - images never leave your computer
+- **📚 Multi-Provider Documentation**: Updated docs with setup instructions for both providers
+
+### Changed
+- **🏷️ Plugin Rebranding**: Updated name from "Gemini AI Image Tagger" to "AI Image Tagger"
+- **🎛️ Enhanced UI**: Provider selection dropdown with conditional configuration sections
+- **📄 Updated Documentation**: Comprehensive comparison between Gemini and Ollama providers
+- **🔧 Improved Settings**: Reorganized plugin settings for better provider management
+
+### Technical
+- **New Files**: `OllamaAPI.lua`, `AIProviderFactory.lua` for provider abstraction
+- **Updated Files**: `AiTaggerMenuItem.lua`, `AiTaggerInfoProvider.lua` for multi-provider support
+- **Architecture**: Provider factory pattern with unified API interface
+- **Backwards Compatibility**: Existing Gemini setups continue working seamlessly
+
+### Migration Notes
+- Existing users: Plugin will continue using Gemini by default
+- No configuration changes required for current Gemini users
+- New users can choose their preferred AI provider during setup
+
+---
+
 ## [3.5.0] - 2025-07-16
 
 ### Changed
@@ -78,7 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Improved Website Integration**: Updated all URLs and branding to new tagimg.net domain
 
 ### Enhanced
-- **Plugin Identity**: Updated plugin identifier to `net.tagimg.gemini-lr-tagimg`
+- **Plugin Identity**: Updated plugin identifier to `net.tagimg.ai-lr-tagimg`
 - **Metadata Analysis**: Optional GPS coordinates and technical metadata sharing with Gemini AI
 - **User Control**: Configurable privacy settings for metadata sharing
 - **Professional Branding**: Complete visual and textual rebrand throughout the plugin

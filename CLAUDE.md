@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an Gemini AI Image Tagger plugin for Adobe Lightroom Classic that automatically generates captions, descriptions, and keywords using Google's Gemini AI API. The plugin integrates with Lightroom's SDK to analyze selected photos and populate IPTC metadata fields.
+This is an AI Image Tagger plugin for Adobe Lightroom Classic that automatically generates captions, descriptions, and keywords using Google's Gemini AI API or local Ollama models. The plugin integrates with Lightroom's SDK to analyze selected photos and populate IPTC metadata fields.
 
 ## Core Architecture
 
@@ -28,7 +28,7 @@ This is an Gemini AI Image Tagger plugin for Adobe Lightroom Classic that automa
 - Adds menu items to Library and Export menus
 - Processes selected photos in batches
 - Writes metadata to IPTC fields and Lightroom keywords
-- Plugin identifier: `net.tagimg.gemini-lr-tagimg`
+- Plugin identifier: `net.tagimg.ai-lr-tagimg`
 
 ## Development Commands
 
@@ -84,8 +84,8 @@ rake clobber
 ## File Locations
 
 ### Plugin Installation
-For local development, built plugin resides in `build/gemini-lr-tagimg.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
-For deployment, plugin is packaged in `dist/gemini-lr-tagimg-v#{version}.zip` and distributed via GitHub releases.
+For local development, built plugin resides in `build/ai-lr-tagimg.lrplugin/` and can be installed directly in Lightroom via File > Plug-in Manager.
+For deployment, plugin is packaged in `dist/ai-lr-tagimg-v#{version}.zip` and distributed via GitHub releases.
 
 ### Documentation
 - `README.md`: User-facing documentation and installation guide
