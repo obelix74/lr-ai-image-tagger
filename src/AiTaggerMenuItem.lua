@@ -913,16 +913,18 @@ local function AiTagger()
 					-- Request thumbnail in non-yielding context
 					local fileExtension = string.lower(string.match(fileName, "%.([^%.]+)$") or "")
 					local isRAW = (fileExtension == "nef" or fileExtension == "cr2" or fileExtension == "arw" or fileExtension == "dng")
+					local isTIFF = (fileExtension == "tif" or fileExtension == "tiff")
+					local isLargeFile = isRAW or isTIFF
 					
-					-- For RAW files, try smaller size first to avoid memory issues
-					local thumbnailWidth = isRAW and 800 or prefs.thumbnailWidth
-					local thumbnailHeight = isRAW and 800 or prefs.thumbnailHeight
+					-- For large files (RAW/TIFF), try smaller size first to avoid memory issues
+					local thumbnailWidth = isLargeFile and 800 or prefs.thumbnailWidth
+					local thumbnailHeight = isLargeFile and 800 or prefs.thumbnailHeight
 					
-					logger:infof( "Requesting thumbnail for %s (%dx%d) - RAW: %s", fileName, thumbnailWidth, thumbnailHeight, tostring(isRAW) )
+					logger:infof( "Requesting thumbnail for %s (%dx%d) - RAW: %s, TIFF: %s", fileName, thumbnailWidth, thumbnailHeight, tostring(isRAW), tostring(isTIFF) )
 					
-					-- Check if photo has develop settings (might help with NEF processing)
+					-- Check if photo has develop settings (might help with large file processing)
 					local developSettings = photo:getDevelopSettings()
-					if isRAW and developSettings then
+					if isLargeFile and developSettings then
 						logger:infof( "Photo %s has develop settings, this might help with thumbnail generation", fileName )
 					end
 					
@@ -941,9 +943,9 @@ local function AiTagger()
 								local fullErrorMsg = errorMsg or "Failed to generate thumbnail"
 								logger:errorf( "Thumbnail generation failed for %s: %s", fileName, fullErrorMsg )
 								
-								-- Try progressively smaller thumbnail sizes for RAW files
-								if isRAW then
-									logger:infof( "Retrying with even smaller thumbnail sizes for RAW file: %s", fileName )
+								-- Try progressively smaller thumbnail sizes for large files (RAW/TIFF)
+								if isLargeFile then
+									logger:infof( "Retrying with even smaller thumbnail sizes for large file: %s", fileName )
 									
 									-- Try 400x400 first (since we already tried 800x800 or user's preference)
 									photo:requestJpegThumbnail( 400, 400,
@@ -990,7 +992,7 @@ local function AiTagger()
 																		logger:errorf( "All thumbnail sizes failed for %s. Final 100x100 error: %s", fileName, errorMsg4 or "unknown error" )
 																		table.insert( processingErrors, { 
 																			fileName = fileName, 
-																			message = string.format( "NEF thumbnail generation failed at all sizes (800x800, 400x400, 200x200, 100x100): %s. This NEF file may be corrupted or incompatible.", fullErrorMsg ), 
+																			message = string.format( "Large file thumbnail generation failed at all sizes (800x800, 400x400, 200x200, 100x100): %s. This %s file may be corrupted or incompatible.", fullErrorMsg, string.upper(fileExtension) ), 
 																			type = "thumbnail" 
 																		})
 																	end
@@ -1004,7 +1006,7 @@ local function AiTagger()
 										end
 									)
 								else
-									-- Collect thumbnail error for non-RAW files
+									-- Collect thumbnail error for non-large files
 									table.insert( processingErrors, { fileName = fileName, message = fullErrorMsg, type = "thumbnail" } )
 									thumbnailsPending = thumbnailsPending - 1
 								end
