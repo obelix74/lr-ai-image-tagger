@@ -105,8 +105,8 @@ local gpsData = photo:getRawMetadata('gps')
 local exifData = photo:getRawMetadata('exif')
 
 -- Store AI results
-photo:setPropertyForPlugin('net.tagimg.gemini-lr-tagimg', 'aiConfidence', 0.95)
-photo:setPropertyForPlugin('net.tagimg.gemini-lr-tagimg', 'processedDate', LrDate.currentTime())
+photo:setPropertyForPlugin('net.tagimg.ai-lr-tagimg', 'aiConfidence', 0.95)
+photo:setPropertyForPlugin('net.tagimg.ai-lr-tagimg', 'processedDate', LrDate.currentTime())
 ```
 
 ### **2. LrCatalog - Catalog Operations**
@@ -306,9 +306,9 @@ return {
     title = LOC "$$$/AiTagger/Tagset/Title=AI Analysis Results",
     
     {
-        'net.tagimg.gemini-lr-tagimg.aiConfidenceScore',
-        'net.tagimg.gemini-lr-tagimg.aiProcessingDate',
-        'net.tagimg.gemini-lr-tagimg.aiModel',
+        'net.tagimg.ai-lr-tagimg.aiConfidenceScore',
+        'net.tagimg.ai-lr-tagimg.aiProcessingDate',
+        'net.tagimg.ai-lr-tagimg.aiModel',
     },
 }
 ```

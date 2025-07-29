@@ -1,8 +1,8 @@
-# Gemini Gemini AI Image Tagger for Adobe Lightroom Classic
+# AI Image Tagger for Adobe Lightroom Classic
 
-**Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google's Gemini AI.**
+**Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google Gemini AI or local Ollama models.**
 
-![Gemini Gemini AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Gemini AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-orange) ![Version](https://img.shields.io/badge/version-2.4.0-green)
+![AI Image Tagger](https://img.shields.io/badge/Lightroom-Classic%202024-blue) ![Multi AI](https://img.shields.io/badge/Powered%20by-Gemini%20%7C%20Ollama-orange) ![Version](https://img.shields.io/badge/version-4.0.0-green)
 
 ## 🚀 Features
 
@@ -30,13 +30,15 @@
 ## 📋 Requirements
 
 - **Adobe Lightroom Classic 2024** (or newer)
-- **Google Gemini AI API Key** (free tier available)
-- **Internet Connection** for AI analysis
+- **AI Provider** (choose one):
+  - **Google Gemini AI API Key** (cloud-based, free tier available)
+  - **Local Ollama installation** (local processing, privacy-focused)
+- **Internet Connection** (for Gemini AI only)
 
 ## 🔧 Installation
 
 ### Step 1: Download the Plugin
-1. Download the latest release from the [plugin website](https://obelix74.github.io/lr-gemini-ai-image-tagger/)
+1. Download the latest release from the [plugin website](https://obelix74.github.io/lr-ai-image-tagger/)
 2. Extract the ZIP file to a folder on your computer
 
 ### Step 2: Install in Lightroom
@@ -46,17 +48,49 @@
 4. Navigate to the extracted plugin folder and select it
 5. Click **Done**
 
-### Step 3: Get Gemini AI API Key
+### Step 3: Choose and Configure AI Provider
+
+#### Option A: Google Gemini AI (Cloud-based)
 1. Visit [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
 2. Sign in with your Google account
 3. Click **Get API Key**
 4. Create a new API key or use an existing one
 5. Copy the API key (keep it secure!)
 
+#### Option B: Ollama (Local processing)
+1. **Install Ollama**:
+   - **macOS**: Download from [ollama.ai](https://ollama.ai) or run `brew install ollama`
+   - **Windows**: Download installer from [ollama.ai](https://ollama.ai)
+   - **Linux**: Run `curl -fsSL https://ollama.ai/install.sh | sh`
+
+2. **Install a vision model**:
+   ```bash
+   # Install the recommended LLaVA model
+   ollama pull llava:latest
+   
+   # Or install a smaller/faster model
+   ollama pull llava:7b
+   ```
+
+3. **Start Ollama server**:
+   ```bash
+   ollama serve
+   ```
+   
+   The server will run on `http://localhost:11434` by default.
+
+4. **Verify installation**:
+   ```bash
+   ollama list
+   ```
+   You should see your installed models listed.
+
 ### Step 4: Configure the Plugin
 1. In Lightroom, go to **File > Plug-in Manager**
-2. Select **Gemini AI Image Tagger** from the list
-3. Paste your Gemini AI API key in the **API Key** field
+2. Select **AI Image Tagger** from the list
+3. Choose your **AI Provider**:
+   - **Google Gemini**: Enter your API key in the **API Key** field
+   - **Ollama (Local)**: Configure server URL and model name
 4. Configure your preferred settings:
    - Choose which IPTC metadata fields to save
    - Set batch processing options
@@ -68,7 +102,7 @@
 ### Basic Usage
 1. Select one or more photos in Lightroom's Library module
 2. Go to **Library > Plug-in Extras > Tag Photos with AI**
-3. Wait for AI analysis to complete
+3. Wait for AI analysis to complete (speed depends on your chosen provider)
 4. Review and edit the generated metadata:
    - **Caption**: Brief description
    - **Description**: Detailed description
@@ -96,6 +130,32 @@
 - Includes all metadata fields and processing times
 - Perfect for workflow documentation and analysis
 
+## 🔍 AI Provider Comparison
+
+| Feature | Google Gemini | Ollama (Local) |
+|---------|---------------|----------------|
+| **Cost** | Free tier: 1,500 requests/day | Completely free |
+| **Privacy** | Images sent to Google | All processing local |
+| **Speed** | Fast (cloud processing) | Depends on hardware |
+| **Internet Required** | Yes | No |
+| **Setup Complexity** | Simple (API key only) | Moderate (software install) |
+| **Model Quality** | High (latest Gemini models) | Good (LLaVA family) |
+| **Hardware Requirements** | None | 8GB+ RAM recommended |
+| **Customization** | Limited | Full control |
+
+### Choosing Your Provider
+
+**Choose Gemini if you want**:
+- Quick setup with just an API key
+- Fast processing without local hardware requirements
+- Latest AI capabilities with minimal configuration
+
+**Choose Ollama if you want**:
+- Complete privacy (no data leaves your computer)
+- No ongoing costs or API limits
+- Offline capability
+- Full control over models and processing
+
 ## ⚙️ Configuration Options
 
 ### IPTC Metadata Settings
@@ -120,28 +180,55 @@
 
 ## 🔒 Privacy & Security
 
+### Google Gemini
 - **API Key Security**: Keys are stored securely in Lightroom's password storage
 - **Data Processing**: Images are sent to Google's Gemini AI service for analysis
-- **No Storage**: Your images are not stored by the AI service
-- **Local Processing**: All metadata management happens locally in Lightroom
+- **No Storage**: Google does not store your images after processing
+- **Local Metadata**: All metadata management happens locally in Lightroom
+
+### Ollama (Local)
+- **Complete Privacy**: All processing happens on your local machine
+- **No Network Access**: Images never leave your computer
+- **No API Keys**: No external credentials required
+- **Local Storage**: All models and data stored locally
 
 ## 🆘 Troubleshooting
 
 ### Common Issues
 
+#### Google Gemini Issues
 **"API key not configured"**
 - Ensure you've entered a valid Gemini AI API key in plugin settings
 - Check that the API key has proper permissions
+- Verify the key is active at [Google AI Studio](https://ai.google.dev/)
 
 **"Network error"**
 - Verify your internet connection
 - Check if your firewall allows Lightroom to access the internet
 - Try increasing the delay between requests
 
+#### Ollama Issues
+**"Ollama server not accessible"**
+- Ensure Ollama is running: `ollama serve`
+- Check the server URL in plugin settings (default: `http://localhost:11434`)
+- Verify Ollama is installed correctly: `ollama list`
+
+**"Model not found"**
+- Install a vision model: `ollama pull llava:latest`
+- Check available models: `ollama list`
+- Verify the model name in plugin settings matches installed models
+
+**"Ollama connection timeout"**
+- Increase timeout in plugin settings (especially for larger models)
+- Ensure sufficient RAM is available (8GB+ recommended)
+- Consider using a smaller model like `llava:7b`
+
+#### General Issues
 **"Analysis failed"**
 - Some images may not be suitable for AI analysis
 - Try with different image formats (JPEG works best)
 - Check the Lightroom log for detailed error messages
+- Switch to the other AI provider to test
 
 ### Getting Help
 - Contact support: [lists@anands.net](mailto:lists@anands.net)
@@ -178,7 +265,7 @@ Special thanks to [@tjotala](https://github.com/tjotala) for [lr-robotagger](htt
 
 ## 🔗 Links
 
-- [Plugin Homepage](https://obelix74.github.io/lr-gemini-ai-image-tagger/)
+- [Plugin Homepage](https://obelix74.github.io/lr-ai-image-tagger/)
 
 - [Google Gemini AI](https://ai.google.dev)
 - [Adobe Lightroom Classic](https://www.adobe.com/products/photoshop-lightroom-classic.html)

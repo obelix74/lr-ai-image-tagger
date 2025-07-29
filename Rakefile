@@ -5,12 +5,12 @@ require_relative 'scripts/get_version'
 VERSION = get_version
 VERSION_PARTS = parse_version(VERSION)
 
-# Updated for Gemini AI Image Tagger - Lightroom Classic 2024
+# Updated for AI Image Tagger - Lightroom Classic 2024
 LUAC = "/usr/local/bin/luac"  # Use installed Lua 5.4.8
 ZIP = "zip"
 
 BUILD_DIR = "build"
-PLUGIN_DIR = File.join(BUILD_DIR, "gemini-lr-tagimg.lrplugin")
+PLUGIN_DIR = File.join(BUILD_DIR, "ai-lr-tagimg.lrplugin")
 DIST_DIR = "dist"
 
 SOURCE_FILES = FileList[ File.join("src", "*.lua") ]
@@ -18,15 +18,15 @@ RESOURCE_FILES = FileList[ File.join("src", "*.png") ]
 TRANSLATION_FILES = FileList[ File.join("src", "TranslatedStrings_*.txt") ]
 README_FILES = FileList[ "README.md", "LICENSE" ]
 TARGET_FILES = SOURCE_FILES.pathmap(File.join(PLUGIN_DIR, "%f")) + README_FILES.pathmap(File.join(PLUGIN_DIR, "%f"))
-PACKAGE_FILE = File.join(DIST_DIR, "gemini-lr-tagimg-v#{VERSION}.zip")
+PACKAGE_FILE = File.join(DIST_DIR, "ai-lr-tagimg-v#{VERSION}.zip")
 
 task :default => [ :compile, :package ]
 
 desc "Show version information"
 task :version do
-  puts "Gemini AI Image Tagger v#{VERSION} - Updated for Lightroom Classic 2024"
+  puts "AI Image Tagger v#{VERSION} - Updated for Lightroom Classic 2024"
   puts "SDK Version: 13.0 (minimum 10.0)"
-  puts "Google Gemini AI: Latest API with 13 preset prompts"
+  puts "Multi-provider AI: Gemini and Ollama support with preset prompts"
 end
 
 desc "Update all files with current version from VERSION file"

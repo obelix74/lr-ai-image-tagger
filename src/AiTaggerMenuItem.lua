@@ -31,7 +31,7 @@ local share = LrView.share
 
 local inspect = require "inspect"
 require "Logger"
-require "GeminiAPI"
+require "AIProviderFactory"
 
 --------------------------------------------------------------------------------
 
@@ -823,8 +823,9 @@ local function showResponse( propertyTable )
 			}
 		},
 	}
+	local currentProvider = AIProviderFactory.getCurrentProvider()
 	local results = LrDialogs.presentModalDialog {
-		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AiTagger: Gemini AI Results" ),
+		title = LOC( "$$$/AiTagger/ResultsDialogTitle=AI Tagger: " ) .. string.upper(string.sub(currentProvider, 1, 1)) .. string.sub(currentProvider, 2) .. LOC( "$$$/AiTagger/ResultsDialogTitleSuffix= Results" ),
 		resizable = true,
 		contents = contents,
 		cancelVerb = LOC( "$$$/AiTagger/ResultsDialogCancel=Cancel" ),
@@ -857,11 +858,13 @@ local function AiTagger()
 			LrDialogs.attachErrorDialogToFunctionContext( context )
 			local catalog = LrApplication.activeCatalog()
 
-			-- Check Gemini API key
-			if not GeminiAPI.hasApiKey() then
-				logger:errorf( "Gemini API key not configured" )
-				local errorMsg = "Gemini API key not configured.\n\nPlease check:\n• Gemini API key is properly configured in plugin settings\n• API key has necessary permissions"
-				LrDialogs.message( LOC( "$$$/AiTagger/AuthFailed=Gemini API key not configured" ), errorMsg, "critical" )
+			-- Check AI provider configuration
+			local connectionTest = AIProviderFactory.testConnection()
+			if not connectionTest.status then
+				local provider = AIProviderFactory.getCurrentProvider()
+				logger:errorf( "AI provider not configured: %s", connectionTest.message )
+				local errorMsg = string.format("AI provider (%s) not configured.\n\n%s\n\nPlease check plugin settings.", provider, connectionTest.message)
+				LrDialogs.message( LOC( "$$$/AiTagger/AuthFailed=AI Provider Configuration Error" ), errorMsg, "critical" )
 			else
 				local propertyTable = LrBinding.makePropertyTable( context )
 				local photos = catalog:getTargetPhotos()
@@ -908,9 +911,25 @@ local function AiTagger()
 					progressScope:setPortionComplete( (i-1), #photos )
 
 					-- Request thumbnail in non-yielding context
-					photo:requestJpegThumbnail( prefs.thumbnailWidth, prefs.thumbnailHeight,
+					local fileExtension = string.lower(string.match(fileName, "%.([^%.]+)$") or "")
+					local isRAW = (fileExtension == "nef" or fileExtension == "cr2" or fileExtension == "arw" or fileExtension == "dng")
+					
+					-- For RAW files, try smaller size first to avoid memory issues
+					local thumbnailWidth = isRAW and 800 or prefs.thumbnailWidth
+					local thumbnailHeight = isRAW and 800 or prefs.thumbnailHeight
+					
+					logger:infof( "Requesting thumbnail for %s (%dx%d) - RAW: %s", fileName, thumbnailWidth, thumbnailHeight, tostring(isRAW) )
+					
+					-- Check if photo has develop settings (might help with NEF processing)
+					local developSettings = photo:getDevelopSettings()
+					if isRAW and developSettings then
+						logger:infof( "Photo %s has develop settings, this might help with thumbnail generation", fileName )
+					end
+					
+					photo:requestJpegThumbnail( thumbnailWidth, thumbnailHeight,
 						function( jpegData, errorMsg )
 							if jpegData then
+								logger:infof( "Thumbnail generated successfully for %s (size: %d bytes)", fileName, string.len(jpegData) )
 								-- Store thumbnail data for later processing
 								table.insert( thumbnailData, {
 									photo = photo,
@@ -919,11 +938,81 @@ local function AiTagger()
 									index = i
 								})
 							else
-								-- Collect thumbnail error
-								table.insert( processingErrors, { fileName = fileName, message = errorMsg or "Failed to generate thumbnail", type = "thumbnail" } )
+								local fullErrorMsg = errorMsg or "Failed to generate thumbnail"
+								logger:errorf( "Thumbnail generation failed for %s: %s", fileName, fullErrorMsg )
+								
+								-- Try progressively smaller thumbnail sizes for RAW files
+								if isRAW then
+									logger:infof( "Retrying with even smaller thumbnail sizes for RAW file: %s", fileName )
+									
+									-- Try 400x400 first (since we already tried 800x800 or user's preference)
+									photo:requestJpegThumbnail( 400, 400,
+										function( jpegData2, errorMsg2 )
+											if jpegData2 then
+												logger:infof( "400x400 thumbnail generated successfully for %s (size: %d bytes)", fileName, string.len(jpegData2) )
+												table.insert( thumbnailData, {
+													photo = photo,
+													jpegData = jpegData2,
+													fileName = fileName,
+													index = i
+												})
+												thumbnailsPending = thumbnailsPending - 1
+											else
+												logger:errorf( "400x400 thumbnail failed for %s: %s", fileName, errorMsg2 or "unknown error" )
+												
+												-- Try 200x200 as next fallback
+												photo:requestJpegThumbnail( 200, 200,
+													function( jpegData3, errorMsg3 )
+														if jpegData3 then
+															logger:infof( "200x200 thumbnail generated successfully for %s (size: %d bytes)", fileName, string.len(jpegData3) )
+															table.insert( thumbnailData, {
+																photo = photo,
+																jpegData = jpegData3,
+																fileName = fileName,
+																index = i
+															})
+														else
+															logger:errorf( "200x200 thumbnail also failed for %s. Final error: %s", fileName, errorMsg3 or "unknown error" )
+															
+															-- Final fallback: try 100x100 as absolute minimum
+															logger:infof( "Final attempt with 100x100 thumbnail for %s", fileName )
+															photo:requestJpegThumbnail( 100, 100,
+																function( jpegData4, errorMsg4 )
+																	if jpegData4 then
+																		logger:infof( "100x100 thumbnail generated successfully for %s (size: %d bytes)", fileName, string.len(jpegData4) )
+																		table.insert( thumbnailData, {
+																			photo = photo,
+																			jpegData = jpegData4,
+																			fileName = fileName,
+																			index = i
+																		})
+																	else
+																		logger:errorf( "All thumbnail sizes failed for %s. Final 100x100 error: %s", fileName, errorMsg4 or "unknown error" )
+																		table.insert( processingErrors, { 
+																			fileName = fileName, 
+																			message = string.format( "NEF thumbnail generation failed at all sizes (800x800, 400x400, 200x200, 100x100): %s. This NEF file may be corrupted or incompatible.", fullErrorMsg ), 
+																			type = "thumbnail" 
+																		})
+																	end
+																	thumbnailsPending = thumbnailsPending - 1
+																end
+															)
+														end
+													end
+												)
+											end
+										end
+									)
+								else
+									-- Collect thumbnail error for non-RAW files
+									table.insert( processingErrors, { fileName = fileName, message = fullErrorMsg, type = "thumbnail" } )
+									thumbnailsPending = thumbnailsPending - 1
+								end
 							end
 							
-							thumbnailsPending = thumbnailsPending - 1
+							if jpegData then
+								thumbnailsPending = thumbnailsPending - 1
+							end
 						end
 					)
 				end
@@ -972,7 +1061,7 @@ local function AiTagger()
 								end
 
 								local start = LrDate.currentTime()
-								local result = GeminiAPI.analyze( fileName, jpegData, photo )
+								local result = AIProviderFactory.analyze( fileName, jpegData, photo )
 								local elapsed = LrDate.currentTime() - start
 										if result.status then
 											local keywordCount = result.keywords and #result.keywords or 0
