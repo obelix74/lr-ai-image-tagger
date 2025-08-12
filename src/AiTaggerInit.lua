@@ -115,3 +115,25 @@ end
 if prefs.includeGpsExifData == nil then
 	prefs.includeGpsExifData = false  -- Disabled by default for privacy
 end
+
+-- Hierarchical keyword options
+if prefs.useHierarchicalKeywords == nil then
+	prefs.useHierarchicalKeywords = true  -- Enable by default
+end
+
+if prefs.keywordHierarchySeparator == nil then
+	prefs.keywordHierarchySeparator = " > "
+end
+
+if prefs.createFullHierarchy == nil then
+	prefs.createFullHierarchy = true  -- Create all parent keywords, not just leaf
+end
+
+if prefs.maxHierarchyDepth == nil then
+	prefs.maxHierarchyDepth = 4  -- Limit depth to prevent excessive nesting
+end
+
+-- Gemini model selection
+if prefs.geminiModel == nil then
+	prefs.geminiModel = "gemini-1.5-flash"  -- Default to fastest/cheapest model
+end

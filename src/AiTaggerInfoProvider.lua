@@ -43,6 +43,11 @@ local propGeneralMaxTasks = "generalMaxTasks"
 
 local propDecorateKeyword = "decorateKeyword"
 local propDecorateKeywordValue = "decorateKeywordValue"
+local propUseHierarchicalKeywords = "useHierarchicalKeywords"
+local propKeywordHierarchySeparator = "keywordHierarchySeparator"
+local propCreateFullHierarchy = "createFullHierarchy"
+local propMaxHierarchyDepth = "maxHierarchyDepth"
+local propGeminiModel = "geminiModel"
 
 local propSaveTitleToIptc = "saveTitleToIptc"
 local propSaveCaptionToIptc = "saveCaptionToIptc"
@@ -176,6 +181,11 @@ local function startDialog( propertyTable )
 
 	propertyTable[ propDecorateKeyword ] = prefs.decorateKeyword
 	propertyTable[ propDecorateKeywordValue ] = prefs.decorateKeywordValue
+	propertyTable[ propUseHierarchicalKeywords ] = prefs.useHierarchicalKeywords
+	propertyTable[ propKeywordHierarchySeparator ] = prefs.keywordHierarchySeparator
+	propertyTable[ propCreateFullHierarchy ] = prefs.createFullHierarchy
+	propertyTable[ propMaxHierarchyDepth ] = prefs.maxHierarchyDepth
+	propertyTable[ propGeminiModel ] = prefs.geminiModel
 
 	propertyTable[ propSaveTitleToIptc ] = prefs.saveTitleToIptc
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
@@ -222,6 +232,11 @@ local function endDialog( propertyTable )
 
 	prefs.decorateKeyword = propertyTable[ propDecorateKeyword ]
 	prefs.decorateKeywordValue = LrStringUtils.trimWhitespace( propertyTable[ propDecorateKeywordValue ] or "" )
+	prefs.useHierarchicalKeywords = propertyTable[ propUseHierarchicalKeywords ]
+	prefs.keywordHierarchySeparator = LrStringUtils.trimWhitespace( propertyTable[ propKeywordHierarchySeparator ] or " > " )
+	prefs.createFullHierarchy = propertyTable[ propCreateFullHierarchy ]
+	prefs.maxHierarchyDepth = propertyTable[ propMaxHierarchyDepth ]
+	prefs.geminiModel = propertyTable[ propGeminiModel ]
 
 	prefs.saveTitleToIptc = propertyTable[ propSaveTitleToIptc ]
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
@@ -477,6 +492,68 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					},
 				},
 			},
+			
+			-- Hierarchical keyword options
+			f:separator { fill_horizontal = 1, height = 1 },
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/Keywords/Hierarchical=Use hierarchical keywords (e.g., Nature > Wildlife > Birds)" ),
+					value = bind { key = propUseHierarchicalKeywords },
+					fill_horizontal = 1,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Keywords/Separator=Hierarchy Separator:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propKeywordHierarchySeparator },
+					immediate = true,
+					enabled = bind { key = propUseHierarchicalKeywords },
+					width_in_chars = 8,
+				},
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Keywords/SeparatorHelp=(default: ' > ')" ),
+					enabled = bind { key = propUseHierarchicalKeywords },
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Keywords/MaxDepth=Max Hierarchy Depth:" ),
+					width = share( propKeywordOptionsPromptWidth ),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = bind { key = propMaxHierarchyDepth },
+					immediate = true,
+					enabled = bind { key = propUseHierarchicalKeywords },
+					min = 2,
+					max = 6,
+					increment = 1,
+					precision = 0,
+					width_in_digits = 2,
+				},
+				f:static_text {
+					title = LOC( "$$$/AiTagger/Options/Keywords/MaxDepthHelp=(2-6 levels, prevents excessive nesting)" ),
+					enabled = bind { key = propUseHierarchicalKeywords },
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:checkbox {
+					title = LOC( "$$$/AiTagger/Options/Keywords/FullHierarchy=Create full keyword hierarchy (all parent keywords)" ),
+					value = bind { key = propCreateFullHierarchy },
+					enabled = bind { key = propUseHierarchicalKeywords },
+					fill_horizontal = 1,
+				},
+			},
+			f:separator { fill_horizontal = 1, height = 1 },
+			
 			f:row {
 				fill_horizontal = 1,
 				f:checkbox {
@@ -668,6 +745,39 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					title = LOC( "$$$/AiTagger/Options/Privacy/IncludeGpsExifHelp=When enabled, camera settings, GPS coordinates, and technical metadata will be shared with the AI provider to enhance analysis accuracy. For Ollama (local), data stays on your machine. For Gemini, data is sent to Google." ),
 					text_color = LrColor( 0.5, 0.5, 0.5 ),
 					width_in_chars = 80,
+				},
+			},
+		},
+
+		-- Gemini Model Selection
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/GeminiModel/Title=Gemini Model" ),
+			visible = LrBinding.keyEquals( propAiProvider, "gemini" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/GeminiModel/Model=Model:" ),
+					width = share( propCredentialsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					value = bind { key = propGeminiModel },
+					items = {
+						{ title = "Gemini 1.5 Flash (Fast & Affordable)", value = "gemini-1.5-flash" },
+						{ title = "Gemini 1.5 Pro (Higher Quality)", value = "gemini-1.5-pro" },
+					},
+					width_in_chars = 35,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/GeminiModel/Help=Flash: Fastest and most affordable. Pro: Better quality, less likely to be overloaded, uses more quota." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
+					wrap = true,
 				},
 			},
 		},

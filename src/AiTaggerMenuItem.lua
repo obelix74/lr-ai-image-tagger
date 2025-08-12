@@ -82,6 +82,155 @@ end
 
 --------------------------------------------------------------------------------
 
+-- Hierarchical Keyword Utility Functions
+
+-- Parse hierarchical keyword string into components
+-- Example: "Animals > Mammals > Dogs" -> {"Animals", "Mammals", "Dogs"}
+local function parseKeywordHierarchy(keywordString)
+	if not keywordString or keywordString == "" then
+		return {}
+	end
+	
+	local LrPrefs = import "LrPrefs"
+	local prefs = LrPrefs.prefsForPlugin()
+	local separator = prefs.keywordHierarchySeparator or " > "
+	local hierarchy = {}
+	
+	-- Split by separator and trim whitespace
+	for part in string.gmatch(keywordString, "[^" .. separator:gsub("[%(%)%.%+%-%*%?%[%]%^%$%%]", "%%%1") .. "]+") do
+		local trimmed = part:match("^%s*(.-)%s*$") -- trim whitespace
+		if trimmed and trimmed ~= "" then
+			table.insert(hierarchy, trimmed)
+		end
+	end
+	
+	-- Limit hierarchy depth
+	local maxDepth = prefs.maxHierarchyDepth or 4
+	if #hierarchy > maxDepth then
+		logger:tracef("Keyword hierarchy too deep (%d levels), truncating to %d: %s", #hierarchy, maxDepth, keywordString)
+		local truncated = {}
+		for i = 1, maxDepth do
+			table.insert(truncated, hierarchy[i])
+		end
+		hierarchy = truncated
+	end
+	
+	return hierarchy
+end
+
+-- Create or find keyword hierarchy in Lightroom
+-- Returns the leaf keyword object
+local function createKeywordHierarchy(catalog, hierarchyArray)
+	-- Validate inputs
+	if not catalog then
+		logger:errorf("createKeywordHierarchy: catalog is nil")
+		return nil
+	end
+	
+	if not hierarchyArray or #hierarchyArray == 0 then
+		logger:tracef("createKeywordHierarchy: empty hierarchy array")
+		return nil
+	end
+	
+	local LrTasks = import "LrTasks"
+	local currentParent = nil
+	local leafKeyword = nil
+	
+	-- Create keywords from root to leaf 
+	-- IMPORTANT: According to Lightroom SDK, newly created keywords are not available
+	-- for access until the withWriteAccessDo function returns. We cannot call getName()
+	-- or other methods on them within the same write access.
+	local success, result = LrTasks.pcall(function()
+		for i, keywordName in ipairs(hierarchyArray) do
+			if not keywordName or keywordName == "" then
+				logger:errorf("createKeywordHierarchy: invalid keyword name at index %d", i)
+				return nil
+			end
+			
+			-- Clean the keyword name
+			local cleanName = string.match(keywordName, "^%s*(.-)%s*$") -- trim whitespace
+			if not cleanName or cleanName == "" then
+				logger:errorf("createKeywordHierarchy: empty keyword name after cleaning at index %d", i)
+				return nil
+			end
+			
+			local keyword = catalog:createKeyword(cleanName, nil, true, currentParent, true)
+			
+			-- createKeyword returns false if keyword exists and returnExisting is false
+			-- but we pass returnExisting as true, so it should return the existing keyword
+			if keyword and keyword ~= false then
+				-- Don't try to access the keyword object (like getName()) within write access
+				-- Just verify it's a table and set it as parent for next iteration
+				if type(keyword) == "table" then
+					leafKeyword = keyword
+					currentParent = keyword
+				else
+					logger:errorf("createKeyword returned invalid object: %s", tostring(keyword))
+					return nil
+				end
+			else
+				logger:errorf("Failed to create keyword: %s, result: %s", cleanName, tostring(keyword))
+				return nil
+			end
+		end
+		return leafKeyword
+	end)
+	
+	if success then
+		return result
+	else
+		logger:errorf("createKeywordHierarchy failed: %s", tostring(result))
+		return nil
+	end
+end
+
+-- Get full hierarchy path for a keyword (for display purposes)
+local function getKeywordHierarchyPath(keyword)
+	if not keyword then
+		return ""
+	end
+	
+	local LrPrefs = import "LrPrefs"
+	local LrTasks = import "LrTasks"
+	local prefs = LrPrefs.prefsForPlugin()
+	local path = {}
+	local current = keyword
+	local separator = prefs.keywordHierarchySeparator or " > "
+	
+	-- Walk up the hierarchy - all keyword methods need async context
+	local success, result = LrTasks.pcall(function()
+		local pathArray = {}
+		local currentKeyword = current
+		while currentKeyword do
+			table.insert(pathArray, 1, currentKeyword:getName()) -- Insert at beginning
+			currentKeyword = currentKeyword:getParent()
+		end
+		return pathArray
+	end)
+	
+	if success then
+		path = result
+	else
+		logger:errorf("getKeywordHierarchyPath failed: %s", tostring(result))
+		return ""
+	end
+	
+	return table.concat(path, separator)
+end
+
+-- Check if a keyword string contains hierarchy separators
+local function isHierarchicalKeyword(keywordString)
+	if not keywordString then
+		return false
+	end
+	local LrPrefs = import "LrPrefs"
+	local prefs = LrPrefs.prefsForPlugin()
+	local separator = prefs.keywordHierarchySeparator or " > "
+	return string.find(keywordString, separator, 1, true) ~= nil
+end
+
+--------------------------------------------------------------------------------
+
 -- Collection Management Functions
 
 -- Store AI metadata using standard properties
@@ -94,16 +243,13 @@ local function storeAIMetadata(photo, confidence, categories, processDate)
 	
 	-- Store categories as a special keyword prefix
 	if categories and #categories > 0 then
-		logger:tracef("Adding %d AI category keywords", #categories)
+		logger:infof("Adding %d AI category keywords", #categories)
 		local catalog = LrApplication.activeCatalog()
 		for _, category in ipairs(categories) do
 			local keywordName = "AI:" .. category
-			logger:tracef("Creating keyword: %s", keywordName)
 			local keyword = catalog:createKeyword(keywordName, {}, false, nil, true)
 			photo:addKeyword(keyword)
 		end
-	else
-		logger:tracef("No categories provided for AI keywords")
 	end
 end
 
@@ -152,17 +298,41 @@ local function getOrCreateCollection(name, parent)
 	return collection
 end
 
--- Determine which collections a photo should belong to based on keywords
+-- Determine which collections a photo should belong to based on keywords (including hierarchical)
 local function determinePhotoCollections(keywords, scheme)
 	local collections = {}
+	
+	-- Helper function to extract searchable terms from keyword (hierarchical or flat)
+	local function extractSearchableTerms(keyword)
+		local LrPrefs = import "LrPrefs"
+		local prefs = LrPrefs.prefsForPlugin()
+		local terms = {}
+		
+		if prefs.useHierarchicalKeywords and isHierarchicalKeyword(keyword) then
+			-- For hierarchical keywords, extract all levels for matching
+			local hierarchy = parseKeywordHierarchy(keyword)
+			for _, term in ipairs(hierarchy) do
+				table.insert(terms, term)
+			end
+		else
+			-- For flat keywords, just use the keyword itself
+			table.insert(terms, keyword)
+		end
+		
+		return terms
+	end
 	
 	if scheme == "Content-Based" then
 		for collectionName, collectionKeywords in pairs(KEYWORD_COLLECTIONS) do
 			for _, keyword in ipairs(keywords) do
-				for _, collectionKeyword in ipairs(collectionKeywords) do
-					if string.lower(keyword):find(string.lower(collectionKeyword)) then
-						table.insert(collections, collectionName)
-						break
+				local searchableTerms = extractSearchableTerms(keyword)
+				
+				for _, term in ipairs(searchableTerms) do
+					for _, collectionKeyword in ipairs(collectionKeywords) do
+						if string.lower(term):find(string.lower(collectionKeyword)) then
+							table.insert(collections, collectionName)
+							break
+						end
 					end
 				end
 			end
@@ -170,10 +340,14 @@ local function determinePhotoCollections(keywords, scheme)
 	elseif scheme == "Location-Based" then
 		for collectionName, collectionKeywords in pairs(LOCATION_COLLECTIONS) do
 			for _, keyword in ipairs(keywords) do
-				for _, collectionKeyword in ipairs(collectionKeywords) do
-					if string.lower(keyword):find(string.lower(collectionKeyword)) then
-						table.insert(collections, collectionName)
-						break
+				local searchableTerms = extractSearchableTerms(keyword)
+				
+				for _, term in ipairs(searchableTerms) do
+					for _, collectionKeyword in ipairs(collectionKeywords) do
+						if string.lower(term):find(string.lower(collectionKeyword)) then
+							table.insert(collections, collectionName)
+							break
+						end
 					end
 				end
 			end
@@ -343,7 +517,16 @@ local function loadPhoto( propertyTable, index )
 	local keywords = photo.keywords or { }
 	for i = 1, prefs.maxKeywords do
 		local keyword = keywords[ i ] or { description = nil, selected = false }
-		propertyTable[ propKeywordTitle( i ) ] = keyword.description
+		-- For hierarchical keywords, we may want to display the full hierarchy or just the leaf
+		local displayText = keyword.description
+		if displayText then
+			local LrPrefs = import "LrPrefs"
+			local localPrefs = LrPrefs.prefsForPlugin()
+			if localPrefs.useHierarchicalKeywords and isHierarchicalKeyword(displayText) then
+				-- Keep the full hierarchical path for display
+					end
+		end
+		propertyTable[ propKeywordTitle( i ) ] = displayText
 		propertyTable[ propKeywordSelected( i ) ] = keyword.selected
 	end
 
@@ -388,8 +571,51 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 	catalog:withWriteAccessDo(
 		LOC( "$$$/AiTagger/ActionName=Apply Metadata " ),
 		function()
-			local function createDecoratedKeyword( name, decoration, value )
+			local function createDecoratedKeyword( keywordString, decoration, value )
+				-- Validate inputs
+				if not keywordString or keywordString == "" then
+					logger:errorf("createDecoratedKeyword: invalid keywordString")
+					return nil
+				end
+				
+				local LrPrefs = import "LrPrefs"
+				if not LrPrefs then
+					logger:errorf("createDecoratedKeyword: failed to import LrPrefs")
+					return nil
+				end
+				
+				local localPrefs = LrPrefs.prefsForPlugin()
+				if not localPrefs then
+					logger:errorf("createDecoratedKeyword: failed to get plugin preferences")
+					return nil
+				end
+				
+				-- Check if hierarchical keywords are enabled and the keyword contains hierarchy
+				if localPrefs.useHierarchicalKeywords then
+					
+					local isHierarchical = isHierarchicalKeyword(keywordString)
+					
+					if isHierarchical then
+						local hierarchy = parseKeywordHierarchy(keywordString)
+						
+						if #hierarchy > 0 then
+							-- For hierarchical keywords, create the full hierarchy
+							local leafKeyword = createKeywordHierarchy(catalog, hierarchy)
+							if leafKeyword then
+								return leafKeyword
+							else
+								logger:errorf("Failed to create hierarchical keyword: %s, falling back to flat", keywordString)
+								-- Fall back to flat keyword creation
+							end
+						end
+					end
+				end
+				
+				-- Original flat keyword creation logic (fallback or when hierarchical is disabled)
+				local name = keywordString
 				local parent = nil
+				
+				-- Handle legacy decoration options
 				if decoration == AiTaggerConstants.decorateKeywordParent then
 					parent = catalog:createKeyword( value, nil, true, nil, true )
 					if parent == nil then
@@ -404,23 +630,63 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				else
 					 -- AiTaggerConstants.decorateKeywordAsIs or decorateKeywordParent, do nothing
 				end
-				return catalog:createKeyword( name, nil, true, parent, true )
+				
+				-- For hierarchical keywords that failed hierarchy creation, use just the leaf name
+				if localPrefs.useHierarchicalKeywords and isHierarchicalKeyword(keywordString) then
+					local hierarchy = parseKeywordHierarchy(keywordString)
+					if #hierarchy > 0 then
+						name = hierarchy[#hierarchy] -- Use leaf keyword name only
+					end
+				end
+				
+				-- Final validation before creating keyword
+				if not name or name == "" then
+					logger:errorf("createDecoratedKeyword: final name is invalid")
+					return nil
+				end
+				
+				
+				local LrTasks = import "LrTasks"
+				local success, keyword = LrTasks.pcall(function()
+					return catalog:createKeyword( name, nil, true, parent, true )
+				end)
+				
+				if success and keyword then
+					return keyword
+				else
+					logger:errorf("Failed to create flat keyword: %s (error: %s)", name, tostring(keyword))
+					return nil
+				end
 			end
 
 			-- Apply keywords to Lightroom Keywords
 			local selectedKeywords = {}
-			for _, keyword in ipairs( keywords ) do
-				if keyword.selected then
-					-- Add to Lightroom Keywords
-					local keywordObj = createDecoratedKeyword( keyword.description, prefs.decorateKeyword, prefs.decorateKeywordValue )
-					if keywordObj then
-						photo:addKeyword( keywordObj )
+			
+			for i, keyword in ipairs( keywords ) do
+				if not keyword then
+					logger:errorf("Keyword at index %d is nil", i)
+				elseif keyword.selected then
+					
+					if keyword.description then
+						-- Add to Lightroom Keywords
+						local keywordObj = createDecoratedKeyword( keyword.description, prefs.decorateKeyword, prefs.decorateKeywordValue )
+						if keywordObj then
+							local LrTasks = import "LrTasks"
+							local success, err = LrTasks.pcall(function()
+								photo:addKeyword( keywordObj )
+							end)
+							if success then
+									-- Collect for IPTC Keywords (use original description, not decorated)
+								table.insert( selectedKeywords, keyword.description )
+							else
+								logger:errorf("Failed to add keyword to photo: %s (error: %s)", keyword.description, tostring(err))
+							end
+						else
+							logger:errorf( "failed to create keyword object for %s", keyword.description )
+						end
 					else
-						logger:errorf( "failed to add keyword %s", keyword.description )
+						logger:errorf("Keyword has no description at index %d", i)
 					end
-
-					-- Collect for IPTC Keywords (use original description, not decorated)
-					table.insert( selectedKeywords, keyword.description )
 				end
 			end
 
@@ -429,10 +695,7 @@ local function applyMetadataToPhoto( photo, keywords, title, caption, headline, 
 				-- Note: Lightroom doesn't expose a direct IPTC keywords field via setRawMetadata
 				-- Keywords are automatically included in IPTC when exporting if they're in Lightroom Keywords
 				-- This is a limitation of the Lightroom SDK
-				logger:tracef( "IPTC keywords: Lightroom automatically includes keywords in IPTC on export. Selected keywords: %s",
-					table.concat( selectedKeywords, ", " ) )
-			else
-				logger:tracef( "skipping IPTC keywords: enabled=%s, count=%d", tostring(prefs.saveKeywordsToIptc), #selectedKeywords )
+				logger:infof( "IPTC keywords: %d keywords selected", #selectedKeywords )
 			end
 
 			-- Apply IPTC metadata using correct Lightroom field names
@@ -512,11 +775,12 @@ local function exportResults( propertyTable )
 				local location = (photoData.location or ""):gsub( '"', '""' )
 				local elapsed = photoData.elapsed or 0
 
-				-- Collect selected keywords
+				-- Collect selected keywords (preserve hierarchical format)
 				local keywords = {}
 				if photoData.keywords then
 					for _, keyword in ipairs( photoData.keywords ) do
 						if keyword.selected then
+							-- Keep hierarchical keywords in their full form for export
 							table.insert( keywords, keyword.description )
 						end
 					end
@@ -548,9 +812,40 @@ local function showResponse( propertyTable )
 			f:row {
 				f:checkbox {
 					visible = LrBinding.keyIsNotNil( propTitle ),
-					title = bind { key = propTitle },
+					title = bind { 
+						key = propTitle,
+						transform = function( value, fromTable )
+							-- Display hierarchical keywords with visual formatting
+							if value then
+								local LrPrefs = import "LrPrefs"
+								local localPrefs = LrPrefs.prefsForPlugin()
+								if localPrefs.useHierarchicalKeywords and isHierarchicalKeyword(value) then
+									-- Keep the full hierarchy for display
+									return value
+								end
+							end
+							return value
+						end,
+					},
 					value = bind { key = propSelected },
-					width = 300,
+					width = 400, -- Increased width to accommodate hierarchical keywords
+					tooltip = bind { 
+						key = propTitle,
+						transform = function( value, fromTable )
+							-- Show hierarchy explanation in tooltip
+							if value then
+								local LrPrefs = import "LrPrefs"
+								local localPrefs = LrPrefs.prefsForPlugin()
+								if localPrefs.useHierarchicalKeywords and isHierarchicalKeyword(value) then
+									local hierarchy = parseKeywordHierarchy(value)
+									if #hierarchy > 1 then
+										return string.format("Hierarchical keyword: %s", table.concat(hierarchy, " → "))
+									end
+								end
+							end
+							return nil
+						end,
+					},
 				},
 			}
 		)

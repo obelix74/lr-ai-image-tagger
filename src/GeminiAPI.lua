@@ -36,7 +36,12 @@ local mimeTypeJson = "application/json"
 local keyApiKey = "GeminiAI.ApiKey"
 
 local serviceBaseUri = "https://generativelanguage.googleapis.com/v1beta"
-local serviceModel = "gemini-1.5-flash"
+-- Get model from preferences (defaults to flash in AiTaggerInit.lua)
+local function getServiceModel()
+	local LrPrefs = import "LrPrefs"
+	local prefs = LrPrefs.prefsForPlugin()
+	return prefs.geminiModel or "gemini-1.5-flash"
+end
 local serviceMaxRetries = 2
 
 local tempPath = LrPathUtils.getStandardFilePath( "temp" )
@@ -187,7 +192,27 @@ local function getDefaultPrompt()
 		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, location) should be in %s.\n\n", language, language)
 	end
 	
-	return languageInstruction .. "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated)\n5. Special instructions for photo editing or usage (if applicable)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+	-- Determine keyword format based on hierarchical setting
+	local keywordInstruction = ""
+	local keywordExample = ""
+	
+	if prefs.useHierarchicalKeywords then
+		keywordInstruction = "4. A list of relevant hierarchical keywords organized from broad to specific categories using ' > ' separator (e.g., Nature > Wildlife > Birds, Sports > Team Sports > Football)"
+		keywordExample = "\"Nature > Wildlife > Birds, Sports > Team Sports > Football, Photography > Wildlife Photography > Telephoto\""
+	else
+		keywordInstruction = "4. A list of relevant keywords (comma-separated)"
+		keywordExample = "\"keyword1, keyword2, keyword3\""
+	end
+	
+	local basePrompt = "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n" .. keywordInstruction .. "\n5. Special instructions for photo editing or usage (if applicable)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": " .. keywordExample .. ",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"location\": \"location name if identifiable landmarks present\"\n}"
+	
+	-- Add hierarchical keyword explanation if enabled
+	if prefs.useHierarchicalKeywords then
+		local hierarchicalInstruction = "\n\nFor hierarchical keywords:\n- Start with broad categories (Nature, Sports, Architecture, Photography)\n- Progress to specific subcategories (Wildlife, Team Sports, Modern Architecture)\n- End with detailed descriptors (Birds, Football, Glass Building)\n- Use ' > ' to separate hierarchy levels\n- Provide 8-12 hierarchical keywords total\n- Examples: \"Nature > Wildlife > Birds > Eagles\", \"Sports > Team Sports > Football\", \"Photography > Portrait Photography > Studio\""
+		basePrompt = basePrompt .. hierarchicalInstruction
+	end
+	
+	return languageInstruction .. basePrompt
 end
 
 local function getAnalysisPrompt()
@@ -331,7 +356,7 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 				}
 			}
 			
-			local serviceUri = string.format( "%s/models/%s:generateContent?key=%s", serviceBaseUri, serviceModel, apiKey )
+			local serviceUri = string.format( "%s/models/%s:generateContent?key=%s", serviceBaseUri, getServiceModel(), apiKey )
 			
 			-- Make HTTP call - yielding is now allowed in proper task context
 			local resBody, resHeaders = LrHttp.post( serviceUri, reqBody, reqHeaders )

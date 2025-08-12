@@ -228,7 +228,30 @@ local function getDefaultPrompt()
 		languageInstruction = string.format("IMPORTANT: Please respond in %s language. All text fields (title, caption, headline, keywords, instructions, location) should be in %s.\n\n", language, language)
 	end
 	
-	return languageInstruction .. "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n4. A list of relevant keywords (comma-separated string)\n5. Special instructions for photo editing or usage (if applicable)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": \"keyword1, keyword2, keyword3\",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"location\": \"location name if identifiable landmarks present\"\n}\n\nIMPORTANT: The keywords field must be a comma-separated string, not an array."
+	-- Determine keyword format based on hierarchical setting
+	local keywordInstruction = ""
+	local keywordExample = ""
+	local keywordFormatNote = ""
+	
+	if prefs.useHierarchicalKeywords then
+		keywordInstruction = "4. A list of relevant hierarchical keywords organized from broad to specific categories using ' > ' separator (e.g., Nature > Wildlife > Birds, Sports > Team Sports > Football)"
+		keywordExample = "\"Nature > Wildlife > Birds, Sports > Team Sports > Football, Photography > Wildlife Photography > Telephoto\""
+		keywordFormatNote = "IMPORTANT: The keywords field must be a comma-separated string with hierarchical keywords using ' > ' separators, not an array."
+	else
+		keywordInstruction = "4. A list of relevant keywords (comma-separated string)"
+		keywordExample = "\"keyword1, keyword2, keyword3\""
+		keywordFormatNote = "IMPORTANT: The keywords field must be a comma-separated string, not an array."
+	end
+	
+	local basePrompt = "Please analyze this photograph and provide:\n1. A short title (2-5 words)\n2. A brief caption (1-2 sentences)\n3. A detailed headline/description (2-3 sentences)\n" .. keywordInstruction .. "\n5. Special instructions for photo editing or usage (if applicable)\n6. Location information (if identifiable landmarks are present)\n\nPlease format your response as JSON with the following structure:\n{\n  \"title\": \"short descriptive title\",\n  \"caption\": \"brief caption here\",\n  \"headline\": \"detailed headline/description here\",\n  \"keywords\": " .. keywordExample .. ",\n  \"instructions\": \"editing suggestions or usage notes\",\n  \"location\": \"location name if identifiable landmarks present\"\n}\n\n" .. keywordFormatNote
+	
+	-- Add hierarchical keyword explanation if enabled
+	if prefs.useHierarchicalKeywords then
+		local hierarchicalInstruction = "\n\nFor hierarchical keywords:\n- Start with broad categories (Nature, Sports, Architecture, Photography)\n- Progress to specific subcategories (Wildlife, Team Sports, Modern Architecture)\n- End with detailed descriptors (Birds, Football, Glass Building)\n- Use ' > ' to separate hierarchy levels\n- Provide 8-12 hierarchical keywords total\n- Examples: \"Nature > Wildlife > Birds > Eagles\", \"Sports > Team Sports > Football\", \"Photography > Portrait Photography > Studio\""
+		basePrompt = basePrompt .. hierarchicalInstruction
+	end
+	
+	return languageInstruction .. basePrompt
 end
 
 local function getAnalysisPrompt()

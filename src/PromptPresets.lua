@@ -25,6 +25,29 @@ local function addLanguageInstruction(prompt)
 	return prompt
 end
 
+-- Add hierarchical keyword instruction to a prompt
+local function addHierarchicalKeywordInstruction(prompt)
+	local LrPrefs = import "LrPrefs"
+	local prefs = LrPrefs.prefsForPlugin()
+	
+	if prefs.useHierarchicalKeywords then
+		local hierarchicalInstruction = [[
+
+HIERARCHICAL KEYWORDS: For keywords, use hierarchical format with " > " separator to organize from broad to specific categories:
+- Start with broad categories (e.g., Nature, Sports, Architecture, Photography)
+- Progress to specific subcategories (e.g., Wildlife, Team Sports, Modern Architecture, Portrait Photography)
+- End with detailed descriptors (e.g., Birds, Football, Glass Building, Studio Portrait)
+- Examples: "Nature > Wildlife > Birds > Eagles", "Sports > Team Sports > Football", "Photography > Portrait Photography > Studio"
+- Include 8-12 hierarchical keywords total
+- Use the separator " > " between hierarchy levels
+- Separate different keyword hierarchies with commas
+
+]]
+		return prompt .. hierarchicalInstruction
+	end
+	return prompt
+end
+
 --------------------------------------------------------------------------------
 
 -- Sports Photography Prompt
@@ -32,7 +55,7 @@ local sportsPrompt = [[Please analyze this sports photograph and provide:
 1. A short title (2-5 words)
 2. A brief caption (1-2 sentences)
 3. A detailed headline/description (2-3 sentences)
-4. A list of relevant keywords including sport type, action, players, equipment, and venue details
+4. A list of relevant hierarchical keywords organized from broad to specific categories
 5. Special instructions for photo editing or usage
 6. Location information (if identifiable venues are present)
 
@@ -46,12 +69,18 @@ Focus on:
 - Crowd and atmosphere
 - Lighting conditions and photography technique
 
+For keywords, use hierarchical format with " > " separator (e.g., "Sports > Team Sports > Football", "Sports > Equipment > Ball", "Sports > Actions > Running", "Photography > Sports Photography > Action Shot"):
+- Start with broad categories (Sports, Photography, Equipment)
+- Progress to specific subcategories
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
 Please format your response as JSON with the following structure:
 {
   "title": "short descriptive title",
   "caption": "brief caption here",
   "headline": "detailed headline/description here",
-  "keywords": "sport name, action, player details, equipment, venue, team colors, jersey numbers",
+  "keywords": "Sports > Team Sports > Football, Sports > Actions > Running, Sports > Equipment > Ball, Photography > Sports Photography > Action Shot",
   "instructions": "editing suggestions or usage notes",
   "location": "venue name if identifiable"
 }]]
@@ -61,7 +90,7 @@ local naturePrompt = [[Please analyze this nature/wildlife photograph and provid
 1. A short title (2-5 words)
 2. A brief caption (1-2 sentences)
 3. A detailed headline/description (2-3 sentences)
-4. A list of relevant keywords including species names, habitat, behavior, and environmental conditions
+4. A list of relevant hierarchical keywords organized from broad to specific categories
 5. Special instructions for photo editing or usage
 6. Location information (if identifiable landmarks or ecosystems are present)
 
@@ -72,12 +101,18 @@ Focus on:
 - Conservation status if known
 - Technical photography aspects (lighting, composition)
 
+For keywords, use hierarchical format with " > " separator (e.g., "Nature > Wildlife > Birds > Eagles", "Nature > Habitats > Forest > Deciduous", "Nature > Behavior > Feeding", "Photography > Wildlife Photography > Telephoto"):
+- Start with broad categories (Nature, Wildlife, Photography, Environment)
+- Progress to specific subcategories and species classifications
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
 Please format your response as JSON with the following structure:
 {
   "title": "short descriptive title",
   "caption": "brief caption here",
   "headline": "detailed headline/description here",
-  "keywords": "species name, behavior, habitat, season, conservation status, photography technique",
+  "keywords": "Nature > Wildlife > Birds > Eagles, Nature > Habitats > Forest, Nature > Behavior > Feeding, Photography > Wildlife Photography > Telephoto",
   "instructions": "editing suggestions or usage notes",
   "location": "location name if identifiable"
 }]]
@@ -87,7 +122,7 @@ local architecturePrompt = [[Please analyze this architectural photograph and pr
 1. A short title (2-5 words)
 2. A brief caption (1-2 sentences)
 3. A detailed headline/description (2-3 sentences)
-4. A list of relevant keywords including architectural style, building type, materials, and design elements
+4. A list of relevant hierarchical keywords organized from broad to specific categories
 5. Special instructions for photo editing or usage
 6. Location information (if identifiable buildings or landmarks are present)
 
@@ -99,12 +134,18 @@ Focus on:
 - Historical or cultural significance
 - Lighting and perspective techniques used
 
+For keywords, use hierarchical format with " > " separator (e.g., "Architecture > Styles > Modern", "Architecture > Materials > Glass", "Architecture > Elements > Facade", "Photography > Architectural Photography > Perspective"):
+- Start with broad categories (Architecture, Construction, Photography, Design)
+- Progress to specific styles, materials, and elements
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
 Please format your response as JSON with the following structure:
 {
   "title": "short descriptive title",
   "caption": "brief caption here",
   "headline": "detailed headline/description here",
-  "keywords": "architectural style, building type, materials, design elements, period, technique",
+  "keywords": "Architecture > Styles > Modern, Architecture > Materials > Glass, Architecture > Elements > Facade, Photography > Architectural Photography > Perspective",
   "instructions": "editing suggestions or usage notes",
   "location": "building name or location if identifiable"
 }]]
@@ -475,13 +516,16 @@ end
 function PromptPresets.getPreset(name)
     for _, preset in ipairs(PromptPresets.presets) do
         if preset.name == name then
-            -- Create a copy of the preset with language instruction added
-            local localizedPreset = {
+            -- Create a copy of the preset with language and hierarchical keyword instructions added
+            local enhancedPrompt = addLanguageInstruction(preset.prompt)
+            enhancedPrompt = addHierarchicalKeywordInstruction(enhancedPrompt)
+            
+            local enhancedPreset = {
                 name = preset.name,
                 description = preset.description,
-                prompt = addLanguageInstruction(preset.prompt)
+                prompt = enhancedPrompt
             }
-            return localizedPreset
+            return enhancedPreset
         end
     end
     return nil
