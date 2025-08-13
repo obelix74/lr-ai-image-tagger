@@ -436,6 +436,447 @@ Please format your response as JSON with the following structure:
   "location": "source location if identifiable"
 }]]
 
+-- Astrophotography Prompt
+local astrophotographyPrompt = [[Please analyze this astrophotography image and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable observatories or locations are present)
+
+Focus on:
+- Celestial object identification (stars, planets, galaxies, nebulae, moon phases)
+- Constellation names and astronomical events
+- Technical aspects (long exposure, star trails, light pollution effects)
+- Equipment considerations (telescope, tracking mount, filters)
+- Time and seasonal context (meteor showers, celestial events)
+- Deep sky objects and their characteristics
+- Light pollution and dark sky conditions
+- Post-processing techniques specific to astrophotography
+
+For keywords, use hierarchical format with " > " separator (e.g., "Astronomy > Deep Sky > Nebulae > Orion Nebula", "Photography > Astrophotography > Long Exposure", "Celestial Objects > Stars > Constellations > Ursa Major"):
+- Start with broad categories (Astronomy, Photography, Celestial Objects)
+- Progress to specific object types and techniques
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Astronomy > Deep Sky > Nebulae, Photography > Astrophotography > Long Exposure, Celestial Objects > Stars > Constellations, Equipment > Telescope > Reflector",
+  "instructions": "editing suggestions or usage notes",
+  "location": "observatory or location name if identifiable"
+}]]
+
+-- Concert/Music Photography Prompt
+local concertPrompt = [[Please analyze this concert/music photography image and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable venues are present)
+
+Focus on:
+- Music genre identification (rock, jazz, classical, electronic, hip-hop)
+- Performance elements (singing, instrumental, stage presence, crowd interaction)
+- Stage lighting effects (spotlights, color washes, strobes, atmospheric lighting)
+- Venue characteristics (arena, club, festival, outdoor, intimate)
+- Instruments and equipment (guitars, drums, microphones, amplifiers)
+- Crowd energy and audience interaction
+- Performance moments (solos, crowd shots, backstage, sound check)
+- Technical challenges (low light, motion blur, dramatic contrast)
+
+For keywords, use hierarchical format with " > " separator (e.g., "Music > Genres > Rock", "Performance > Live Music > Concert", "Photography > Concert Photography > Stage Lighting", "Venues > Concert Halls > Arena"):
+- Start with broad categories (Music, Performance, Photography, Equipment)
+- Progress to specific genres and venue types
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Music > Genres > Rock, Performance > Live Music > Concert, Photography > Concert Photography > Stage Lighting, Venues > Concert Halls > Arena",
+  "instructions": "editing suggestions or usage notes",
+  "location": "venue name if identifiable"
+}]]
+
+-- Documentary Photography Prompt
+local documentaryPrompt = [[Please analyze this documentary photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable locations or contexts are present)
+
+Focus on:
+- Social and cultural themes (community, tradition, change, conflict)
+- Human stories and authentic moments
+- Historical or contemporary significance
+- Environmental and social conditions
+- Photojournalistic approach and ethics
+- Cultural documentation and preservation
+- Social issues and human rights
+- Authentic emotional expression and interaction
+- Documentary storytelling techniques
+- Context and background information
+
+For keywords, use hierarchical format with " > " separator (e.g., "Documentary > Social Issues > Community", "Photography > Photojournalism > Human Interest", "Culture > Traditions > Ceremonies", "Society > Social Change > Urban Development"):
+- Start with broad categories (Documentary, Photography, Culture, Society)
+- Progress to specific themes and contexts
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Documentary > Social Issues > Community, Photography > Photojournalism > Human Interest, Culture > Traditions > Ceremonies, Society > Social Change > Development",
+  "instructions": "editing suggestions or usage notes",
+  "location": "location or community name if identifiable"
+}]]
+
+-- Pet/Animal Photography Prompt
+local petPrompt = [[Please analyze this pet/animal photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable settings are present)
+
+Focus on:
+- Animal species and breed identification (dogs, cats, birds, exotic pets)
+- Animal behavior and expressions (playful, alert, sleeping, interacting)
+- Human-animal relationships and bonding moments
+- Pet characteristics (age, size, color, markings, personality traits)
+- Photography techniques (eye-level shots, action shots, portraits)
+- Setting context (home, park, studio, veterinary, grooming)
+- Seasonal activities and environments
+- Training and obedience moments
+- Pet accessories and toys
+
+For keywords, use hierarchical format with " > " separator (e.g., "Animals > Domestic > Dogs > Golden Retriever", "Photography > Pet Photography > Portrait", "Behavior > Animal Behavior > Playing", "Settings > Indoor > Home"):
+- Start with broad categories (Animals, Photography, Behavior, Settings)
+- Progress to specific species and breeds
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Animals > Domestic > Dogs > Golden Retriever, Photography > Pet Photography > Portrait, Behavior > Animal Behavior > Playing, Settings > Indoor > Home",
+  "instructions": "editing suggestions or usage notes",
+  "location": "setting or location type if identifiable"
+}]]
+
+-- Medical/Scientific Photography Prompt
+local medicalPrompt = [[Please analyze this medical/scientific photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable facilities are present)
+
+Focus on:
+- Medical procedures and clinical documentation
+- Scientific specimens and research materials
+- Laboratory equipment and instruments
+- Healthcare environments and facilities
+- Anatomical and physiological features
+- Research and educational contexts
+- Microscopic and macro-level observations
+- Clinical and diagnostic imaging
+- Safety protocols and sterile environments
+- Educational and training applications
+
+For keywords, use hierarchical format with " > " separator (e.g., "Medicine > Clinical > Procedures", "Science > Research > Laboratory", "Photography > Medical Photography > Documentation", "Equipment > Medical Devices > Diagnostic"):
+- Start with broad categories (Medicine, Science, Photography, Equipment)
+- Progress to specific fields and applications
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Medicine > Clinical > Procedures, Science > Research > Laboratory, Photography > Medical Photography > Documentation, Equipment > Medical Devices > Diagnostic",
+  "instructions": "editing suggestions or usage notes",
+  "location": "facility or institution type if identifiable"
+}]]
+
+-- Real Estate Photography Prompt
+local realEstatePrompt = [[Please analyze this real estate photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable neighborhoods or areas are present)
+
+Focus on:
+- Property types (residential, commercial, luxury, starter homes)
+- Interior spaces and room identification (kitchen, bathroom, bedroom, living areas)
+- Architectural features and design elements
+- Property condition and staging quality
+- Lighting quality and natural illumination
+- Outdoor spaces (gardens, patios, pools, landscapes)
+- Neighborhood characteristics and amenities
+- Property size and spatial relationships
+- Design styles and finishing materials
+- Market appeal and target demographics
+
+For keywords, use hierarchical format with " > " separator (e.g., "Real Estate > Residential > Single Family", "Architecture > Interior > Kitchen", "Photography > Real Estate Photography > Wide Angle", "Features > Outdoor > Pool"):
+- Start with broad categories (Real Estate, Architecture, Photography, Features)
+- Progress to specific property types and spaces
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Real Estate > Residential > Single Family, Architecture > Interior > Kitchen, Photography > Real Estate Photography > Wide Angle, Features > Outdoor > Pool",
+  "instructions": "editing suggestions or usage notes",
+  "location": "neighborhood or area if identifiable"
+}]]
+
+-- Fine Art Photography Prompt
+local fineArtPrompt = [[Please analyze this fine art photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable sources are present)
+
+Focus on:
+- Artistic vision and conceptual themes
+- Art movement influences (surrealism, minimalism, expressionism)
+- Emotional and psychological impact
+- Symbolic and metaphorical content
+- Creative techniques and experimental approaches
+- Composition and visual elements
+- Cultural and philosophical references
+- Gallery and exhibition context
+- Artist's statement and intention
+- Contemporary or historical art contexts
+
+For keywords, use hierarchical format with " > " separator (e.g., "Art > Fine Art > Photography", "Concepts > Abstract > Minimalism", "Photography > Artistic > Conceptual", "Movements > Contemporary > Postmodern"):
+- Start with broad categories (Art, Concepts, Photography, Movements)
+- Progress to specific styles and themes
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Art > Fine Art > Photography, Concepts > Abstract > Minimalism, Photography > Artistic > Conceptual, Movements > Contemporary > Postmodern",
+  "instructions": "editing suggestions or usage notes",
+  "location": "gallery or location if identifiable"
+}]]
+
+-- Black & White Photography Prompt
+local blackWhitePrompt = [[Please analyze this black and white photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable settings are present)
+
+Focus on:
+- Tonal range and contrast characteristics
+- Classic black and white photography techniques
+- Mood and emotional impact of monochrome
+- Texture and detail emphasis
+- Lighting quality and shadow play
+- Historical photography references
+- Grain structure and film characteristics
+- Composition without color distractions
+- Timeless and classic aesthetic qualities
+- Post-processing considerations for monochrome
+
+For keywords, use hierarchical format with " > " separator (e.g., "Photography > Black and White > Classic", "Techniques > Monochrome > High Contrast", "Aesthetic > Timeless > Vintage", "Composition > Tonal > Shadow"):
+- Start with broad categories (Photography, Techniques, Aesthetic, Composition)
+- Progress to specific monochrome elements
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Photography > Black and White > Classic, Techniques > Monochrome > High Contrast, Aesthetic > Timeless > Vintage, Composition > Tonal > Shadow",
+  "instructions": "editing suggestions or usage notes",
+  "location": "setting or location if identifiable"
+}]]
+
+-- HDR/Long Exposure Photography Prompt
+local hdrLongExposurePrompt = [[Please analyze this HDR/long exposure photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable locations are present)
+
+Focus on:
+- HDR technique and dynamic range capture
+- Long exposure effects (motion blur, light trails, smooth water)
+- Technical camera settings and equipment used
+- Creative motion effects and time-based imagery
+- Light painting and trail photography
+- Water movement and cloud motion
+- Traffic and urban light trails
+- Astrophotography long exposures
+- Post-processing techniques and tone mapping
+- Equipment considerations (tripods, filters, remote triggers)
+
+For keywords, use hierarchical format with " > " separator (e.g., "Photography > HDR > High Dynamic Range", "Techniques > Long Exposure > Motion Blur", "Effects > Light Trails > Traffic", "Equipment > Camera > Tripod"):
+- Start with broad categories (Photography, Techniques, Effects, Equipment)
+- Progress to specific methods and results
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Photography > HDR > High Dynamic Range, Techniques > Long Exposure > Motion Blur, Effects > Light Trails > Traffic, Equipment > Camera > Tripod",
+  "instructions": "editing suggestions or usage notes",
+  "location": "location name if identifiable"
+}]]
+
+-- Corporate/Business Photography Prompt
+local corporatePrompt = [[Please analyze this corporate/business photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable business locations are present)
+
+Focus on:
+- Professional business environments and settings
+- Corporate culture and team dynamics
+- Business activities (meetings, presentations, collaboration)
+- Office spaces and workplace design
+- Professional attire and business formal presentation
+- Technology and modern workplace tools
+- Industry-specific contexts and environments
+- Leadership and management scenarios
+- Productivity and efficiency themes
+- Brand representation and corporate identity
+
+For keywords, use hierarchical format with " > " separator (e.g., "Business > Corporate > Office", "Photography > Corporate Photography > Professional", "Workplace > Team > Collaboration", "Industry > Technology > Modern"):
+- Start with broad categories (Business, Photography, Workplace, Industry)
+- Progress to specific contexts and activities
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Business > Corporate > Office, Photography > Corporate Photography > Professional, Workplace > Team > Collaboration, Industry > Technology > Modern",
+  "instructions": "editing suggestions or usage notes",
+  "location": "company or business location if identifiable"
+}]]
+
+-- Headshot/Professional Portrait Prompt
+local headshotPrompt = [[Please analyze this headshot/professional portrait and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable studio or settings are present)
+
+Focus on:
+- Professional presentation and business appropriateness
+- Studio lighting techniques and quality
+- Background choice and professional context
+- Facial expression and professional demeanor
+- Wardrobe and styling for business contexts
+- Industry-specific professional requirements
+- LinkedIn and business profile usage
+- Corporate branding and image consistency
+- Retouching considerations and natural appearance
+- Professional photography standards
+
+Note: Do not attempt to identify specific individuals by name.
+
+For keywords, use hierarchical format with " > " separator (e.g., "Photography > Portrait Photography > Headshot", "Business > Professional > Corporate", "Studio > Lighting > Professional", "Marketing > Branding > Professional Image"):
+- Start with broad categories (Photography, Business, Studio, Marketing)
+- Progress to specific professional contexts
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Photography > Portrait Photography > Headshot, Business > Professional > Corporate, Studio > Lighting > Professional, Marketing > Branding > Professional Image",
+  "instructions": "editing suggestions or usage notes",
+  "location": "studio or professional setting if identifiable"
+}]]
+
+-- Stock Photography Prompt
+local stockPrompt = [[Please analyze this stock photograph and provide:
+1. A short title (2-5 words)
+2. A brief caption (1-2 sentences)
+3. A detailed headline/description (2-3 sentences)
+4. A list of relevant hierarchical keywords organized from broad to specific categories
+5. Special instructions for photo editing or usage
+6. Location information (if identifiable generic locations are present)
+
+Focus on:
+- Commercial viability and broad market appeal
+- Clear conceptual themes and universal concepts
+- Versatile composition suitable for multiple uses
+- Professional quality and technical excellence
+- Target demographics and market segments
+- Business and lifestyle applications
+- Seasonal and trending topics
+- Generic and widely applicable content
+- Brand-safe and commercially appropriate subjects
+- High-demand stock photography categories
+
+For keywords, use hierarchical format with " > " separator (e.g., "Stock Photography > Commercial > Business", "Concepts > Lifestyle > Success", "Photography > Commercial Photography > Marketing", "Business > Concepts > Growth"):
+- Start with broad categories (Stock Photography, Concepts, Photography, Business)
+- Progress to specific commercial applications
+- End with detailed descriptors
+- Include 8-12 hierarchical keywords total
+
+Please format your response as JSON with the following structure:
+{
+  "title": "short descriptive title",
+  "caption": "brief caption here",
+  "headline": "detailed headline/description here",
+  "keywords": "Stock Photography > Commercial > Business, Concepts > Lifestyle > Success, Photography > Commercial Photography > Marketing, Business > Concepts > Growth",
+  "instructions": "editing suggestions or usage notes",
+  "location": "generic location type if identifiable"
+}]]
+
 --------------------------------------------------------------------------------
 
 -- Preset definitions
@@ -504,6 +945,66 @@ PromptPresets.presets = {
         name = "Abstract Photography",
         description = "Visual elements, artistic concepts, and creative interpretation",
         prompt = abstractPrompt
+    },
+    {
+        name = "Astrophotography",
+        description = "Celestial objects, astronomical events, and technical astrophotography details",
+        prompt = astrophotographyPrompt
+    },
+    {
+        name = "Concert & Music",
+        description = "Live music performances, stage lighting, and musical event documentation",
+        prompt = concertPrompt
+    },
+    {
+        name = "Documentary Photography",
+        description = "Social themes, cultural documentation, and photojournalistic storytelling",
+        prompt = documentaryPrompt
+    },
+    {
+        name = "Pet & Animal Photography",
+        description = "Domestic animals, pet behavior, and human-animal relationships",
+        prompt = petPrompt
+    },
+    {
+        name = "Medical & Scientific",
+        description = "Clinical documentation, scientific research, and educational imagery",
+        prompt = medicalPrompt
+    },
+    {
+        name = "Real Estate Photography",
+        description = "Property documentation, interior spaces, and architectural features",
+        prompt = realEstatePrompt
+    },
+    {
+        name = "Fine Art Photography",
+        description = "Artistic vision, conceptual themes, and gallery-worthy artistic expression",
+        prompt = fineArtPrompt
+    },
+    {
+        name = "Black & White Photography",
+        description = "Monochrome aesthetics, tonal range, and classic photography techniques",
+        prompt = blackWhitePrompt
+    },
+    {
+        name = "HDR & Long Exposure",
+        description = "High dynamic range, motion effects, and technical creative photography",
+        prompt = hdrLongExposurePrompt
+    },
+    {
+        name = "Corporate & Business",
+        description = "Professional environments, business activities, and corporate imagery",
+        prompt = corporatePrompt
+    },
+    {
+        name = "Headshot & Professional Portrait",
+        description = "Professional portraits, business headshots, and corporate branding imagery",
+        prompt = headshotPrompt
+    },
+    {
+        name = "Stock Photography",
+        description = "Commercial viability, broad market appeal, and versatile business imagery",
+        prompt = stockPrompt
     }
 }
 
