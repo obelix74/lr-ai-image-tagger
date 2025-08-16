@@ -137,3 +137,20 @@ end
 if prefs.geminiModel == nil then
 	prefs.geminiModel = "gemini-1.5-flash"  -- Default to fastest/cheapest model
 end
+
+-- OpenAI configuration defaults
+if prefs.openaiModel == nil then
+	prefs.openaiModel = "gpt-4o"  -- Default to GPT-4o for best quality/speed balance
+end
+
+if prefs.openaiTimeout == nil then
+	prefs.openaiTimeout = 30000  -- 30 seconds timeout for OpenAI requests
+end
+
+if prefs.openaiMaxTokens == nil then
+	prefs.openaiMaxTokens = 1000  -- Reasonable limit for image analysis responses
+end
+
+if prefs.openaiTemperature == nil then
+	prefs.openaiTemperature = 0.7  -- Balanced creativity for analysis
+end

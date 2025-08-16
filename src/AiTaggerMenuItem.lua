@@ -1157,9 +1157,19 @@ local function AiTagger()
 			local connectionTest = AIProviderFactory.testConnection()
 			if not connectionTest.status then
 				local provider = AIProviderFactory.getCurrentProvider()
-				logger:errorf( "AI provider not configured: %s", connectionTest.message )
-				local errorMsg = string.format("AI provider (%s) not configured.\n\n%s\n\nPlease check plugin settings.", provider, connectionTest.message)
-				LrDialogs.message( LOC( "$$$/AiTagger/AuthFailed=AI Provider Configuration Error" ), errorMsg, "critical" )
+				logger:errorf( "AI provider connection failed: %s", connectionTest.message )
+				
+				-- Customize error message based on the specific failure
+				local errorMsg
+				if string.find(connectionTest.message, "Rate limit") then
+					errorMsg = string.format("OpenAI rate limit exceeded.\n\n%s\n\nThis is normal for new accounts. Please wait a minute and try again.\n\nCheck your usage and billing at: https://platform.openai.com/usage", connectionTest.message)
+				elseif string.find(connectionTest.message, "API key") then
+					errorMsg = string.format("AI provider (%s) not configured.\n\n%s\n\nPlease check plugin settings.", provider, connectionTest.message)
+				else
+					errorMsg = string.format("AI provider (%s) connection failed.\n\n%s\n\nPlease check your internet connection and provider settings.", provider, connectionTest.message)
+				end
+				
+				LrDialogs.message( LOC( "$$$/AiTagger/AuthFailed=AI Provider Connection Error" ), errorMsg, "critical" )
 			else
 				local propertyTable = LrBinding.makePropertyTable( context )
 				local photos = catalog:getTargetPhotos()

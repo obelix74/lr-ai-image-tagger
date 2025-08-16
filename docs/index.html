@@ -329,7 +329,7 @@
     <section class="hero">
         <div class="container">
             <h1><i class="fas fa-magic"></i> AI Image Tagger for Adobe Lightroom Classic</h1>
-            <p>Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google Gemini AI or local Ollama models in Adobe Lightroom Classic.</p>
+            <p>Automatically tag your photos with AI-powered captions, descriptions, and keywords using Google Gemini AI, OpenAI GPT-4V, or local Ollama models in Adobe Lightroom Classic.</p>
             <a href="#download" class="cta-button">
                 <i class="fas fa-download"></i> Download Now - Free
             </a>
@@ -345,7 +345,7 @@
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3>Smart AI Analysis</h3>
-                    <p>Generate intelligent captions, detailed descriptions, and relevant keywords using Google's advanced Gemini AI technology.</p>
+                    <p>Generate intelligent captions, detailed descriptions, and relevant keywords using Google Gemini AI, OpenAI GPT-4V, or local Ollama models.</p>
                 </div>
                 
                 <div class="feature-card">
@@ -420,7 +420,7 @@
                 <div class="step">
                     <div class="step-number">2</div>
                     <h3><i class="fas fa-key"></i> Get API Key</h3>
-                    <p>Visit Google AI Studio to create your free Gemini AI API key. No credit card required for the free tier.</p>
+                    <p>Get API keys for your preferred AI provider: Google AI Studio (Gemini), OpenAI Platform (GPT-4V), or install Ollama locally.</p>
                 </div>
 
                 <div class="step">
@@ -441,23 +441,59 @@
     <section class="api-key-section">
         <div class="container">
             <div class="api-key-content">
-                <h2><i class="fas fa-key"></i> Getting Your Gemini AI API Key</h2>
-                <p>Follow these simple steps to get your free Gemini AI API key:</p>
+                <h2><i class="fas fa-key"></i> Getting Your API Key</h2>
+                <p>Choose your preferred AI provider and follow the setup instructions:</p>
 
-                <ol style="margin: 2rem 0; padding-left: 2rem;">
-                    <li><strong>Visit Google AI Studio:</strong> Go to <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" style="color: #667eea;">https://ai.google.dev/gemini-api/docs/api-key</a></li>
-                    <li><strong>Sign In:</strong> Use your Google account to sign in</li>
-                    <li><strong>Create API Key:</strong> Click "Get API Key" and create a new key</li>
-                    <li><strong>Copy Key:</strong> Copy the generated API key (keep it secure!)</li>
-                    <li><strong>Configure Plugin:</strong> Paste the key in the Gemini AI Image Tagger plugin settings</li>
-                </ol>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+                    <!-- Gemini -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 2px solid #4285f4;">
+                        <h3 style="color: #4285f4; margin-bottom: 1rem;"><i class="fab fa-google"></i> Google Gemini</h3>
+                        <ol style="font-size: 0.9rem; padding-left: 1.5rem;">
+                            <li>Visit <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" style="color: #4285f4;">Google AI Studio</a></li>
+                            <li>Sign in with Google account</li>
+                            <li>Create new API key</li>
+                            <li>Copy and save securely</li>
+                        </ol>
+                        <div style="background: #e8f4fd; padding: 0.8rem; border-radius: 6px; margin-top: 1rem; font-size: 0.8rem;">
+                            <strong>Free Tier:</strong> 15/min, 1,500/day
+                        </div>
+                    </div>
+
+                    <!-- OpenAI -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 2px solid #00a67e;">
+                        <h3 style="color: #00a67e; margin-bottom: 1rem;"><i class="fas fa-brain"></i> OpenAI GPT-4V</h3>
+                        <ol style="font-size: 0.9rem; padding-left: 1.5rem;">
+                            <li>Visit <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #00a67e;">OpenAI Platform</a></li>
+                            <li>Sign up or log in</li>
+                            <li>Generate new API key</li>
+                            <li>Add billing method</li>
+                        </ol>
+                        <div style="background: #e8f5e8; padding: 0.8rem; border-radius: 6px; margin-top: 1rem; font-size: 0.8rem;">
+                            <strong>Cost:</strong> ~$0.01-0.03 per image
+                        </div>
+                    </div>
+
+                    <!-- Ollama -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 12px; border: 2px solid #ff6b6b;">
+                        <h3 style="color: #ff6b6b; margin-bottom: 1rem;"><i class="fas fa-home"></i> Local Ollama</h3>
+                        <ol style="font-size: 0.9rem; padding-left: 1.5rem;">
+                            <li>Download <a href="https://ollama.ai" target="_blank" style="color: #ff6b6b;">Ollama</a></li>
+                            <li>Install locally</li>
+                            <li>Download vision model</li>
+                            <li>No API key needed</li>
+                        </ol>
+                        <div style="background: #ffe8e8; padding: 0.8rem; border-radius: 6px; margin-top: 1rem; font-size: 0.8rem;">
+                            <strong>Privacy:</strong> 100% local processing
+                        </div>
+                    </div>
+                </div>
 
                 <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-                    <strong><i class="fas fa-info-circle"></i> Free Tier Limits:</strong>
-                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
-                        <li>15 requests per minute</li>
-                        <li>1,500 requests per day</li>
-                        <li>1 million tokens per month</li>
+                    <strong><i class="fas fa-info-circle"></i> Provider Comparison:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                        <li><strong>Gemini:</strong> Free tier available, excellent quality, Google's latest AI</li>
+                        <li><strong>OpenAI:</strong> Industry-leading GPT-4V model, pay-per-use, premium quality</li>
+                        <li><strong>Ollama:</strong> Complete privacy, no internet required, free after download</li>
                     </ul>
                 </div>
             </div>
@@ -469,13 +505,13 @@
             <h2><i class="fas fa-download"></i> Download Lightroom Plugin</h2>
             <p style="font-size: 1.2rem; margin-bottom: 2rem;">Get the latest version of the AI Image Tagger plugin for Adobe Lightroom Classic</p>
 
-            <a href="https://github.com/obelix74/lr-ai-image-tagger/raw/main/dist/ai-lr-tagimg-v4.0.3.zip" class="download-button">
-                <i class="fas fa-download"></i> Download v4.0.3 (Latest)
+            <a href="https://github.com/obelix74/lr-ai-image-tagger/releases/download/v5.0.0/ai-lr-tagimg-v5.0.0.zip" class="download-button">
+                <i class="fas fa-download"></i> Download v5.0.0 (Latest)
             </a>
 
             <div style="margin-top: 2rem; opacity: 0.9;">
                 <p><strong>System Requirements:</strong></p>
-                <p>Adobe Lightroom Classic 2024 or newer • Internet connection for Gemini AI • Local Ollama installation (optional)</p>
+                <p>Adobe Lightroom Classic 2024 or newer • Internet connection for Gemini AI/OpenAI • Local Ollama installation (optional)</p>
             </div>
 
 
@@ -489,16 +525,52 @@
             </h2>
             
             <div style="max-width: 900px; margin: 0 auto;">
-                <!-- Version 4.0.3 -->
-                <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #28a745;">
+                <!-- Version 5.0.0 -->
+                <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #dc3545;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="color: #28a745; margin: 0; font-size: 1.5rem;">
+                        <h3 style="color: #dc3545; margin: 0; font-size: 1.5rem;">
+                            <i class="fas fa-star"></i> Version 5.0.0 - Major Release
+                        </h3>
+                        <span style="background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">LATEST</span>
+                    </div>
+                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Revolutionary update with OpenAI GPT-4V integration - Three AI providers in one plugin!</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <h4 style="color: #dc3545; margin-bottom: 0.5rem;"><i class="fas fa-plus-circle"></i> New Features</h4>
+                            <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
+                                <li><strong>OpenAI GPT-4V Support:</strong> World-class image analysis with OpenAI's vision models</li>
+                                <li><strong>Three AI Providers:</strong> Choose between Gemini, OpenAI, or Ollama</li>
+                                <li><strong>GPT-4o Integration:</strong> Latest OpenAI model with enhanced vision capabilities</li>
+                                <li><strong>Unified Interface:</strong> Seamless switching between all providers</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="color: #ffc107; margin-bottom: 0.5rem;"><i class="fas fa-wrench"></i> Technical Improvements</h4>
+                            <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
+                                <li><strong>Provider Factory:</strong> Clean architecture supporting multiple AI services</li>
+                                <li><strong>Enhanced Error Handling:</strong> Robust retry logic and rate limiting</li>
+                                <li><strong>Secure API Storage:</strong> Encrypted key management for all providers</li>
+                                <li><strong>Production Ready:</strong> Fully tested and validated integration</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <strong><i class="fas fa-info-circle"></i> What's New:</strong>
+                        <span style="color: #666; margin-left: 0.5rem;">This major release adds OpenAI GPT-4V as a third AI provider option alongside existing Gemini and Ollama support. Users can now choose the best AI service for their workflow - cloud-based Gemini/OpenAI for convenience or local Ollama for privacy.</span>
+                    </div>
+                </div>
+
+                <!-- Version 4.0.3 -->
+                <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #6c757d;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #6c757d; margin: 0; font-size: 1.3rem;">
                             <i class="fas fa-tag"></i> Version 4.0.3
                         </h3>
-                        <span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">CURRENT</span>
                     </div>
-                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Latest stable release with new prompts and hierarchical keywords</p>
-                    <ul style="color: #555; padding-left: 1.5rem; margin: 0;">
+                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Previous stable release with new prompts and hierarchical keywords</p>
+                    <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
                         <li><strong>New Prompts:</strong> Enhanced AI analysis with improved prompt templates</li>
                         <li><strong>Hierarchical Keywords:</strong> Better keyword organization and structure</li>
                         <li><strong>TIFF Thumbnail Fix:</strong> Improved compatibility with TIFF image formats</li>
@@ -715,7 +787,7 @@
     <footer>
         <div class="container">
             <p>&copy; 2025 AI Image Tagger for Adobe Lightroom Classic. Created by Anand's Photography.</p>
-            <p>Powered by Google Gemini AI and Ollama • Built for Adobe Lightroom Classic</p>
+            <p>Powered by Google Gemini AI, OpenAI GPT-4V, and Ollama • Built for Adobe Lightroom Classic</p>
             <div style="margin-top: 1rem;">
                 <a href="mailto:lists@anands.net" style="color: white; margin: 0 1rem;">
                     <i class="fas fa-envelope"></i> Support

@@ -63,6 +63,8 @@ local propIncludeGpsExifData = "includeGpsExifData"
 local propResponseLanguage = "responseLanguage"
 
 local propApiKey = "apiKey"
+local propOpenAIApiKey = "openaiApiKey"
+local propOpenAIModel = "openaiModel"
 local propVersions = "versions"
 
 -- AI Provider properties
@@ -91,23 +93,42 @@ local placeholderKeywordParent = LOC( "$$$/AiTagger/Options/DecorateKeywords/Pla
 
 
 local function loadApiKey( propertyTable )
+	local provider = propertyTable[ propAiProvider ]
 	local api = AIProviderFactory.getAPI()
 	if api.getApiKey then
 		local apiKey = api.getApiKey()
-		if apiKey then
-			propertyTable[ propApiKey ] = apiKey
+		if provider == "openai" then
+			if apiKey then
+				propertyTable[ propOpenAIApiKey ] = apiKey
+			else
+				propertyTable[ propOpenAIApiKey ] = ""
+			end
+		else
+			if apiKey then
+				propertyTable[ propApiKey ] = apiKey
+			else
+				propertyTable[ propApiKey ] = ""
+			end
+		end
+	else
+		if provider == "openai" then
+			propertyTable[ propOpenAIApiKey ] = ""
 		else
 			propertyTable[ propApiKey ] = ""
 		end
-	else
-		propertyTable[ propApiKey ] = ""
 	end
 end
 
 local function storeApiKey( propertyTable )
+	local provider = propertyTable[ propAiProvider ]
 	local api = AIProviderFactory.getAPI()
 	if api.storeApiKey then
-		local apiKey = propertyTable[ propApiKey ]
+		local apiKey
+		if provider == "openai" then
+			apiKey = propertyTable[ propOpenAIApiKey ]
+		else
+			apiKey = propertyTable[ propApiKey ]
+		end
 		if apiKey and apiKey ~= "" then
 			api.storeApiKey( apiKey )
 		end
@@ -115,11 +136,16 @@ local function storeApiKey( propertyTable )
 end
 
 local function clearApiKey( propertyTable )
+	local provider = propertyTable[ propAiProvider ]
 	local api = AIProviderFactory.getAPI()
 	if api.clearApiKey then
 		api.clearApiKey()
 	end
-	propertyTable[ propApiKey ] = ""
+	if provider == "openai" then
+		propertyTable[ propOpenAIApiKey ] = ""
+	else
+		propertyTable[ propApiKey ] = ""
+	end
 end
 
 local function startDialog( propertyTable )
@@ -186,6 +212,8 @@ local function startDialog( propertyTable )
 	propertyTable[ propCreateFullHierarchy ] = prefs.createFullHierarchy
 	propertyTable[ propMaxHierarchyDepth ] = prefs.maxHierarchyDepth
 	propertyTable[ propGeminiModel ] = prefs.geminiModel
+	propertyTable[ propOpenAIApiKey ] = prefs.openaiApiKey or ""
+	propertyTable[ propOpenAIModel ] = prefs.openaiModel or "gpt-4o"
 
 	propertyTable[ propSaveTitleToIptc ] = prefs.saveTitleToIptc
 	propertyTable[ propSaveCaptionToIptc ] = prefs.saveCaptionToIptc
@@ -204,6 +232,31 @@ local function startDialog( propertyTable )
 	-- auto collections properties
 	propertyTable[ propCreateAutoCollections ] = prefs.createAutoCollections or false
 	propertyTable[ propCollectionScheme ] = prefs.collectionScheme or "Content-Based"
+
+	-- Add observer for OpenAI API key to store immediately
+	propertyTable:addObserver( propOpenAIApiKey, function( properties, key, newValue )
+		if propertyTable[ propAiProvider ] == "openai" then
+			-- Store to preferences immediately for fallback access
+			prefs.openaiApiKey = newValue or ""
+			-- Also store to secure storage if key is provided
+			if newValue and newValue ~= "" then
+				local api = AIProviderFactory.getAPI()
+				if api.storeApiKey then
+					api.storeApiKey( newValue )
+				end
+			end
+		end
+	end )
+	
+	-- Add observer for Gemini API key to store immediately  
+	propertyTable:addObserver( propApiKey, function( properties, key, newValue )
+		if newValue and newValue ~= "" and propertyTable[ propAiProvider ] == "gemini" then
+			local api = AIProviderFactory.getAPI()
+			if api.storeApiKey then
+				api.storeApiKey( newValue )
+			end
+		end
+	end )
 
 	-- Add observer for preset selection
 	propertyTable:addObserver( "selectedPreset", function( properties, key, newValue )
@@ -237,6 +290,8 @@ local function endDialog( propertyTable )
 	prefs.createFullHierarchy = propertyTable[ propCreateFullHierarchy ]
 	prefs.maxHierarchyDepth = propertyTable[ propMaxHierarchyDepth ]
 	prefs.geminiModel = propertyTable[ propGeminiModel ]
+	prefs.openaiApiKey = propertyTable[ propOpenAIApiKey ]
+	prefs.openaiModel = propertyTable[ propOpenAIModel ]
 
 	prefs.saveTitleToIptc = propertyTable[ propSaveTitleToIptc ]
 	prefs.saveCaptionToIptc = propertyTable[ propSaveCaptionToIptc ]
@@ -293,6 +348,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					value = bind { key = propAiProvider },
 					items = {
 						{ title = "Google Gemini", value = "gemini" },
+						{ title = "OpenAI GPT-4V", value = "openai" },
 						{ title = "Ollama (Local)", value = "ollama" },
 					},
 					fill_horizontal = 1,
@@ -301,7 +357,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/AiTagger/Options/Provider/Help=Choose between Google Gemini cloud service or local Ollama server. Gemini requires an API key, Ollama requires local installation." ),
+					title = LOC( "$$$/AiTagger/Options/Provider/Help=Choose between Google Gemini, OpenAI GPT-4V cloud services, or local Ollama server. Cloud services require API keys, Ollama requires local installation." ),
 					text_color = LrColor( 0.5, 0.5, 0.5 ),
 					width_in_chars = 80,
 				},
@@ -781,8 +837,42 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				},
 			},
 		},
+		-- OpenAI Model Selection
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/OpenAIModel/Title=OpenAI Model" ),
+			visible = LrBinding.keyEquals( propAiProvider, "openai" ),
+			spacing = f:control_spacing(),
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/OpenAIModel/Model=Model:" ),
+					width = share( propCredentialsPromptWidth ),
+					alignment = "right",
+				},
+				f:popup_menu {
+					value = bind { key = propOpenAIModel },
+					items = {
+						{ title = "GPT-4o (Latest & Recommended)", value = "gpt-4o" },
+						{ title = "GPT-4o Mini (Fast & Affordable)", value = "gpt-4o-mini" },
+						{ title = "GPT-4 Turbo (High Quality)", value = "gpt-4-turbo" },
+						{ title = "GPT-4 Vision Preview", value = "gpt-4-vision-preview" },
+					},
+					width_in_chars = 35,
+				},
+			},
+			f:row {
+				fill_horizontal = 1,
+				f:static_text {
+					title = LOC( "$$$/AiTagger/OpenAIModel/Help=GPT-4o: Latest model with best performance. GPT-4o Mini: Fastest and most affordable. Turbo: High quality analysis." ),
+					text_color = LrColor( 0.5, 0.5, 0.5 ),
+					width_in_chars = 80,
+					wrap = true,
+				},
+			},
+		},
 
-		-- API key (Gemini only)
+		-- Gemini API key
 		{
 			bind_to_object = propertyTable,
 			title = LOC( "$$$/AiTagger/ApiKey/Title=Gemini API Key" ),
@@ -808,6 +898,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:password_field {
 					placeholder_string = LOC( "$$$/AiTagger/ApiKey/KeyPlaceHolder=<API key>" ),
 					value = bind { key = propApiKey },
+					immediate = true,
 					fill_horizontal = 1,
 					height_in_lines = 1,
 				},
@@ -824,6 +915,56 @@ local function sectionsForTopOfDialog( f, propertyTable )
 					title = LOC( "$$$/AiTagger/ApiKey/Clear=Clear" ),
 					place_horizontal = 1,
 					action = function( btn )
+						propertyTable[ propApiKey ] = ""
+						clearApiKey( propertyTable )
+					end,
+				},
+			},
+		},
+		-- OpenAI API key
+		{
+			bind_to_object = propertyTable,
+			title = LOC( "$$$/AiTagger/ApiKey/OpenAI/Title=OpenAI API Key" ),
+			visible = LrBinding.keyEquals( propAiProvider, "openai" ),
+			synopsis = bind {
+				key = propOpenAIApiKey,
+				object = propertyTable,
+				transform = function( value, fromTable )
+					if value and value ~= "" then
+						return LOC( "$$$/AiTagger/ApiKey/Configured=API key configured" )
+					else
+						return LOC( "$$$/AiTagger/ApiKey/NotConfigured=API key not configured" )
+					end
+				end,
+			},
+			spacing = f:control_spacing(),
+			f:row {
+				f:static_text {
+					title = LOC( "$$$/AiTagger/ApiKey/Key=API Key:" ),
+					width = share( propCredentialsPromptWidth ),
+					alignment = "right",
+				},
+				f:password_field {
+					placeholder_string = LOC( "$$$/AiTagger/ApiKey/OpenAI/KeyPlaceHolder=<OpenAI API key>" ),
+					value = bind { key = propOpenAIApiKey },
+					immediate = true,
+					fill_horizontal = 1,
+					height_in_lines = 1,
+				},
+			},
+			f:row {
+				f:push_button {
+					title = LOC( "$$$/AiTagger/ApiKey/OpenAI/Setup=Get OpenAI API Key..." ),
+					place_horizontal = 1,
+					action = function( btn )
+						LrHttp.openUrlInBrowser( "https://platform.openai.com/api-keys" )
+					end,
+				},
+				f:push_button {
+					title = LOC( "$$$/AiTagger/ApiKey/Clear=Clear" ),
+					place_horizontal = 1,
+					action = function( btn )
+						propertyTable[ propOpenAIApiKey ] = ""
 						clearApiKey( propertyTable )
 					end,
 				},

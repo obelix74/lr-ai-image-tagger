@@ -14,6 +14,7 @@ local LrPrefs = import "LrPrefs"
 require "Logger"
 require "GeminiAPI"
 require "OllamaAPI"
+require "OpenAIAPI"
 
 --------------------------------------------------------------------------------
 -- AI Provider Factory
@@ -23,7 +24,8 @@ AIProviderFactory = { }
 -- Supported AI providers
 local PROVIDERS = {
 	GEMINI = "gemini",
-	OLLAMA = "ollama"
+	OLLAMA = "ollama",
+	OPENAI = "openai"
 }
 
 -- Get the currently selected AI provider from preferences
@@ -35,7 +37,7 @@ end
 -- Set the AI provider in preferences
 function AIProviderFactory.setCurrentProvider( provider )
 	local prefs = LrPrefs.prefsForPlugin()
-	if provider == PROVIDERS.GEMINI or provider == PROVIDERS.OLLAMA then
+	if provider == PROVIDERS.GEMINI or provider == PROVIDERS.OLLAMA or provider == PROVIDERS.OPENAI then
 		prefs.aiProvider = provider
 		logger:infof( "AIProviderFactory: Set provider to %s", provider )
 		return true
@@ -51,6 +53,8 @@ function AIProviderFactory.getAPI()
 	
 	if provider == PROVIDERS.OLLAMA then
 		return OllamaAPI
+	elseif provider == PROVIDERS.OPENAI then
+		return OpenAIAPI
 	else
 		-- Default to Gemini
 		return GeminiAPI
@@ -65,6 +69,8 @@ function AIProviderFactory.testConnection()
 	logger:infof( "AIProviderFactory: Testing connection for provider: %s", provider )
 	
 	if provider == PROVIDERS.OLLAMA then
+		return api.testConnection()
+	elseif provider == PROVIDERS.OPENAI then
 		return api.testConnection()
 	elseif provider == PROVIDERS.GEMINI then
 		-- For Gemini, just check if API key is available
@@ -91,6 +97,12 @@ function AIProviderFactory.getProviderStatus( provider )
 	elseif provider == PROVIDERS.OLLAMA then
 		local result = OllamaAPI.testConnection()
 		return { configured = result.status, message = result.message }
+	elseif provider == PROVIDERS.OPENAI then
+		if OpenAIAPI.hasApiKey() then
+			return { configured = true, message = "API key configured" }
+		else
+			return { configured = false, message = "API key required" }
+		end
 	else
 		return { configured = false, message = "Unknown provider" }
 	end
@@ -110,6 +122,12 @@ function AIProviderFactory.getAvailableProviders()
 			name = "Ollama (Local)",
 			description = "Local Ollama server with vision models like LLaVA",
 			status = AIProviderFactory.getProviderStatus( PROVIDERS.OLLAMA )
+		},
+		{
+			id = PROVIDERS.OPENAI,
+			name = "OpenAI GPT-4V",
+			description = "OpenAI's GPT-4 with vision capabilities for image analysis",
+			status = AIProviderFactory.getProviderStatus( PROVIDERS.OPENAI )
 		}
 	}
 end

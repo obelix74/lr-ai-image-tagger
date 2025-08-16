@@ -8,6 +8,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] - 2025-08-16
+
+### Added
+- **🚀 OpenAI GPT-4V Integration**: Full support for OpenAI's GPT-4 with Vision models including GPT-4o and GPT-4-turbo
+- **🔀 Three AI Providers**: Choose between Google Gemini, OpenAI GPT-4V, or local Ollama processing
+- **🎯 GPT-4o Support**: Latest OpenAI model with enhanced vision capabilities and improved accuracy
+- **🔧 Unified Provider Interface**: Seamless switching between all three AI providers through factory pattern
+- **🔐 Enhanced Security**: Secure API key storage with encryption for all providers
+- **⚡ Advanced Error Handling**: Robust retry logic, exponential backoff, and rate limiting for OpenAI API
+
+### Enhanced
+- **🎛️ Provider Selection**: Updated UI with three-way provider selection (Gemini/OpenAI/Ollama)
+- **📊 Provider Status**: Real-time connection testing and status indicators for all providers
+- **🔄 Smart Fallbacks**: Intelligent error recovery and retry mechanisms
+- **📈 Performance**: Optimized request handling and response parsing across all providers
+- **🌐 Industry Standards**: OpenAI Chat Completions API integration following best practices
+
+### Technical
+- **New Files**: Complete OpenAI API implementation with vision model support
+- **Enhanced Architecture**: Provider factory pattern supporting three distinct AI services
+- **API Compliance**: Full OpenAI Chat Completions API integration with image analysis
+- **Response Processing**: Advanced JSON parsing with markdown code block extraction
+- **Rate Limiting**: Intelligent request throttling respecting provider-specific limits
+- **Backward Compatibility**: Seamless migration from previous versions
+
+### Provider Comparison
+- **Google Gemini**: Free tier available, excellent quality, Google's latest AI
+- **OpenAI GPT-4V**: Industry-leading vision model, pay-per-use (~$0.01-0.03/image), premium quality  
+- **Ollama**: Complete privacy, no internet required, free after download, local processing
+
+### Breaking Changes
+- **None**: Existing Gemini and Ollama configurations continue working without changes
+- **Version Jump**: Major version increment (4.x → 5.x) reflects significant new capabilities
+
+### Migration Notes
+- Existing users: Plugin will continue using your current provider (Gemini/Ollama)
+- New OpenAI option: Available in provider dropdown after installation
+- No configuration changes required for current users
+- OpenAI requires API key with billing enabled (pay-per-use model)
+
+---
+
 ## [4.0.0] - 2025-07-29
 
 ### Added
