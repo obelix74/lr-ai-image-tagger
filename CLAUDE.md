@@ -100,6 +100,11 @@ For deployment, plugin is packaged in `dist/ai-lr-tagimg-v#{version}.zip` and di
 - rake package
 - Upload package to GitHub release and update docs/index.html
 
+### Download Links
+- Always use raw GitHub links for direct file downloads, not release page links
+- Format: `https://github.com/obelix74/lr-ai-image-tagger/raw/refs/heads/main/dist/ai-lr-tagimg-v#{version}.zip`
+- This ensures immediate availability without requiring GitHub release publication
+
 ## Release Process
 
 ### Updating Version for Release
