@@ -505,8 +505,8 @@
             <h2><i class="fas fa-download"></i> Download Lightroom Plugin</h2>
             <p style="font-size: 1.2rem; margin-bottom: 2rem;">Get the latest version of the AI Image Tagger plugin for Adobe Lightroom Classic</p>
 
-            <a href="https://github.com/obelix74/lr-ai-image-tagger/raw/refs/heads/main/dist/ai-lr-tagimg-v6.0.0.zip" class="download-button">
-                <i class="fas fa-download"></i> Download v6.0.0 (Latest)
+            <a href="https://github.com/obelix74/lr-ai-image-tagger/raw/refs/heads/main/dist/ai-lr-tagimg-v6.0.1.zip" class="download-button">
+                <i class="fas fa-download"></i> Download v6.0.1 (Latest)
             </a>
 
             <div style="margin-top: 2rem; opacity: 0.9;">
@@ -525,41 +525,57 @@
             </h2>
             
             <div style="max-width: 900px; margin: 0 auto;">
-                <!-- Version 5.0.0 -->
+                <!-- Version 6.0.0 -->
                 <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #dc3545;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3 style="color: #dc3545; margin: 0; font-size: 1.5rem;">
-                            <i class="fas fa-star"></i> Version 5.0.0 - Major Release
+                            <i class="fas fa-star"></i> Version 6.0.0 - Major Release
                         </h3>
                         <span style="background: #dc3545; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">LATEST</span>
                     </div>
-                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Revolutionary update with OpenAI GPT-4V integration - Three AI providers in one plugin!</p>
-                    
+                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Critical Gemini API compatibility update - Fixes empty results with new Gemini 2.5 models</p>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                         <div>
-                            <h4 style="color: #dc3545; margin-bottom: 0.5rem;"><i class="fas fa-plus-circle"></i> New Features</h4>
+                            <h4 style="color: #dc3545; margin-bottom: 0.5rem;"><i class="fas fa-bug"></i> Critical Fixes</h4>
                             <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
-                                <li><strong>OpenAI GPT-4V Support:</strong> World-class image analysis with OpenAI's vision models</li>
-                                <li><strong>Three AI Providers:</strong> Choose between Gemini, OpenAI, or Ollama</li>
-                                <li><strong>GPT-4o Integration:</strong> Latest OpenAI model with enhanced vision capabilities</li>
-                                <li><strong>Unified Interface:</strong> Seamless switching between all providers</li>
+                                <li><strong>Gemini API Update:</strong> Fixed compatibility with new Gemini 2.5 models</li>
+                                <li><strong>Empty Results Fixed:</strong> Resolved MAX_TOKENS response truncation issue</li>
+                                <li><strong>Response Parsing:</strong> Enhanced parsing for new API response format</li>
+                                <li><strong>JSON Handling:</strong> Improved truncated response recovery</li>
                             </ul>
                         </div>
                         <div>
                             <h4 style="color: #ffc107; margin-bottom: 0.5rem;"><i class="fas fa-wrench"></i> Technical Improvements</h4>
                             <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
-                                <li><strong>Provider Factory:</strong> Clean architecture supporting multiple AI services</li>
-                                <li><strong>Enhanced Error Handling:</strong> Robust retry logic and rate limiting</li>
-                                <li><strong>Secure API Storage:</strong> Encrypted key management for all providers</li>
-                                <li><strong>Production Ready:</strong> Fully tested and validated integration</li>
+                                <li><strong>Token Limit:</strong> Increased from 1024 to 4096 tokens</li>
+                                <li><strong>Error Handling:</strong> Better finish reason detection (MAX_TOKENS, SAFETY)</li>
+                                <li><strong>Multi-format Support:</strong> Handles old and new Gemini response formats</li>
+                                <li><strong>Robust Parsing:</strong> 5-method comprehensive text extraction</li>
                             </ul>
                         </div>
                     </div>
-                    
-                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-                        <strong><i class="fas fa-info-circle"></i> What's New:</strong>
-                        <span style="color: #666; margin-left: 0.5rem;">This major release adds OpenAI GPT-4V as a third AI provider option alongside existing Gemini and Ollama support. Users can now choose the best AI service for their workflow - cloud-based Gemini/OpenAI for convenience or local Ollama for privacy.</span>
+
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 3px solid #ffc107;">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Important Update:</strong>
+                        <span style="color: #666; margin-left: 0.5rem;">This release fixes critical issues with Gemini 2.5 Flash/Pro models that were causing empty results. Users experiencing "empty results" should update immediately. All three AI providers (Gemini, OpenAI, Ollama) now work reliably.</span>
                     </div>
+                </div>
+
+                <!-- Version 5.0.0 -->
+                <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #6c757d;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #6c757d; margin: 0; font-size: 1.3rem;">
+                            <i class="fas fa-tag"></i> Version 5.0.0 - Major Release
+                        </h3>
+                    </div>
+                    <p style="color: #666; margin-bottom: 1rem; font-style: italic;">Revolutionary update with OpenAI GPT-4V integration - Three AI providers in one plugin!</p>
+                    <ul style="color: #555; padding-left: 1.5rem; margin: 0; font-size: 0.9rem;">
+                        <li><strong>OpenAI GPT-4V Support:</strong> World-class image analysis with OpenAI's vision models</li>
+                        <li><strong>Three AI Providers:</strong> Choose between Gemini, OpenAI, or Ollama</li>
+                        <li><strong>GPT-4o Integration:</strong> Latest OpenAI model with enhanced vision capabilities</li>
+                        <li><strong>Unified Interface:</strong> Seamless switching between all providers</li>
+                    </ul>
                 </div>
 
                 <!-- Version 4.0.3 -->

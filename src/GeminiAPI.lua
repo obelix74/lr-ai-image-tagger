@@ -249,29 +249,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 			if prefs.includeGpsExifData and photoObject then
 				local metadata = extractMetadata( photoObject )
 				if metadata then
-					-- Log what metadata we're sending to Gemini
-					logger:infof( "GeminiAPI: Including EXIF/GPS metadata in analysis:" )
-					logger:infof( "  GPS: %s", metadata.gps or "none" )
-					if metadata.settings then
-						local settings = {}
-						if metadata.settings.focalLength then table.insert( settings, metadata.settings.focalLength ) end
-						if metadata.settings.aperture then table.insert( settings, metadata.settings.aperture ) end
-						if metadata.settings.shutterSpeed then table.insert( settings, metadata.settings.shutterSpeed ) end
-						if metadata.settings.iso then table.insert( settings, "ISO " .. metadata.settings.iso ) end
-						if metadata.settings.flash then table.insert( settings, "Flash: " .. metadata.settings.flash ) end
-					else
-						logger:infof( "  Settings: none" )
-					end
-					if metadata.location then
-						local locationParts = {}
-						if metadata.location.city then table.insert(locationParts, metadata.location.city) end
-						if metadata.location.stateProvince then table.insert(locationParts, metadata.location.stateProvince) end
-						if metadata.location.country then table.insert(locationParts, metadata.location.country) end
-						if metadata.location.location then table.insert(locationParts, metadata.location.location) end
-						logger:infof( "  Location: %s", #locationParts > 0 and table.concat(locationParts, ", ") or "none" )
-					else
-						logger:infof( "  Location: none" )
-					end
 					
 					prompt = prompt .. "\n\nAdditional context from photo metadata:\n"
 					
@@ -371,8 +348,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 			end
 			
 			if resBody then
-				logger:infof( "GeminiAPI: Response body received, length: %d", string.len(resBody) )
-				logger:infof( "GeminiAPI: Response status: %s", tostring(resHeaders.status) )
 
 				local resJson = JSON:decode( resBody )
 				if not resJson then
@@ -389,17 +364,12 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 					local results = { status = true }
 					
 					-- Parse the response
-					logger:infof( "GeminiAPI: Response has candidates: %s", tostring(resJson.candidates ~= nil) )
-					if resJson.candidates then
-						logger:infof( "GeminiAPI: Number of candidates: %d", #resJson.candidates )
-					end
 
 					if resJson.candidates and #resJson.candidates > 0 then
 						local candidate = resJson.candidates[1]
 
 						-- Check finish reason for issues
 						if candidate.finishReason then
-							logger:infof( "GeminiAPI: Finish reason: %s", candidate.finishReason )
 							if candidate.finishReason == "MAX_TOKENS" then
 								logger:warnf( "GeminiAPI: Response truncated due to token limit (MAX_TOKENS)" )
 								return { status = false, message = "Response truncated due to token limit. Try a shorter prompt or increase maxOutputTokens." }
@@ -408,14 +378,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 								return { status = false, message = "Response blocked by safety filters" }
 							elseif candidate.finishReason ~= "STOP" then
 								logger:warnf( "GeminiAPI: Unexpected finish reason: %s", candidate.finishReason )
-							end
-						end
-
-						logger:infof( "GeminiAPI: Candidate has content: %s", tostring(candidate.content ~= nil) )
-						if candidate.content then
-							logger:infof( "GeminiAPI: Content has parts: %s", tostring(candidate.content.parts ~= nil) )
-							if candidate.content.parts then
-								logger:infof( "GeminiAPI: Number of parts: %d", #candidate.content.parts )
 							end
 						end
 
@@ -464,7 +426,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 						end
 
 						if responseText then
-							logger:infof( "GeminiAPI: Found response text, length: %d", string.len(responseText) )
 
 							-- Validate JSON completeness before parsing
 							local jsonStart = responseText:find("{")
@@ -472,11 +433,9 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 
 							if not jsonStart then
 								logger:errorf( "GeminiAPI: No JSON object found in response" )
-								logger:infof( "GeminiAPI: Raw response text: %s", responseText )
 								responseText = nil
 							elseif not jsonEnd then
-								logger:warnf( "GeminiAPI: JSON appears incomplete (no closing brace found)" )
-								logger:infof( "GeminiAPI: Partial response before fix: %s", responseText )
+								logger:warnf( "GeminiAPI: JSON appears incomplete, attempting to fix" )
 
 								-- Try to fix truncated JSON intelligently
 								local fixed = false
@@ -490,7 +449,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 										-- Close the string and object
 										responseText = beforeQuote .. '""}'
 										fixed = true
-										logger:infof( "GeminiAPI: Fixed unclosed string, result: %s", responseText )
 									end
 								end
 
@@ -500,17 +458,14 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 									if lastComma then
 										local truncateAt = string.len(responseText) - lastComma + 1
 										responseText = responseText:sub(1, truncateAt - 1) .. "}"
-										logger:infof( "GeminiAPI: Fixed at last comma, result: %s", responseText )
 									else
 										-- Last resort: try to close with minimal valid JSON
 										local lastColon = responseText:reverse():find(":")
 										if lastColon then
 											local truncateAt = string.len(responseText) - lastColon + 1
 											responseText = responseText:sub(1, truncateAt - 1) .. '""}'
-											logger:infof( "GeminiAPI: Fixed at last colon, result: %s", responseText )
 										else
 											responseText = responseText .. '""}'
-											logger:infof( "GeminiAPI: Basic fix applied, result: %s", responseText )
 										end
 									end
 								end
@@ -524,7 +479,6 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 
 								if not success then
 									logger:errorf( "GeminiAPI: JSON parsing failed: %s", tostring(analysisResult) )
-									logger:infof( "GeminiAPI: Failed to parse: %s", responseText )
 									analysisResult = nil
 								end
 
