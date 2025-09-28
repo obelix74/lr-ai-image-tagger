@@ -40,7 +40,7 @@ local serviceBaseUri = "https://generativelanguage.googleapis.com/v1beta"
 local function getServiceModel()
 	local LrPrefs = import "LrPrefs"
 	local prefs = LrPrefs.prefsForPlugin()
-	return prefs.geminiModel or "gemini-1.5-flash"
+	return prefs.geminiModel or "gemini-2.5-flash"
 end
 local serviceMaxRetries = 2
 
@@ -352,7 +352,7 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 					responseMimeType = "application/json",
 					temperature = 0.4,
 					topP = 0.8,
-					maxOutputTokens = 1024
+					maxOutputTokens = 4096
 				}
 			}
 			
@@ -371,7 +371,17 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 			end
 			
 			if resBody then
+				logger:infof( "GeminiAPI: Response body received, length: %d", string.len(resBody) )
+				logger:infof( "GeminiAPI: Response status: %s", tostring(resHeaders.status) )
+
 				local resJson = JSON:decode( resBody )
+				if not resJson then
+					logger:errorf( "GeminiAPI: Failed to parse JSON response" )
+					logger:infof( "GeminiAPI: Raw response: %s", resBody )
+					return { status = false, message = "Failed to parse JSON response" }
+				end
+
+
 				if resHeaders.status == 401 then
 					logger:warnf( "GeminiAPI: authorization failure, invalid API key" )
 					return { status = false, message = "Invalid API key" }
@@ -379,11 +389,144 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 					local results = { status = true }
 					
 					-- Parse the response
+					logger:infof( "GeminiAPI: Response has candidates: %s", tostring(resJson.candidates ~= nil) )
+					if resJson.candidates then
+						logger:infof( "GeminiAPI: Number of candidates: %d", #resJson.candidates )
+					end
+
 					if resJson.candidates and #resJson.candidates > 0 then
 						local candidate = resJson.candidates[1]
+
+						-- Check finish reason for issues
+						if candidate.finishReason then
+							logger:infof( "GeminiAPI: Finish reason: %s", candidate.finishReason )
+							if candidate.finishReason == "MAX_TOKENS" then
+								logger:warnf( "GeminiAPI: Response truncated due to token limit (MAX_TOKENS)" )
+								return { status = false, message = "Response truncated due to token limit. Try a shorter prompt or increase maxOutputTokens." }
+							elseif candidate.finishReason == "SAFETY" then
+								logger:warnf( "GeminiAPI: Response blocked by safety filters" )
+								return { status = false, message = "Response blocked by safety filters" }
+							elseif candidate.finishReason ~= "STOP" then
+								logger:warnf( "GeminiAPI: Unexpected finish reason: %s", candidate.finishReason )
+							end
+						end
+
+						logger:infof( "GeminiAPI: Candidate has content: %s", tostring(candidate.content ~= nil) )
+						if candidate.content then
+							logger:infof( "GeminiAPI: Content has parts: %s", tostring(candidate.content.parts ~= nil) )
+							if candidate.content.parts then
+								logger:infof( "GeminiAPI: Number of parts: %d", #candidate.content.parts )
+							end
+						end
+
+						-- Handle both old format (content.parts[].text) and new format (content.text or similar)
+						local responseText = nil
+
+						-- Method 1: Standard parts array format
 						if candidate.content and candidate.content.parts and #candidate.content.parts > 0 then
-							local responseText = candidate.content.parts[1].text
-							local analysisResult = JSON:decode( responseText )
+							-- Check each part for text content
+							for i, part in ipairs(candidate.content.parts) do
+								if part.text and part.text ~= "" then
+									responseText = part.text
+									break
+								end
+							end
+						end
+
+						-- Method 2: Direct content.text field
+						if not responseText and candidate.content and candidate.content.text then
+							responseText = candidate.content.text
+						end
+
+						-- Method 3: Look for any text field in content
+						if not responseText and candidate.content then
+							for key, value in pairs(candidate.content) do
+								if type(value) == "string" and value ~= "" and key:lower():find("text") then
+									responseText = value
+									break
+								end
+							end
+						end
+
+						-- Method 4: Look for text field directly in candidate
+						if not responseText and candidate.text then
+							responseText = candidate.text
+						end
+
+						-- Method 5: Look for any text field at candidate level
+						if not responseText then
+							for key, value in pairs(candidate) do
+								if type(value) == "string" and value ~= "" and key:lower():find("text") then
+									responseText = value
+									break
+								end
+							end
+						end
+
+						if responseText then
+							logger:infof( "GeminiAPI: Found response text, length: %d", string.len(responseText) )
+
+							-- Validate JSON completeness before parsing
+							local jsonStart = responseText:find("{")
+							local jsonEnd = responseText:find("}[^}]*$")
+
+							if not jsonStart then
+								logger:errorf( "GeminiAPI: No JSON object found in response" )
+								logger:infof( "GeminiAPI: Raw response text: %s", responseText )
+								responseText = nil
+							elseif not jsonEnd then
+								logger:warnf( "GeminiAPI: JSON appears incomplete (no closing brace found)" )
+								logger:infof( "GeminiAPI: Partial response before fix: %s", responseText )
+
+								-- Try to fix truncated JSON intelligently
+								local fixed = false
+
+								-- Check if we have an unclosed string (ends with quote and no closing quote)
+								local lastQuote = responseText:match('.*"([^"]*)')
+								if lastQuote then
+									-- Find the field name before the unclosed string
+									local beforeQuote = responseText:match('(.*)"[^"]*$')
+									if beforeQuote then
+										-- Close the string and object
+										responseText = beforeQuote .. '""}'
+										fixed = true
+										logger:infof( "GeminiAPI: Fixed unclosed string, result: %s", responseText )
+									end
+								end
+
+								if not fixed then
+									-- Fallback: find last complete field and close object
+									local lastComma = responseText:reverse():find(",")
+									if lastComma then
+										local truncateAt = string.len(responseText) - lastComma + 1
+										responseText = responseText:sub(1, truncateAt - 1) .. "}"
+										logger:infof( "GeminiAPI: Fixed at last comma, result: %s", responseText )
+									else
+										-- Last resort: try to close with minimal valid JSON
+										local lastColon = responseText:reverse():find(":")
+										if lastColon then
+											local truncateAt = string.len(responseText) - lastColon + 1
+											responseText = responseText:sub(1, truncateAt - 1) .. '""}'
+											logger:infof( "GeminiAPI: Fixed at last colon, result: %s", responseText )
+										else
+											responseText = responseText .. '""}'
+											logger:infof( "GeminiAPI: Basic fix applied, result: %s", responseText )
+										end
+									end
+								end
+							end
+
+							if responseText then
+								-- Protected JSON parsing with error handling
+								local success, analysisResult = pcall(function()
+									return JSON:decode( responseText )
+								end)
+
+								if not success then
+									logger:errorf( "GeminiAPI: JSON parsing failed: %s", tostring(analysisResult) )
+									logger:infof( "GeminiAPI: Failed to parse: %s", responseText )
+									analysisResult = nil
+								end
 
 							if analysisResult then
 								results.title = analysisResult.title or ""
@@ -412,6 +555,7 @@ function GeminiAPI.analyze( fileName, photo, photoObject )
 								results.copyright = ""
 								results.location = ""
 								results.keywords = {}
+							end
 							end
 						else
 							results.title = ""

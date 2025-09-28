@@ -955,7 +955,7 @@ grok_one = function(self, text, start, options)
    end
 
    if text:find('^"', start) then
-      return grok_string(self, text, start, options.etc)
+      return grok_string(self, text, start, options)
 
    elseif text:find('^[-0123456789 ]', start) then
       return grok_number(self, text, start, options)

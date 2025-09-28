@@ -821,8 +821,9 @@ local function sectionsForTopOfDialog( f, propertyTable )
 				f:popup_menu {
 					value = bind { key = propGeminiModel },
 					items = {
-						{ title = "Gemini 1.5 Flash (Fast & Affordable)", value = "gemini-1.5-flash" },
-						{ title = "Gemini 1.5 Pro (Higher Quality)", value = "gemini-1.5-pro" },
+						{ title = "Gemini 2.5 Flash (Best Performance)", value = "gemini-2.5-flash" },
+						{ title = "Gemini 2.5 Pro (Highest Quality)", value = "gemini-2.5-pro" },
+						{ title = "Gemini 2.0 Flash (Fast)", value = "gemini-2.0-flash" },
 					},
 					width_in_chars = 35,
 				},
@@ -830,7 +831,7 @@ local function sectionsForTopOfDialog( f, propertyTable )
 			f:row {
 				fill_horizontal = 1,
 				f:static_text {
-					title = LOC( "$$$/AiTagger/GeminiModel/Help=Flash: Fastest and most affordable. Pro: Better quality, less likely to be overloaded, uses more quota." ),
+					title = LOC( "$$$/AiTagger/GeminiModel/Help=2.5 Flash: Best price-performance balance. 2.5 Pro: Highest quality and thinking mode. 2.0 Flash: Fast and efficient." ),
 					text_color = LrColor( 0.5, 0.5, 0.5 ),
 					width_in_chars = 80,
 					wrap = true,

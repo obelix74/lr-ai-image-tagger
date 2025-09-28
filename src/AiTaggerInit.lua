@@ -135,7 +135,7 @@ end
 
 -- Gemini model selection
 if prefs.geminiModel == nil then
-	prefs.geminiModel = "gemini-1.5-flash"  -- Default to fastest/cheapest model
+	prefs.geminiModel = "gemini-2.5-flash"  -- Default to fastest/cheapest model
 end
 
 -- OpenAI configuration defaults
