@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.1.0] - 2025-01-16
+
+### Added
+- **🔄 Automatic Model Migration**: Users with Gemini 1.5 Flash are automatically upgraded to Gemini 2.5 Flash for better performance
+- **📋 Version Tracking**: Plugin now tracks version history for future automated migrations
+- **⚡ Performance Upgrade**: Default Gemini model upgraded from 1.5 Flash to 2.5 Flash (same cost, better results)
+
+### Enhanced
+- **🔧 Migration System**: Robust version migration framework for seamless future updates
+- **📊 Improved Defaults**: New installations get Gemini 2.5 Flash as the optimal default model
+- **🔍 Migration Logging**: Clear logging of automatic model upgrades for transparency
+
+### Technical
+- **Version Migration Logic**: Automatic detection and upgrade of outdated model preferences
+- **Backward Compatibility**: Existing preferences preserved while upgrading critical settings
+- **Future-Proof**: Foundation for automated configuration updates in future releases
+
+### Migration Notes
+- **Existing 1.5 Flash users**: Automatically upgraded to 2.5 Flash on plugin load
+- **Other models**: No changes to existing Gemini 2.0 Flash, 2.5 Pro, or other provider settings
+- **No action required**: Migration happens transparently on next Lightroom restart
+
+---
+
 ## [5.0.0] - 2025-08-16
 
 ### Added

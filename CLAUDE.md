@@ -69,7 +69,7 @@ rake clobber
 ## API Integration
 
 ### Google Gemini AI
-- Uses Gemini 1.5 Flash model
+- Uses Gemini 2.5 Flash model (default)
 - API endpoint: `https://generativelanguage.googleapis.com/v1beta`
 - Rate limiting: 15 requests/minute, 1,500 requests/day (free tier)
 - Supports custom prompts and preset templates

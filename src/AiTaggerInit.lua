@@ -59,6 +59,20 @@ prefs.maxKeywords = 10
 prefs.thumbnailWidth = 1600
 prefs.thumbnailHeight = 1600
 
+-- Version migration logic
+-- Track plugin version for future migrations
+local CURRENT_PLUGIN_VERSION = "6.1.0"
+if prefs.pluginVersion == nil then
+	prefs.pluginVersion = CURRENT_PLUGIN_VERSION
+end
+
+-- Migrate Gemini 1.5 Flash users to 2.5 Flash (better performance, same cost)
+if prefs.geminiModel == "gemini-1.5-flash" then
+	logger:infof("Migrating Gemini model from 1.5 Flash to 2.5 Flash for better performance")
+	prefs.geminiModel = "gemini-2.5-flash"
+	prefs.pluginVersion = CURRENT_PLUGIN_VERSION
+end
+
 if prefs.decorateKeyword == nil then
 	prefs.decorateKeyword = AiTaggerConstants.decorateKeywordAsIs
 	prefs.decorateKeywordValue = nil
